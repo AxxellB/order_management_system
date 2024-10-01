@@ -51,7 +51,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function __construct()
     {
-        $this->addressesList = new ArrayCollection();
         $this->addresses = new ArrayCollection();
     }
 
