@@ -29,18 +29,33 @@ class Product
     #[ORM\Column]
     private ?int $stockQuantity = 0;
 
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $deletedAt = null;
+
     /**
      * @var Collection<int, Category>
      */
     #[ORM\ManyToMany(targetEntity: Category::class, mappedBy: 'products')]
     private Collection $categories;
 
-    #[ORM\Column(nullable: true)]
-    private ?\DateTimeImmutable $deletedAt = null;
+    /**
+     * @var Collection<int, OrderProduct>
+     */
+    #[ORM\OneToMany(targetEntity: OrderProduct::class, mappedBy: 'ProductEntity')]
+    private Collection $orderProducts;
+
+    /**
+     * @var Collection<int, BasketProduct>
+     */
+    #[ORM\OneToMany(targetEntity: BasketProduct::class, mappedBy: 'product')]
+    private Collection $basketProducts;
+
 
     public function __construct()
     {
         $this->categories = new ArrayCollection();
+        $this->orderProducts = new ArrayCollection();
+        $this->basketProducts = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -96,6 +111,19 @@ class Product
         return $this;
     }
 
+
+    public function getDeletedAt(): ?\DateTimeImmutable
+    {
+        return $this->deletedAt;
+    }
+
+    public function setDeletedAt(?\DateTimeImmutable $deletedAt): static
+    {
+        $this->deletedAt = $deletedAt;
+
+        return $this;
+    }
+
     /**
      * @return Collection<int, Category>
      */
@@ -123,15 +151,65 @@ class Product
         return $this;
     }
 
-    public function getDeletedAt(): ?\DateTimeImmutable
+    /**
+     * @return Collection<int, OrderProduct>
+     */
+    public function getOrderProducts(): Collection
     {
-        return $this->deletedAt;
+        return $this->orderProducts;
     }
 
-    public function setDeletedAt(?\DateTimeImmutable $deletedAt): static
+    public function addOrderProduct(OrderProduct $orderProduct): static
     {
-        $this->deletedAt = $deletedAt;
+        if (!$this->orderProducts->contains($orderProduct)) {
+            $this->orderProducts->add($orderProduct);
+            $orderProduct->setProductEntity($this);
+        }
 
         return $this;
     }
+
+    public function removeOrderProduct(OrderProduct $orderProduct): static
+    {
+        if ($this->orderProducts->removeElement($orderProduct)) {
+            // set the owning side to null (unless already changed)
+            if ($orderProduct->getProductEntity() === $this) {
+                $orderProduct->setProductEntity(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, BasketProduct>
+     */
+    public function getBasketProducts(): Collection
+    {
+        return $this->basketProducts;
+    }
+
+    public function addBasketProduct(BasketProduct $basketProduct): static
+    {
+        if (!$this->basketProducts->contains($basketProduct)) {
+            $this->basketProducts->add($basketProduct);
+            $basketProduct->setProduct($this);
+        }
+
+        return $this;
+    }
+
+    public function removeBasketProduct(BasketProduct $basketProduct): static
+    {
+        if ($this->basketProducts->removeElement($basketProduct)) {
+            // set the owning side to null (unless already changed)
+            if ($basketProduct->getProduct() === $this) {
+                $basketProduct->setProduct(null);
+            }
+        }
+
+        return $this;
+    }
+
+
 }
