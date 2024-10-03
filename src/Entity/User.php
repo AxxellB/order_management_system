@@ -194,6 +194,33 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    public function updateAddress(Address $oldAddress, array $newAddress): static
+    {
+        if ($this->addresses->contains($oldAddress)) {
+
+            if (isset($newAddress['line'])) {
+                $oldAddress->setLine($newAddress['street']);
+            }
+
+            if (isset($newAddress['city'])) {
+                $oldAddress->setCity($newAddress['city']);
+            }
+
+            if (isset($newAddress['postalCode'])) {
+                $oldAddress->setPostCode($newAddress['postalCode']);
+            }
+
+            if (isset($newAddress['country'])) {
+                $oldAddress->setCountry($newAddress['country']);
+            }
+
+        } else {
+            throw new \Exception('Address not found for this user.');
+        }
+
+        return $this;
+    }
+
     public function removeAddress(Address $address): static
     {
         if ($this->addresses->removeElement($address)) {
