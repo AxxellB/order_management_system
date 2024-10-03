@@ -23,7 +23,7 @@ class Product
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
     private ?string $price = null;
 
-    #[ORM\Column(type: Types::TEXT)]
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $description = null;
 
     #[ORM\Column]
@@ -32,11 +32,7 @@ class Product
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $deletedAt = null;
 
-    /**
-     * @var Collection<int, Category>
-     */
-    #[ORM\ManyToMany(targetEntity: Category::class, mappedBy: 'products')]
-    private Collection $categories;
+
 
     /**
      * @var Collection<int, OrderProduct>
@@ -50,14 +46,19 @@ class Product
     #[ORM\OneToMany(targetEntity: BasketProduct::class, mappedBy: 'product')]
     private Collection $basketProducts;
 
-
+    /**
+     * @var Collection<int, Category>
+     */
+    #[ORM\ManyToMany(targetEntity: Category::class, inversedBy: 'products')]
+    private Collection $categories;
 
 
     public function __construct()
     {
-        $this->categories = new ArrayCollection();
+
         $this->orderProducts = new ArrayCollection();
         $this->basketProducts = new ArrayCollection();
+        $this->categories = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -127,33 +128,6 @@ class Product
     }
 
     /**
-     * @return Collection<int, Category>
-     */
-    public function getCategories(): Collection
-    {
-        return $this->categories;
-    }
-
-    public function addCategory(Category $category): static
-    {
-        if (!$this->categories->contains($category)) {
-            $this->categories->add($category);
-            $category->addProduct($this);
-        }
-
-        return $this;
-    }
-
-    public function removeCategory(Category $category): static
-    {
-        if ($this->categories->removeElement($category)) {
-            $category->removeProduct($this);
-        }
-
-        return $this;
-    }
-
-    /**
      * @return Collection<int, OrderProduct>
      */
     public function getOrderProducts(): Collection
@@ -209,6 +183,30 @@ class Product
                 $basketProduct->setProduct(null);
             }
         }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Category>
+     */
+    public function getCategories(): Collection
+    {
+        return $this->categories;
+    }
+
+    public function addCategory(Category $category): static
+    {
+        if (!$this->categories->contains($category)) {
+            $this->categories->add($category);
+        }
+
+        return $this;
+    }
+
+    public function removeCategory(Category $category): static
+    {
+        $this->categories->removeElement($category);
 
         return $this;
     }

@@ -1,0 +1,35 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Homepage{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+
+{% endblock %}
+
+{% block body %}
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">Homepage</h1>
+
+        {% for category in categories %}
+            <div class="category-section">
+                <h2 class="category-title">{{ category.name }}</h2>
+
+                <div class="product-grid">
+                    {% for product in category.products %}
+                        <div class="product-card">
+
+                            <div class="product-card-body">
+                                <h5 class="product-title">{{ product.name }}</h5>
+                                <p class="product-price">{{ product.price|number_format(2, '.', ',') }} $</p>
+
+                            </div>
+                        </div>
+                    {% else %}
+                        <p class="text-center">No products available in this category.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}
