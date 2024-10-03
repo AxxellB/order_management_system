@@ -33,8 +33,6 @@ class Order
     #[ORM\Column(type: 'string', enumType: OrderStatus::class)]
     private OrderStatus $status;
 
-
-
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $deletedAt = null;
 
