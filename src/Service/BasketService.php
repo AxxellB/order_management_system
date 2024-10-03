@@ -57,6 +57,7 @@ class BasketService
         $basketProduct->setQuantity($quantity);
 
         $this->em->persist($basketProduct);
+        $this->em->persist($basket);
         $this->em->flush();
 
         return $basketProduct;
