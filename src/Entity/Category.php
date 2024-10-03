@@ -19,14 +19,15 @@ class Category
     #[ORM\Column(length: 255)]
     private ?string $name = null;
 
-    /**
-     * @var Collection<int, Product>
-     */
-    #[ORM\ManyToMany(targetEntity: Product::class, inversedBy: 'categories')]
-    private Collection $products;
 
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $deleted_at = null;
+
+    /**
+     * @var Collection<int, Product>
+     */
+    #[ORM\ManyToMany(targetEntity: Product::class, mappedBy: 'categories')]
+    private Collection $products;
 
     public function __construct()
     {
@@ -50,6 +51,19 @@ class Category
         return $this;
     }
 
+
+    public function getDeletedAt(): ?\DateTimeImmutable
+    {
+        return $this->deleted_at;
+    }
+
+    public function setDeletedAt(?\DateTimeImmutable $deleted_at): static
+    {
+        $this->deleted_at = $deleted_at;
+
+        return $this;
+    }
+
     /**
      * @return Collection<int, Product>
      */
@@ -62,6 +76,7 @@ class Category
     {
         if (!$this->products->contains($product)) {
             $this->products->add($product);
+            $product->addCategory($this);
         }
 
         return $this;
@@ -69,19 +84,9 @@ class Category
 
     public function removeProduct(Product $product): static
     {
-        $this->products->removeElement($product);
-
-        return $this;
-    }
-
-    public function getDeletedAt(): ?\DateTimeImmutable
-    {
-        return $this->deleted_at;
-    }
-
-    public function setDeletedAt(?\DateTimeImmutable $deleted_at): static
-    {
-        $this->deleted_at = $deleted_at;
+        if ($this->products->removeElement($product)) {
+            $product->removeCategory($this);
+        }
 
         return $this;
     }
