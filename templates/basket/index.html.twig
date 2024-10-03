@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Basket</title>
+    <style>
+        .basket-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 50px;
+        }
+
+        .basket-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 50%;
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        .product-details {
+            text-align: left;
+            flex-grow: 1;
+        }
+
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            background-color: #007bff;
+            border: none;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background-color: #0056b3;
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+        }
+
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+
+        .clear-basket-section {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .total-box {
+            margin-top: 20px;
+            width: 50%;
+            padding: 20px;
+            background-color: #f1f1f1;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .total-box h3 {
+            margin-bottom: 20px;
+        }
+
+        .checkout-button {
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .checkout-button:hover {
+            background-color: #218838;
+        }
+
+    </style>
+</head>
+<body>
+<div class="basket-container">
+    <h1>Your Basket</h1>
+
+    {% for item in basket.basketProducts %}
+        <div class="basket-item">
+            <div class="product-details">
+                <strong>{{ item.product.name }}</strong><br>
+                Price: {{ item.product.price }}$
+            </div>
+
+            <div class="quantity-controls">
+                <span>Quantity: {{ item.quantity }}</span>
+
+                <form action="{{ path('basket_edit_product', { 'id': item.product.id }) }}" method="post">
+                    <input type="number" name="quantity" value="{{ item.quantity }}" min="1" style="width: 50px;">
+                    <button type="submit" class="btn">Edit</button>
+                </form>
+
+                <form action="{{ path('basket_remove_product', { 'id': item.product.id }) }}" method="post">
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    {% else %}
+        <p>Your basket is empty.</p>
+    {% endfor %}
+
+    <div class="clear-basket-section">
+        <form action="{{ path('basket_clear', { 'id': basket.id }) }}" method="post">
+            <button type="submit" class="btn btn-danger">Clear Basket</button>
+        </form>
+    </div>
+
+    {% if basket.basketProducts|length > 0 %}
+        <div class="total-box">
+            <h3>Total Price:
+                {% set totalPrice = 0 %}
+                {% for item in basket.basketProducts %}
+                    {% set totalPrice = totalPrice + (item.product.price * item.quantity) %}
+                {% endfor %}
+                {{ totalPrice }}$
+            </h3>
+            <button class="checkout-button">Checkout</button>
+        </div>
+    {% endif %}
+</div>
+</body>
+</html>

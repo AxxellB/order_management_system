@@ -1,0 +1,19 @@
+{% extends './base.html.twig' %}
+{% block head %}
+    {{ parent() }}
+    {% block javascripts %}
+        <script src="{{ asset('js/editUser.js') }}"></script>
+    {% endblock %}
+{% endblock %}
+{% block body %}
+    <div class="container">
+        <h1>Profile</h1>
+
+        {{ form_start(form) }}
+        {{ form_widget(form) }}
+        <button class="btn btn-primary">Submit</button>
+        {{ form_end(form) }}
+        <a href="{{ path('user_deactivate') }}" class="btn btn-danger mt-5">Deactivate Account</a>
+    </div>
+{% endblock %}
+
