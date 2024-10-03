@@ -32,8 +32,6 @@ class OrderProduct
     #[ORM\JoinColumn(nullable: false)]
     private ?Product $ProductEntity = null;
 
-
-
     public function __construct()
     {
         $this->subtotal = $this->quantity * $this->pricePerUnit;
@@ -102,6 +100,5 @@ class OrderProduct
 
         return $this;
     }
-
 
 }

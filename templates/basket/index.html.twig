@@ -116,11 +116,13 @@
         <p>Your basket is empty.</p>
     {% endfor %}
 
+    {% if basket.basketProducts|length > 0 %}
     <div class="clear-basket-section">
         <form action="{{ path('basket_clear', { 'id': basket.id }) }}" method="post">
             <button type="submit" class="btn btn-danger">Clear Basket</button>
         </form>
     </div>
+    {% endif %}
 
     {% if basket.basketProducts|length > 0 %}
         <div class="total-box">
