@@ -95,4 +95,9 @@ class Address
         return $this;
     }
 
+    public function getFullAddress(): string
+    {
+        return $this->line . ', ' . $this->city . ', ' . $this->postcode  . ', ' . $this->country;
+    }
+
 }

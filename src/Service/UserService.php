@@ -6,6 +6,7 @@ use App\Entity\Address;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Form\FormInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class UserService
@@ -49,23 +50,27 @@ class UserService
         return $user;
     }
 
-/*    public function editUser(User $user, array $data): void
+    public function editUser(User $user, FormInterface $form): void
     {
-        if (isset($data['password'])) {
-            $hashedPassword = $this->passwordHasher->hashPassword($user, $data['password']);
+        $selectedAddress = $form->get('selectAddress')->getData();
+        if($selectedAddress) {
+            $addressFormData = $form->get('addressDetails')->getData();
+
+            $selectedAddress->setLine($addressFormData->getLine());
+            $selectedAddress->setCity($addressFormData->getCity());
+            $selectedAddress->setCountry($addressFormData->getCountry());
+            $selectedAddress->setPostcode($addressFormData->getPostcode());
+        }
+
+        $plainPassword = $form->get('password')->getData();
+        if ($plainPassword) {
+            $hashedPassword = $this->passwordHasher->hashPassword($user, $plainPassword);
             $user->setPassword($hashedPassword);
         }
 
-        if (isset($data['address'])) {
-            $user->updateAddress($data['address']);
-        }
-
+        $this->entityManager->persist($selectedAddress);
+        $this->entityManager->persist($user);
         $this->entityManager->flush();
-    }*/
-
-    public function verifyPassword(User $user, string $plainPassword): bool
-    {
-        return $this->passwordHasher->isPasswordValid($user, $plainPassword);
     }
 
     public function deleteUser(User $user): void
