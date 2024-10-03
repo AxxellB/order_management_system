@@ -1,7 +1,9 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Basket</title>
+{% extends 'base.html.twig' %}
+
+{% block title %}Basket{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
     <style>
         .basket-container {
             display: flex;
@@ -85,10 +87,10 @@
         .checkout-button:hover {
             background-color: #218838;
         }
-
     </style>
-</head>
-<body>
+{% endblock %}
+
+{% block body %}
 <div class="basket-container">
     <h1>Your Basket</h1>
 
@@ -137,5 +139,4 @@
         </div>
     {% endif %}
 </div>
-</body>
-</html>
+{% endblock %}
