@@ -47,7 +47,7 @@ final class BasketController extends AbstractController
 
         $this->basketService->addProductToBasket($basket, $product, $quantity);
 
-        return $this->redirectToRoute('basket_view');
+        return $this->redirectToRoute('homepage');
     }
 
     #[Route('/remove/{id}', name: 'basket_remove_product', methods: ['POST'])]
