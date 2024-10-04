@@ -1,17 +1,13 @@
 <?php
 namespace App\Service;
 
-use App\Entity\Address;
 use App\Entity\Order;
 use App\Entity\OrderProduct;
-use App\Entity\User;
-use App\Service\BasketService;
 use App\Enum\OrderStatus;
 use App\Repository\BasketRepository;
 use App\Repository\OrderRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Form\FormInterface;
 
 class OrderService
 {
@@ -56,29 +52,6 @@ class OrderService
         $this->entityManager->persist($basket);
         $this->entityManager->flush();
         return $order;
-    }
-
-    public function editUser(User $user, FormInterface $form): void
-    {
-        $selectedAddress = $form->get('selectAddress')->getData();
-        if($selectedAddress) {
-            $addressFormData = $form->get('addressDetails')->getData();
-
-            $selectedAddress->setLine($addressFormData->getLine());
-            $selectedAddress->setCity($addressFormData->getCity());
-            $selectedAddress->setCountry($addressFormData->getCountry());
-            $selectedAddress->setPostcode($addressFormData->getPostcode());
-        }
-
-        $plainPassword = $form->get('password')->getData();
-        if ($plainPassword) {
-            $hashedPassword = $this->passwordHasher->hashPassword($user, $plainPassword);
-            $user->setPassword($hashedPassword);
-        }
-
-        $this->entityManager->persist($selectedAddress);
-        $this->entityManager->persist($user);
-        $this->entityManager->flush();
     }
 
     public function deleteOrder(int $orderId): void
