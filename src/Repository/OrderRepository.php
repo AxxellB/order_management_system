@@ -16,6 +16,14 @@ class OrderRepository extends ServiceEntityRepository
         parent::__construct($registry, Order::class);
     }
 
+    public function findActiveOrders(): array
+    {
+        return $this->createQueryBuilder('o')
+            ->where('o.deletedAt IS NULL')
+            ->getQuery()
+            ->getResult();
+    }
+
 //    /**
 //     * @return Order[] Returns an array of Order objects
 //     */
