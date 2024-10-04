@@ -28,7 +28,7 @@ final class ProductController extends AbstractController
     #[Route('/',name: 'product_index', methods: ['GET'])]
     public function getProducts(): Response
     {
-        $products = $this->productService->getAllProducts();
+        $products = $this->productService->getAll();
 
         return $this->render('product/index.html.twig', [
             'products' => $products,
@@ -93,7 +93,7 @@ final class ProductController extends AbstractController
 
             $product->setDeletedAt(new \DateTimeImmutable());
 
-            $entityManager->flush($product);
+            $entityManager->flush();
         }
 
         return $this->redirectToRoute('product_index', [], Response::HTTP_SEE_OTHER);

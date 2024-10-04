@@ -1,0 +1,26 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Create New Category{% endblock %}
+
+{% block body %}
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">Create New Category</h1>
+
+        <div class="card mt-5">
+            <div class="card-body">
+                {{ form_start(form) }}
+                 <div class="mb-3">
+                    {{ form_label(form.name, 'Category Name' ,{'label_attr': {'class': 'form-label fw-bold'}}) }}
+                    {{ form_widget(form.name, { 'attr': { 'class': 'form-control' } }) }}
+                    {{ form_errors(form.name) }}
+                </div>
+
+                <div class="text-center mt-4">
+                    <button class="btn btn-success" type="submit">Create</button>
+                    <a href="{{ path('category_index') }}" class="btn btn-secondary">Back to list</a>
+                </div>
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </div>
+{% endblock %}
