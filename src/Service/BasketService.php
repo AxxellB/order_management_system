@@ -49,18 +49,22 @@ class BasketService
         return $basket;
     }
 
-    public function addProductToBasket(Basket $basket, Product $product, int $quantity): BasketProduct
+    public function addProductToBasket(Basket $basket, Product $product, int $quantity): void
     {
-        $basketProduct = new BasketProduct();
-        $basketProduct->setBasket($basket);
-        $basketProduct->setProduct($product);
-        $basketProduct->setQuantity($quantity);
+        $basketProduct = $this->em->getRepository(BasketProduct::class)
+            ->findOneBy(['basket' => $basket, 'product' => $product]);
 
-        $this->em->persist($basketProduct);
-        $this->em->persist($basket);
+        if ($basketProduct) {
+            $basketProduct->setQuantity($basketProduct->getQuantity() + $quantity);
+        } else {
+            $basketProduct = new BasketProduct();
+            $basketProduct->setBasket($basket);
+            $basketProduct->setProduct($product);
+            $basketProduct->setQuantity($quantity);
+            $this->em->persist($basketProduct);
+        }
+
         $this->em->flush();
-
-        return $basketProduct;
     }
 
     public function removeProductFromBasket(Basket $basket, Product $product): void
