@@ -135,7 +135,7 @@
                 {% endfor %}
                 {{ totalPrice }}$
             </h3>
-            <button class="checkout-button">Checkout</button>
+            <a href="{{path ('order_create')}}" class="checkout-button">Checkout</a>
         </div>
     {% endif %}
 </div>
