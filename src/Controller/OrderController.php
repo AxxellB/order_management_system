@@ -2,10 +2,12 @@
 
 namespace App\Controller;
 
+use App\Form\OrderEditFormType;
 use App\Repository\OrderRepository;
 use App\Service\OrderService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
@@ -31,11 +33,21 @@ class OrderController extends AbstractController
     }
 
     #[Route('/order_edit/{id}', name: 'order_edit')]
-    public function editOrder(int $id): Response
+    public function editOrder(int $id, Request $request): Response
     {
-        $user = $this->getUser();
-        $this->orderService->createOrder($user);
-        return $this->redirectToRoute('homepage');
+        $order = $this->orderRepository->find($id);
+        $form = $this->createForm(OrderEditFormType::class, $order);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $this->em->flush();
+
+            return $this->redirectToRoute('orders_index', [], Response::HTTP_SEE_OTHER);
+        }
+
+        return $this->render('order/orderEdit.html.twig', [
+            'form' => $form,
+        ]);
     }
 
     #[Route('/order_delete/{id}', name: 'order_delete')]
