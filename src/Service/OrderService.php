@@ -81,14 +81,14 @@ class OrderService
         $this->entityManager->flush();
     }
 
-    public function deleteUser(User $user): void
+    public function deleteOrder(int $orderId): void
     {
-        $user = $this->userRepository->find($user->getId());
-        if(!$user){
-            throw new \Exception("User not found");
+        $order = $this->orderRepository->find($orderId);
+        if(!$order) {
+            throw new \Exception("Order not found");
         }
-        $user->setDeletedAt(new \DateTimeImmutable());
-        $this->entityManager->persist($user);
+        $order->setDeletedAt(new \DateTimeImmutable());
+        $this->entityManager->persist($order);
         $this->entityManager->flush();
     }
 }
