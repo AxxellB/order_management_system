@@ -13,10 +13,12 @@
                         <h5 class="product-title">{{ product.name }}</h5>
                         <p class="product-price">{{ product.price|number_format(2, '.', ',') }} $</p>
 
-                        <form action="{{ path('basket_add_product', {'id': product.id}) }}" method="post">
-                            <input type="hidden" name="quantity" value="1">
-                            <button type="submit" class="btn btn-primary">Buy</button>
-                        </form>
+                        {% if app.user %}
+                            <form action="{{ path('basket_add_product', {'id': product.id}) }}" method="post">
+                                <input type="hidden" name="quantity" value="1">
+                                <button type="submit" class="btn btn-primary">Buy</button>
+                            </form>
+                        {% endif %}
 
                         <div class="product-buttons">
                         </div>
