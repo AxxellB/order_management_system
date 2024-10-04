@@ -16,7 +16,7 @@ class ProductService
         $this->productRepository = $productRepository;
     }
 
-    public function getAllProducts(): array
+    public function getAll(): array
     {
         return $this->productRepository->fondAllNonDeletedProducts();
 

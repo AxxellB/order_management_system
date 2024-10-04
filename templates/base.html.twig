@@ -37,22 +37,25 @@
                     <a class="nav-link" href="{{ path('categories_list') }}">Categories</a>
                 </li>
 
-                {% if is_granted('ROLE_USER') %}
+                {% if is_granted('ROLE_ADMIN') %}
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         Admin
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="adminDropdown">
-                        <li><a class="dropdown-item" href="{{ path('product_index') }}">Products</a></li>
+                        <li><a class="dropdown-item" href="{{ path('product_index') }}">ProductEdit</a></li>
+                        <li><a class="dropdown-item" href="{{ path('category_index') }}">CategoryEdit</a></li>
                         <li><a class="dropdown-item" href="{{ path('orders_index') }}">Orders</a></li>
                     </ul>
                 </li>
+                {% endif %}
 
+                    {% if is_granted('ROLE_USER') %}
                     <li class="nav-item">
                         <a class="nav-link" href="{{ path('user_profile') }}">Profile</a>
                     </li>
+                    {% endif %}
 
-                {% endif %}
 
             </ul>
             <ul class="navbar-nav ms-auto">
