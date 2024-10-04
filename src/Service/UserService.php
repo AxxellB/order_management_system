@@ -33,6 +33,7 @@ class UserService
         $user->setEmail($data->getEmail());
         $hashedPassword = $this->passwordHasher->hashPassword($user, $data->getPassword());
         $user->setPassword($hashedPassword);
+        $user->setRoles(['ROLE_USER']);
 
         $address = new Address();
         $address->setLine($data->getAddresses()[0]->getLine());
