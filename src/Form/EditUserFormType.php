@@ -31,19 +31,6 @@ class EditUserFormType extends AbstractType
                 ],
                 'invalid_message' => 'The password fields must match.',
                 'required' => true,
-            ])
-            ->add('selectAddress', EntityType::class, [
-                'class' => Address::class,
-                'choices' => $options['addresses'],
-                'choice_label' => 'fullAddress',
-                'placeholder' => 'Choose an address',
-                'mapped' => false,
-                'required' => true,
-            ])
-            ->add('addressDetails', AddressFormType::class, [
-                'label' => 'Edit Selected Address',
-                'mapped' => false,
-                'disabled' => false,
             ]);
     }
 

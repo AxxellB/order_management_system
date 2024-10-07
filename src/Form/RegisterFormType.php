@@ -29,10 +29,6 @@ class RegisterFormType extends AbstractType
                 ],
                 'invalid_message' => 'The password fields must match.',
                 'required' => true,
-            ])
-            ->add('addresses', AddressFormType::class, [
-                'label' => 'Address',
-                'mapped' => false,
             ]);
     }
 
