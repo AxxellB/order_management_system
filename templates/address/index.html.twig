@@ -1,20 +1,80 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Hello AddressController!{% endblock %}
+{% block title %}My Addresses{% endblock %}
 
 {% block body %}
-<style>
-    .example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }
-    .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
-</style>
+    <style>
+        .address-wrapper {
+            margin: 1em auto;
+            max-width: 800px;
+            width: 95%;
+            font: 16px/1.5 sans-serif;
+        }
+        .address-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5em;
+        }
+        .address-item {
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .address-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .address-actions button {
+            padding: 5px 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .address-actions button.delete {
+            background-color: #dc3545;
+        }
+        .add-address-btn {
+            margin-top: 20px;
+            padding: 10px 15px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+        }
+    </style>
 
-<div class="example-wrapper">
-    <h1>Hello {{ controller_name }}! ✅</h1>
+    <div class="address-wrapper">
+        <h1>My Addresses</h1>
 
-    This friendly message is coming from:
-    <ul>
-        <li>Your controller at <code>/Users/angel.angelov/Desktop/Project/order_management_system/src/Controller/AddressController.php</code></li>
-        <li>Your template at <code>/Users/angel.angelov/Desktop/Project/order_management_system/templates/address/index.html.twig</code></li>
-    </ul>
-</div>
+        <div class="address-list">
+            {% for address in addresses %}
+                <div class="address-item">
+                    <div class="address-details">
+                        <strong>{{ address.line }}</strong><br>
+                        {% if address.line2 %}
+                            {{ address.line2 }}<br>
+                        {% endif %}
+                        {{ address.city }}, {{ address.postcode }}<br>
+                        {{ address.country }}
+                    </div>
+                    <div class="address-actions">
+                        <button class="edit">Edit</button>
+                        <button class="delete">Delete</button>
+                    </div>
+                </div>
+            {% else %}
+                <p>No addresses found. Add a new one!</p>
+            {% endfor %}
+        </div>
+
+        <button class="add-address-btn">Add New Address</button>
+    </div>
 {% endblock %}
