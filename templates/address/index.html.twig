@@ -10,11 +10,13 @@
             width: 95%;
             font: 16px/1.5 sans-serif;
         }
+
         .address-list {
             display: flex;
             flex-direction: column;
             gap: 1.5em;
         }
+
         .address-item {
             border: 1px solid #ddd;
             padding: 15px;
@@ -24,10 +26,12 @@
             justify-content: space-between;
             align-items: center;
         }
+
         .address-actions {
             display: flex;
             gap: 10px;
         }
+
         .address-actions button {
             padding: 5px 10px;
             background-color: #007bff;
@@ -36,23 +40,45 @@
             border-radius: 5px;
             cursor: pointer;
         }
+
         .address-actions button.delete {
             background-color: #dc3545;
         }
+
         .add-address-btn {
             margin-top: 20px;
             padding: 10px 15px;
             background-color: #28a745;
             color: white;
+            text-decoration: none;
             border: none;
             border-radius: 5px;
             cursor: pointer;
             text-align: center;
         }
+
+        button {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 5px;
+            color: white;
+            background-color: #007bff;
+            text-decoration: none;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
     </style>
 
     <div class="address-wrapper">
-        <h1>My Addresses</h1>
+        <a href="{{ path('user_profile') }}"><button>Profile</button></a>
+        <a href="{{ path('user_security_centre') }}"><button>Security Centre</button></a>
+        <a href="{{ path('user_addresses') }}"><button>Addresses</button></a>
+        <a href="{{ path('user_orders') }}"><button>My Orders</button></a>
 
         <div class="address-list">
             {% for address in addresses %}
@@ -66,8 +92,10 @@
                         {{ address.country }}
                     </div>
                     <div class="address-actions">
-                        <button class="edit">Edit</button>
-                        <button class="delete">Delete</button>
+                        <a href="{{ path('edit_address', { id: address.id }) }}"><button class="edit">Edit</button></a>
+                        <form action="{{ path('delete_address', { id: address.id }) }}" method="POST" style="display:inline;">
+                            <button type="submit" class="delete">Delete</button>
+                        </form>
                     </div>
                 </div>
             {% else %}
@@ -75,6 +103,7 @@
             {% endfor %}
         </div>
 
-        <button class="add-address-btn">Add New Address</button>
+        <a href="{{ path('create_address',) }}"><button class="add-address-btn">Add Address</button></a>
+
     </div>
 {% endblock %}

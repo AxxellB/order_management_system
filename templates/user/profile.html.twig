@@ -29,13 +29,13 @@
     <div class="container">
         <a href="{{ path('user_profile') }}"><button>Profile</button></a>
         <a href="{{ path('user_security_centre') }}"><button>Security Centre</button></a>
-        <a href="{{ path('user_addresses') }}"><button>Adresses</button></a>
+        <a href="{{ path('user_addresses') }}"><button>Addresses</button></a>
+        <a href="{{ path('user_orders') }}"><button>My Orders</button></a>
 
         {{ form_start(form) }}
         {{ form_widget(form) }}
         <button class="btn btn-primary">Submit</button>
         {{ form_end(form) }}
-        <a href="{{ path('user_deactivate') }}" class="btn btn-danger mt-5">Deactivate Account</a>
     </div>
 {% endblock %}
 

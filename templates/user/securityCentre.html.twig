@@ -3,33 +3,30 @@
 {% block stylesheets %}
     {{ parent() }}
     <style>
-        .btn {
+        button {
             display: inline-block;
             padding: 10px 20px;
             margin: 5px;
-            background-color: #007bff;
             color: white;
+            background-color: #007bff;
             text-decoration: none;
             border-radius: 5px;
             border: none;
             cursor: pointer;
         }
 
-        .btn:hover {
+        button:hover {
             background-color: #0056b3;
-        }
-
-        .btn:active {
-            background-color: #004085;
         }
     </style>
 {% endblock %}
 
 {% block body %}
     <div class="container">
-        <a href="{{ path('user_profile') }}" class="btn">Profile</a>
-        <a href="{{ path('user_security_centre') }}" class="btn">Security Centre</a>
-        <a href="{{ path('user_addresses') }}" class="btn">Adresses</a>
+        <a href="{{ path('user_profile') }}"><button>Profile</button></a>
+        <a href="{{ path('user_security_centre') }}"><button>Security Centre</button></a>
+        <a href="{{ path('user_addresses') }}"><button>Addresses</button></a>
+        <a href="{{ path('user_orders') }}"><button>My Orders</button></a>
 
         {{ form_start(form) }}
         {{ form_row(form.email) }}
@@ -49,5 +46,8 @@
         }) }}
         <button class="btn btn-primary">Save changes</button>
         {{ form_end(form) }}
+
+        <a href="{{ path('user_deactivate') }}" class="btn btn-danger mt-5">Deactivate Account</a>
+
     </div>
 {% endblock %}
