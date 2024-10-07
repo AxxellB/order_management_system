@@ -33,7 +33,7 @@ class OrderService
             $totalAmount += $basketProduct->getQuantity() * $productPrice;
         }
         $order->setTotalAmount($totalAmount);
-        $order->setDeliveryAddress($user->getAddresses()[0]->getFullAddress());
+        $order->setDeliveryAddress($user->getAddresses()[0]);
         $order->setPaymentMethod('debit card');
         $order->setStatus(OrderStatus::NEW);
         $this->entityManager->persist($order);
