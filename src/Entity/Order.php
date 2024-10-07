@@ -24,9 +24,6 @@ class Order
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
     private ?string $totalAmount = null;
 
-    #[ORM\Column(length: 255)]
-    private ?string $deliveryAddress = null;
-
     #[ORM\Column(length: 50)]
     private ?string $paymentMethod = null;
 
@@ -45,6 +42,10 @@ class Order
      */
     #[ORM\OneToMany(targetEntity: OrderProduct::class, mappedBy: 'orderEntity')]
     private Collection $orderProducts;
+
+    #[ORM\ManyToOne(inversedBy: 'orders')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Address $deliveryAddress = null;
 
     public function __construct()
     {
@@ -76,18 +77,6 @@ class Order
     public function setTotalAmount(string $totalAmount): static
     {
         $this->totalAmount = $totalAmount;
-
-        return $this;
-    }
-
-    public function getDeliveryAddress(): ?string
-    {
-        return $this->deliveryAddress;
-    }
-
-    public function setDeliveryAddress(string $deliveryAddress): static
-    {
-        $this->deliveryAddress = $deliveryAddress;
 
         return $this;
     }
@@ -166,6 +155,18 @@ class Order
                 $orderProduct->setOrderEntity(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getDeliveryAddress(): ?Address
+    {
+        return $this->deliveryAddress;
+    }
+
+    public function setDeliveryAddress(?Address $deliveryAddress): static
+    {
+        $this->deliveryAddress = $deliveryAddress;
 
         return $this;
     }

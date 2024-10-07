@@ -52,9 +52,6 @@ class UserController extends AbstractController
         $form->handleRequest($request);
 
         if($request->isMethod('POST') && $form->isSubmitted() && $form->isValid()) {
-            $addressData = $form->get('addresses')->getData();
-            $user->addAddress($addressData);
-            $this->userService->createUser($user);
 
             return $this->redirectToRoute('user_login');
         }
@@ -67,11 +64,8 @@ class UserController extends AbstractController
     public function profile(Request $request): Response
     {
         $user = $this->getUser();
-        $addresses = $user->getAddresses();
 
-        $form = $this->createForm(EditUserFormType::class, $user, [
-            'addresses' => $addresses,
-        ]);
+        $form = $this->createForm(EditUserFormType::class, $user);
 
         $form->handleRequest($request);
 

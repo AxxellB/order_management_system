@@ -20,18 +20,17 @@ class EditUserFormType extends AbstractType
         $builder
             ->add('firstName')
             ->add('lastName')
-            ->add('selectAddress', EntityType::class, [
-                'class' => Address::class,
-                'choices' => $options['addresses'],
-                'choice_label' => 'fullAddress',
-                'placeholder' => 'Choose an address',
-                'mapped' => false,
+            ->add('email', EmailType::class)
+            ->add('password', RepeatedType::class, [
+                'type' => PasswordType::class,
+                'first_options' => [
+                    'label' => 'Password',
+                ],
+                'second_options' => [
+                    'label' => 'Confirm Password',
+                ],
+                'invalid_message' => 'The password fields must match.',
                 'required' => true,
-            ])
-            ->add('addressDetails', AddressFormType::class, [
-                'label' => 'Edit Selected Address',
-                'mapped' => false,
-                'disabled' => false,
             ]);
     }
 

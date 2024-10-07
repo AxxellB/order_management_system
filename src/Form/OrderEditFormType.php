@@ -25,10 +25,10 @@ class OrderEditFormType extends AbstractType
                     'Completed' => OrderStatus::COMPLETED,
                 ],
                 'choice_label' => function ($choice, $key, $value) {
-                    return ucfirst($key); // This will show "New", "Processing", etc. as labels
+                    return ucfirst($key);
                 },
                 'choice_value' => function (?OrderStatus $status) {
-                    return $status ? $status->value : null; // Use the enum's string value
+                    return $status ? $status->value : null;
                 },
             ]);
         ;
