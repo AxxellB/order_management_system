@@ -28,14 +28,21 @@ class ProductType extends AbstractType
                 ]
             ])
             ->add('price', MoneyType::class, [
+                'currency' => 'USD',
                 'scale' => 2,
                 'constraints' => [
                     new NotBlank([
                         'message' => 'Please enter the price.'
                     ]),
+                    new Regex([
+                        'pattern' => '/^\d{1,8}(\.\d{2})?$/',
+                        'message' => 'The price must be in the format 00.00 and cannot exceed 8 digits before the decimal point.'
+                    ])
                 ],
                 'attr' => [
                     'step' => '0.01',
+                    'min' => '0.00',
+                    'max' => '99999999.99',
                 ]
             ])
             ->add('description')

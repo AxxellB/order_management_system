@@ -13,6 +13,7 @@ class AddressFormType extends AbstractType
     {
         $builder
             ->add('line')
+            ->add('line2')
             ->add('city')
             ->add('postcode')
             ->add('country');

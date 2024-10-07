@@ -35,16 +35,6 @@ class UserService
         $user->setPassword($hashedPassword);
         $user->setRoles(['ROLE_USER']);
 
-        $address = new Address();
-        $address->setLine($data->getAddresses()[0]->getLine());
-        $address->setCity($data->getAddresses()[0]->getCity());
-        $address->setCountry($data->getAddresses()[0]->getCountry());
-        $address->setPostcode($data->getAddresses()[0]->getPostCode());
-
-        $user->addAddress($address);
-        $address->setUser($user);
-
-        $this->entityManager->persist($address);
         $this->entityManager->persist($user);
         $this->entityManager->flush();
 
@@ -53,15 +43,6 @@ class UserService
 
     public function editUser(User $user, FormInterface $form): void
     {
-        $selectedAddress = $form->get('selectAddress')->getData();
-        if($selectedAddress) {
-            $addressFormData = $form->get('addressDetails')->getData();
-
-            $selectedAddress->setLine($addressFormData->getLine());
-            $selectedAddress->setCity($addressFormData->getCity());
-            $selectedAddress->setCountry($addressFormData->getCountry());
-            $selectedAddress->setPostcode($addressFormData->getPostcode());
-        }
 
         $plainPassword = $form->get('password')->getData();
         if ($plainPassword) {
@@ -69,7 +50,6 @@ class UserService
             $user->setPassword($hashedPassword);
         }
 
-        $this->entityManager->persist($selectedAddress);
         $this->entityManager->persist($user);
         $this->entityManager->flush();
     }
