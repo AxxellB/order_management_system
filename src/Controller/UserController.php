@@ -5,15 +5,19 @@ namespace App\Controller;
 use App\Entity\Address;
 use App\Entity\User;
 use App\Form\EditUserFormType;
+use App\Form\SecurityCentreType;
 use App\Service\UserService;
 use App\Form\RegisterFormType;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Symfony\Component\HttpFoundation\JsonResponse;
+
 
 #[Route(path: '/user')]
 class UserController extends AbstractController
@@ -71,6 +75,38 @@ class UserController extends AbstractController
         }
 
         return $this->render('user/profile.html.twig', [
+            'form' => $form->createView(),
+        ]);
+    }
+
+    #[Route(path: '/me/security-centre', name: 'user_security_centre')]
+    public function securityCentre(Request $request, EntityManagerInterface $entityManager, UserPasswordHasherInterface $passwordHasher): Response
+    {
+        $user = $this->getUser();
+
+        if (!$user) {
+            throw new AccessDeniedHttpException('You must be logged in to access this page.');
+        }
+
+        $form = $this->createForm(SecurityCentreType::class, $user);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $plainPassword = $form->get('password')->getData();
+
+            if ($plainPassword) {
+                $hashedPassword = $passwordHasher->hashPassword($user, $plainPassword);
+                $user->setPassword($hashedPassword);
+            }
+
+            $entityManager->persist($user);
+            $entityManager->flush();
+
+            $this->addFlash('success', 'You have successfully amended your details.');
+            return $this->redirectToRoute('user_security_centre');
+        }
+
+        return $this->render('user/securityCentre.html.twig', [
             'form' => $form->createView(),
         ]);
     }

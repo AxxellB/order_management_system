@@ -1,0 +1,52 @@
+{% extends '/base.html.twig' %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 5px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background-color: #0056b3;
+        }
+
+        .btn:active {
+            background-color: #004085;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="container">
+        <a href="{{ path('user_profile') }}" class="btn">Profile</a>
+        <a href="{{ path('user_security_centre') }}" class="btn">Security Centre</a>
+
+        {{ form_start(form) }}
+        {{ form_row(form.email) }}
+        {{ form_row(form.password.first, {
+            'attr': {
+                'minlength': 8,
+                'pattern': '(?=.*[0-9])(?=.*[a-zA-Z]).{8,}',
+                'title': 'Your password must be at least 8 characters long and contain both letters and numbers.',
+                'required': true
+            }
+        }) }}
+        {{ form_row(form.password.second, {
+            'attr': {
+                'minlength': 8,
+                'required': true
+            }
+        }) }}
+        <button class="btn btn-primary">Save changes</button>
+        {{ form_end(form) }}
+    </div>
+{% endblock %}
