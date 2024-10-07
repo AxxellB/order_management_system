@@ -1,40 +1,38 @@
 {% extends '/base.html.twig' %}
-{% block head %}
-    {{ parent() }}
-    {% block javascripts %}
-        <script src="{{ asset('js/editUser.js') }}"></script>
-    {% endblock %}
-{% endblock %}
+
 {% block stylesheets %}
     {{ parent() }}
     <style>
-        button {
+        .btn {
             display: inline-block;
             padding: 10px 20px;
             margin: 5px;
-            color: white;
             background-color: #007bff;
+            color: white;
             text-decoration: none;
             border-radius: 5px;
             border: none;
             cursor: pointer;
         }
 
-        button:hover {
+        .btn:hover {
             background-color: #0056b3;
+        }
+
+        .btn:active {
+            background-color: #004085;
         }
     </style>
 {% endblock %}
+
 {% block body %}
     <div class="container">
-        <a href="{{ path('user_profile') }}"><button>Profile</button></a>
-        <a href="{{ path('user_security_centre') }}"><button>Security Centre</button></a>
+        <a href="{{ path('user_profile') }}" class="btn">Profile</a>
+        <a href="{{ path('user_security_centre') }}" class="btn">Security Centre</a>
 
         {{ form_start(form) }}
         {{ form_widget(form) }}
-        <button class="btn btn-primary">Submit</button>
+        <button class="btn btn-primary">Save changes</button>
         {{ form_end(form) }}
-        <a href="{{ path('user_deactivate') }}" class="btn btn-danger mt-5">Deactivate Account</a>
     </div>
 {% endblock %}
-
