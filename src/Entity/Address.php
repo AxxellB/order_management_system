@@ -123,7 +123,7 @@ class Address
         return $this;
     }
 
-    public function getFullAddress(): string
+    public function __toString(): string
     {
         return $this->line . ', ' . $this->city . ', ' . $this->postcode  . ', ' . $this->country;
     }
