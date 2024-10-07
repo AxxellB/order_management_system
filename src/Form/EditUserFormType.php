@@ -20,18 +20,7 @@ class EditUserFormType extends AbstractType
         $builder
             ->add('firstName')
             ->add('lastName')
-            ->add('email', EmailType::class)
-            ->add('password', RepeatedType::class, [
-                'type' => PasswordType::class,
-                'first_options' => [
-                    'label' => 'Password',
-                ],
-                'second_options' => [
-                    'label' => 'Confirm Password',
-                ],
-                'invalid_message' => 'The password fields must match.',
-                'required' => true,
-            ]);
+        ;
     }
 
     public function configureOptions(OptionsResolver $resolver): void
