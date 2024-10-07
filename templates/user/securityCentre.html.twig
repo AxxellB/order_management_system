@@ -31,7 +31,21 @@
         <a href="{{ path('user_security_centre') }}" class="btn">Security Centre</a>
 
         {{ form_start(form) }}
-        {{ form_widget(form) }}
+        {{ form_row(form.email) }}
+        {{ form_row(form.password.first, {
+            'attr': {
+                'minlength': 8,
+                'pattern': '(?=.*[0-9])(?=.*[a-zA-Z]).{8,}',
+                'title': 'Your password must be at least 8 characters long and contain both letters and numbers.',
+                'required': true
+            }
+        }) }}
+        {{ form_row(form.password.second, {
+            'attr': {
+                'minlength': 8,
+                'required': true
+            }
+        }) }}
         <button class="btn btn-primary">Save changes</button>
         {{ form_end(form) }}
     </div>
