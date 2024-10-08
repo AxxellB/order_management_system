@@ -3,11 +3,12 @@
 namespace App\Controller;
 
 use App\Entity\Address;
-use App\Entity\Order;
 use App\Entity\User;
 use App\Form\AddressFormType;
 use App\Form\EditUserFormType;
 use App\Form\SecurityCentreType;
+use App\Repository\AddressRepository;
+use App\Service\AddressService;
 use App\Service\UserService;
 use App\Form\RegisterFormType;
 use Doctrine\ORM\EntityManagerInterface;
@@ -21,16 +22,19 @@ use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use function Symfony\Component\String\u;
 
-
 #[Route(path: '/user')]
 class UserController extends AbstractController
 {
     private UserService $userService;
     private EntityManagerInterface $em;
+    private AddressService $addressService;
+    private AddressRepository $addressRepository;
 
-    public function __construct(UserService $userService, EntityManagerInterface $em){
+    public function __construct(UserService $userService, EntityManagerInterface $em, AddressRepository $addressRepository, AddressService $addressService){
         $this->userService = $userService;
         $this->em = $em;
+        $this->addressService = $addressService;
+        $this->addressRepository = $addressRepository;
     }
 
     #[Route(path: '/login', name: 'user_login')]
@@ -153,11 +157,7 @@ class UserController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $user->addAddress($address);
-
-            $this->em->persist($address);
-            $this->em->persist($user);
-            $this->em->flush();
+            $this->addressService->addAddress($user, $address);
 
             $this->addFlash('success', 'You have successfully created a new address.');
             return $this->redirectToRoute('user_addresses');
@@ -181,7 +181,8 @@ class UserController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $this->em->flush();
+            $this->addressService->editAddress($address);
+
             $this->addFlash('success', 'Address updated successfully.');
             return $this->redirectToRoute('user_addresses');
         }
@@ -195,12 +196,12 @@ class UserController extends AbstractController
     public function deleteAddress(Request $request, int $id): Response
     {
         $address = $this->em->getRepository(Address::class)->find($id);
+
         if (!$address) {
             throw $this->createNotFoundException('Address not found');
         }
 
-        $this->em->remove($address);
-        $this->em->flush();
+        $this->addressService->removeAddress($address);
         $this->addFlash('success', 'Address deleted successfully.');
         return $this->redirectToRoute('user_addresses');
     }
