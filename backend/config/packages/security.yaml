@@ -16,13 +16,13 @@ security:
         main:
             lazy: true
             provider: app_user_provider
-            form_login:
-                login_path: user_login
-                check_path: user_login
-                enable_csrf: true
+            json_login:
+                check_path: /api/login
+                username_path: email
+                password_path: password
             logout:
                 path: user_logout
-                target: user_login
+                target: homepage
 
             user_checker: App\Security\UserChecker
 

@@ -28,10 +28,10 @@ class UserService
     public function createUser($data): User
     {
         $user = new User();
-        $user->setFirstName($data->getFirstName());
-        $user->setLastName($data->getLastName());
-        $user->setEmail($data->getEmail());
-        $hashedPassword = $this->passwordHasher->hashPassword($user, $data->getPassword());
+        $user->setFirstName($data['firstName']);
+        $user->setLastName($data['lastName']);
+        $user->setEmail($data['email']);
+        $hashedPassword = $this->passwordHasher->hashPassword($user, $data['password']);
         $user->setPassword($hashedPassword);
         $user->setRoles(['ROLE_USER']);
 
