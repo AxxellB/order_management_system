@@ -11,6 +11,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/categories')]
@@ -106,9 +107,16 @@ final class CategoryController extends AbstractController
     {
         if ($this->isCsrfTokenValid('delete'.$category->getId(), $request->getPayload()->getString('_token'))) {
 
-            $category->setDeletedAt(new \DateTimeImmutable());
+            if ($category->getProducts()->isEmpty()) {
+                $category->setDeletedAt(new \DateTimeImmutable());
+                $entityManager->flush();
 
-            $entityManager->flush();
+                $this->addFlash('success', 'Category has been deleted.');
+            } else {
+                $this->addFlash('error', 'The category contains a product and cannot be deleted.');
+            }
+        } else {
+            $this->addFlash('error', 'Invalid CSRF token.');
         }
 
         return $this->redirectToRoute('category_index', [], Response::HTTP_SEE_OTHER);
