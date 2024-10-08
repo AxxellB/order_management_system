@@ -6,18 +6,29 @@ use Doctrine\ORM\EntityManagerInterface;
 
 class AddressService
 {
-    private EntityManagerInterface $entityManager;
+    private EntityManagerInterface $em;
 
-    public function __construct(EntityManagerInterface $entityManager)
+    public function __construct(EntityManagerInterface $em)
     {
-        $this->entityManager = $entityManager;
+        $this->em = $em;
     }
 
     public function addAddress(User $user, Address $address)
     {
-        $address->setUser($user);
+        $user->addAddress($address);
+        $this->em->persist($address);
+        $this->em->persist($user);
+        $this->em->flush();
+    }
 
-        $this->entityManager->persist($address);
-        $this->entityManager->flush();
+    public function editAddress(Address $address)
+    {
+        $this->em->flush();
+    }
+
+    public function removeAddress(Address $address)
+    {
+        $this->em->remove($address);
+        $this->em->flush();
     }
 }
