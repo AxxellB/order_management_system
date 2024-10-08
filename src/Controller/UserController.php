@@ -3,7 +3,9 @@
 namespace App\Controller;
 
 use App\Entity\Address;
+use App\Entity\Order;
 use App\Entity\User;
+use App\Form\AddressFormType;
 use App\Form\EditUserFormType;
 use App\Form\SecurityCentreType;
 use App\Service\UserService;
@@ -17,6 +19,7 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use function Symfony\Component\String\u;
 
 
 #[Route(path: '/user')]
@@ -133,6 +136,84 @@ class UserController extends AbstractController
             'city' => $address->getCity(),
             'country' => $address->getCountry(),
             'postcode' => $address->getPostcode(),
+        ]);
+    }
+
+    #[Route('/me/create-address', name: 'create_address', methods: ['GET', 'POST'])]
+    public function createAddress(Request $request): Response
+    {
+        $user = $this->getUser();
+
+        if (!$user) {
+            throw new AccessDeniedHttpException('You must be logged in to access this page.');
+        }
+
+        $address = new Address();
+        $form = $this->createForm(AddressFormType::class, $address);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $user->addAddress($address);
+
+            $this->em->persist($address);
+            $this->em->persist($user);
+            $this->em->flush();
+
+            $this->addFlash('success', 'You have successfully created a new address.');
+            return $this->redirectToRoute('user_addresses');
+        }
+
+        return $this->render('address/createAddress.html.twig', [
+            'form' => $form->createView(),
+        ]);
+    }
+
+    #[Route('/me/edit-address/{id}', name: 'edit_address', methods: ['GET', 'POST'])]
+    public function editAddress(Request $request, int $id): Response
+    {
+        $address = $this->em->getRepository(Address::class)->find($id);
+
+        if (!$address) {
+            throw $this->createNotFoundException('Address not found');
+        }
+
+        $form = $this->createForm(AddressFormType::class, $address);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $this->em->flush();
+            $this->addFlash('success', 'Address updated successfully.');
+            return $this->redirectToRoute('user_addresses');
+        }
+
+        return $this->render('address/editAddress.html.twig', [
+            'form' => $form->createView(),
+        ]);
+    }
+
+    #[Route('/me/delete-address/{id}', name: 'delete_address', methods: ['POST'])]
+    public function deleteAddress(Request $request, int $id): Response
+    {
+        $address = $this->em->getRepository(Address::class)->find($id);
+        if (!$address) {
+            throw $this->createNotFoundException('Address not found');
+        }
+
+        $this->em->remove($address);
+        $this->em->flush();
+        $this->addFlash('success', 'Address deleted successfully.');
+        return $this->redirectToRoute('user_addresses');
+    }
+
+    #[Route('/me/orders', name: 'user_orders', methods: ['GET'])]
+    public function viewMyOrders(): Response
+    {
+        $user = $this->getUser();
+
+        $orders = $user->getOrders();
+
+        return $this->render('user/user_orders.html.twig', [
+            'orders' => $orders,
         ]);
     }
 
