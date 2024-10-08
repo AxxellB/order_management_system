@@ -16,15 +16,21 @@ class ProductService
         $this->productRepository = $productRepository;
     }
 
-    public function getAll(): array
+    public function getAllNonDeleted(): array
     {
-        return $this->productRepository->fondAllNonDeletedProducts();
+        return $this->productRepository->findAllNonDeletedProducts();
+
+    }
+
+    public function getAllDeleted(): array
+    {
+        return $this->productRepository->findAllDeletedProducts();
 
     }
 
     public function getProductById(int $id): Product
     {
-        $product = $this->productRepository->fondNonDeletedById($id);
+        $product = $this->productRepository->findById($id);
 
         if (!$product) {
             throw new NotFoundHttpException("Product with ID $id not found.");
@@ -32,4 +38,5 @@ class ProductService
 
         return $product;
     }
+
 }

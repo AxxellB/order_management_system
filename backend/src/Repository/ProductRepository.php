@@ -16,7 +16,7 @@ class ProductRepository extends ServiceEntityRepository
         parent::__construct($registry, Product::class);
     }
 
-    public function fondAllNonDeletedProducts(): array
+    public function findAllNonDeletedProducts(): array
     {
         return $this->createQueryBuilder('p')
             ->andWhere('p.deletedAt IS NULL')
@@ -24,10 +24,17 @@ class ProductRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    public function fondNonDeletedById(int $id): ?Product
+    public function findAllDeletedProducts(): array
     {
         return $this->createQueryBuilder('p')
-            ->andWhere('p.deletedAt IS NULL')
+            ->andWhere('p.deletedAt IS NOT NULL')
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findById(int $id): ?Product
+    {
+        return $this->createQueryBuilder('p')
             ->andWhere('p.id = :id')
             ->setParameter('id', $id)
             ->getQuery()

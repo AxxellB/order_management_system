@@ -4,33 +4,50 @@
 
 {% block stylesheets %}
     {{ parent() }}
-
 {% endblock %}
 
 {% block body %}
     <div class="container mt-5">
         <h1 class="text-center mb-4">Our Products</h1>
 
+        <div class="text-center mb-4">
+            <a href="{{ path('product_index', { status: 'active' }) }}" class="btn btn-primary {% if status == 'active' %}active{% endif %}">
+                Active Products
+            </a>
+            <a href="{{ path('product_index', { status: 'deleted' }) }}" class="btn btn-secondary {% if status == 'deleted' %}active{% endif %}">
+                Deleted Products
+            </a>
+        </div>
+
         <div class="product-grid">
             {% for product in products %}
                 <div class="product-card">
-
                     <div class="product-card-body">
                         <h5 class="product-title">{{ product.name }}</h5>
                         <p class="product-price">{{ product.price|number_format(2, '.', ',') }} $</p>
                         <div class="product-buttons">
                             <a href="{{ path('product_by_id', { id: product.id }) }}" class="btn btn-primary btn-sm">View Details</a>
-                            <a href="{{ path('product_edit', { id: product.id }) }}" class="btn btn-warning btn-sm">Edit</a>
+                            {% if status == 'active' %}
+                                <a href="{{ path('product_edit', { id: product.id }) }}" class="btn btn-warning btn-sm">Edit</a>
+
+                            {% elseif status == 'deleted' %}
+                                <form method="post" action="{{ path('product_delete_restore', {'id': product.id}) }}"  onsubmit="return confirm('Are you sure you want to restore this item?');">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('restore' ~ product.id) }}">
+                                    <button class="btn btn-success">Restore</button>
+                                </form>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
             {% else %}
-                <p class="text-center">No products available.</p>
+                <p class="text-center">No {{ status }} products available.</p>
             {% endfor %}
         </div>
 
-        <div class="text-center mt-4">
-            <a href="{{ path('product_new') }}" class="btn btn-success">Create new</a>
-        </div>
+        {% if status == 'active' %}
+            <div class="text-center mt-4">
+                <a href="{{ path('product_new') }}" class="btn btn-success">Create new</a>
+            </div>
+        {% endif %}
     </div>
 {% endblock %}
