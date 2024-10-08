@@ -4,7 +4,6 @@ namespace App\Controller;
 
 use App\Entity\Product;
 use App\Form\ProductType;
-use App\Repository\ProductRepository;
 use App\Service\ProductService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -18,20 +17,26 @@ final class ProductController extends AbstractController
 
     private ProductService $productService;
 
-
     public function __construct(ProductService $productService)
     {
         $this->productService = $productService;
     }
 
-
     #[Route('/',name: 'product_index', methods: ['GET'])]
-    public function getProducts(): Response
+    public function getProducts(Request $request): Response
     {
-        $products = $this->productService->getAll();
+        $status = $request->query->get('status', 'active');
+
+        if($status === 'deleted'){
+            $products = $this->productService->getAllDeleted();
+        } else{
+            $products = $this->productService->getAllNonDeleted();
+
+        }
 
         return $this->render('product/index.html.twig', [
             'products' => $products,
+            'status' => $status,
         ]);
     }
 
@@ -40,8 +45,11 @@ final class ProductController extends AbstractController
     {
         $productById = $this->productService->getProductById($id);
 
+        $isDeleted = ($productById->getDeletedAt() !== null);
+
         return $this->render('product/show.html.twig', [
             'product' => $productById,
+            'isDeleted' => $isDeleted,
         ]);
     }
 
@@ -86,12 +94,18 @@ final class ProductController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}', name: 'product_delete', methods: ['POST'])]
-    public function delete(Request $request, Product $product, EntityManagerInterface $entityManager): Response
+    #[Route('/{id}', name: 'product_delete_restore', methods: ['POST'])]
+    public function deleteOrRestore(Request $request, Product $product, EntityManagerInterface $entityManager): Response
     {
         if ($this->isCsrfTokenValid('delete'.$product->getId(), $request->getPayload()->getString('_token'))) {
 
             $product->setDeletedAt(new \DateTimeImmutable());
+
+            $entityManager->flush();
+        }
+        else if ($this->isCsrfTokenValid('restore'.$product->getId(), $request->getPayload()->getString('_token'))) {
+
+            $product->setDeletedAt(null);
 
             $entityManager->flush();
         }
