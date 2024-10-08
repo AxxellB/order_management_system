@@ -23,6 +23,7 @@ class AddressService
 
     public function editAddress(Address $address)
     {
+        $this->em->persist($address);
         $this->em->flush();
     }
 
