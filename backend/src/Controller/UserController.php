@@ -143,69 +143,6 @@ class UserController extends AbstractController
         ]);
     }
 
-    #[Route('/me/create-address', name: 'create_address', methods: ['GET', 'POST'])]
-    public function createAddress(Request $request): Response
-    {
-        $user = $this->getUser();
-
-        if (!$user) {
-            throw new AccessDeniedHttpException('You must be logged in to access this page.');
-        }
-
-        $address = new Address();
-        $form = $this->createForm(AddressFormType::class, $address);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $this->addressService->addAddress($user, $address);
-
-            $this->addFlash('success', 'You have successfully created a new address.');
-            return $this->redirectToRoute('user_addresses');
-        }
-
-        return $this->render('address/createAddress.html.twig', [
-            'form' => $form->createView(),
-        ]);
-    }
-
-    #[Route('/me/edit-address/{id}', name: 'edit_address', methods: ['GET', 'POST'])]
-    public function editAddress(Request $request, int $id): Response
-    {
-        $address = $this->em->getRepository(Address::class)->find($id);
-
-        if (!$address) {
-            throw $this->createNotFoundException('Address not found');
-        }
-
-        $form = $this->createForm(AddressFormType::class, $address);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $this->addressService->editAddress($address);
-
-            $this->addFlash('success', 'Address updated successfully.');
-            return $this->redirectToRoute('user_addresses');
-        }
-
-        return $this->render('address/editAddress.html.twig', [
-            'form' => $form->createView(),
-        ]);
-    }
-
-    #[Route('/me/delete-address/{id}', name: 'delete_address', methods: ['POST'])]
-    public function deleteAddress(Request $request, int $id): Response
-    {
-        $address = $this->em->getRepository(Address::class)->find($id);
-
-        if (!$address) {
-            throw $this->createNotFoundException('Address not found');
-        }
-
-        $this->addressService->removeAddress($address);
-        $this->addFlash('success', 'Address deleted successfully.');
-        return $this->redirectToRoute('user_addresses');
-    }
-
     #[Route('/me/orders', name: 'user_orders', methods: ['GET'])]
     public function viewMyOrders(): Response
     {
