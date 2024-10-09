@@ -4,11 +4,9 @@ namespace App\Controller;
 
 use App\Entity\Address;
 use App\Entity\User;
-use App\Form\AddressFormType;
 use App\Form\EditUserFormType;
 use App\Form\SecurityCentreType;
-use App\Repository\AddressRepository;
-use App\Service\AddressService;
+use App\Repository\UserRepository;
 use App\Service\UserService;
 use App\Form\RegisterFormType;
 use Doctrine\ORM\EntityManagerInterface;
@@ -20,21 +18,18 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use function Symfony\Component\String\u;
 
 #[Route(path: '/user')]
 class UserController extends AbstractController
 {
     private UserService $userService;
     private EntityManagerInterface $em;
-    private AddressService $addressService;
-    private AddressRepository $addressRepository;
+    private userRepository $userRepository;
 
-    public function __construct(UserService $userService, EntityManagerInterface $em, AddressRepository $addressRepository, AddressService $addressService){
+    public function __construct(UserService $userService, EntityManagerInterface $em, UserRepository $userRepository){
         $this->userService = $userService;
         $this->em = $em;
-        $this->addressService = $addressService;
-        $this->addressRepository = $addressRepository;
+        $this->userRepository = $userRepository;
     }
 
     #[Route(path: '/login', name: 'user_login')]
@@ -48,6 +43,35 @@ class UserController extends AbstractController
             'last_username' => $lastUsername,
             'error' => $error,
         ]);
+    }
+
+    #[Route(path: '/api/login', name: 'user_api_login')]
+    public function apiLogin(Request $request): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+
+        $loginResult = $this->userService->login($data['email'], $data['password']);
+
+        if($loginResult['success']){
+            return new JsonResponse(['user' => $loginResult['user'], $loginResult['status_code']]);
+        }
+
+        return new JsonResponse(['message' => $loginResult['message']], $loginResult['status_code']);
+    }
+
+
+    #[Route(path: '/api/register', name: 'user_api_register', methods: ['POST'])]
+    public function apiRegister(Request $request, UserService $userService): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+
+        $registrationResult = $userService->register($data);
+
+        if ($registrationResult['success']) {
+            return new JsonResponse(['message' => 'User created!'], Response::HTTP_CREATED);
+        }
+
+        return new JsonResponse(['message' => $registrationResult['message']], $registrationResult['status_code']);
     }
 
     #[Route(path: '/register', name: 'user_register')]

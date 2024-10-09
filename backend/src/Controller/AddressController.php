@@ -6,8 +6,6 @@ use App\Entity\Address;
 use App\Form\AddressFormType;
 use App\Repository\AddressRepository;
 use App\Service\AddressService;
-use App\Service\UserService;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
