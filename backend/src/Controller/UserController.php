@@ -49,54 +49,29 @@ class UserController extends AbstractController
     public function apiLogin(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
-        if ($data === null) {
-            return new JsonResponse(['message' => 'Invalid JSON payload'], Response::HTTP_BAD_REQUEST);
+
+        $loginResult = $this->userService->login($data['email'], $data['password']);
+
+        if($loginResult['success']){
+            return new JsonResponse(['user' => $loginResult['user'], $loginResult['status_code']]);
         }
 
-        if (!isset($data['email']) || $data['email'] == '') {
-            return new JsonResponse(['message' => 'Email can not be empty.'], Response::HTTP_BAD_REQUEST);
-        }
-        if (!isset($data['password']) || $data['password'] == '') {
-            return new JsonResponse(['message' => 'Password can not be empty.'], Response::HTTP_BAD_REQUEST);
-        }
-
-        $user = $this->userRepository->findOneBy(['email' => $data['email']]);
-        if (!$user || !password_verify($data['password'], $user->getPassword())) {
-            return new JsonResponse(['message' => 'Wrong email or password credentials'], Response::HTTP_NOT_FOUND);
-        }
-
-        return new JsonResponse(['user' => $user->getEmail()]);
+        return new JsonResponse(['message' => $loginResult['message']], $loginResult['status_code']);
     }
 
 
     #[Route(path: '/api/register', name: 'user_api_register', methods: ['POST'])]
-    public function apiRegister(Request $request): JsonResponse
+    public function apiRegister(Request $request, UserService $userService): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
 
-        if (!isset($data['firstName']) || $data['firstName'] == '') {
-            return new JsonResponse(['message' => 'First name is required.'], Response::HTTP_BAD_REQUEST);
-        }
-        if (!isset($data['lastName']) || $data['lastName'] == '') {
-            return new JsonResponse(['message' => 'Last name is required.'], Response::HTTP_BAD_REQUEST);
-        }
-        if (!isset($data['email']) || $data['email'] == '') {
-            return new JsonResponse(['message' => 'Email is required.'], Response::HTTP_BAD_REQUEST);
-        }
-        if (!isset($data['password']) || $data['password'] == '') {
-            return new JsonResponse(['message' => 'Password is required.'], Response::HTTP_BAD_REQUEST);
-        }
-        if (!isset($data['confirm_password']) || $data['password'] !== $data['confirm_password']) {
-            return new JsonResponse(['message' => 'Passwords do not match.'], Response::HTTP_BAD_REQUEST);
-        }
-        if (!preg_match('/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/', $data['password'])) {
-            return new JsonResponse([
-                'message' => 'Password must be at least 8 characters long and include both letters and numbers.'
-            ], Response::HTTP_BAD_REQUEST);
+        $registrationResult = $userService->register($data);
+
+        if ($registrationResult['success']) {
+            return new JsonResponse(['message' => 'User created!'], Response::HTTP_CREATED);
         }
 
-        $this->userService->createUser($data);
-        return new JsonResponse(['message' => 'User created!'], Response::HTTP_CREATED);
+        return new JsonResponse(['message' => $registrationResult['message']], $registrationResult['status_code']);
     }
 
     #[Route(path: '/register', name: 'user_register')]
