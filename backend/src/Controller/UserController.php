@@ -16,8 +16,10 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 
 #[Route(path: '/user')]
 class UserController extends AbstractController
@@ -46,14 +48,21 @@ class UserController extends AbstractController
     }
 
     #[Route(path: '/api/login', name: 'user_api_login')]
-    public function apiLogin(Request $request): JsonResponse
+    public function apiLogin(Request $request, JWTTokenManagerInterface $jwtManager): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
 
         $loginResult = $this->userService->login($data['email'], $data['password']);
 
-        if($loginResult['success']){
-            return new JsonResponse(['user' => $loginResult['user'], $loginResult['status_code']]);
+        if ($loginResult['success']) {
+            /** @var UserInterface $user */
+            $user = $loginResult['user'];
+            $token = $jwtManager->create($user);
+
+            return new JsonResponse([
+                'message' => 'Login successful!',
+                'token' => $token
+            ], Response::HTTP_OK);
         }
 
         return new JsonResponse(['message' => $loginResult['message']], $loginResult['status_code']);
