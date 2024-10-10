@@ -25,8 +25,7 @@ final class BasketController extends AbstractController
     }
 
     // API
-    /*
-    #[Route('/',name: 'api_basket_view', methods: ['GET'])]
+    #[Route('/api',name: 'api_basket_view', methods: ['GET'])]
     public function apiViewBasket(): JsonResponse
     {
         $user = $this->getUser();
@@ -42,7 +41,7 @@ final class BasketController extends AbstractController
         ], Response::HTTP_OK);
     }
 
-    #[Route('/add/{id}', name: 'api_basket_add_product', methods: ['POST'])]
+    #[Route('/api/add/{id}', name: 'api_basket_add_product', methods: ['POST'])]
     public function apiAddProduct(Request $request, Product $product): JsonResponse
     {
         $user = $this->getUser();
@@ -62,7 +61,7 @@ final class BasketController extends AbstractController
         ], Response::HTTP_CREATED);
     }
 
-    #[Route('/edit/{id}', name: 'api_basket_edit_product', methods: ['PUT'])]
+    #[Route('/api/edit/{id}', name: 'api_basket_edit_product', methods: ['PUT'])]
     public function apiEdit(Request $request, Product $product): JsonResponse
     {
         $user = $this->getUser();
@@ -82,7 +81,7 @@ final class BasketController extends AbstractController
         ], Response::HTTP_OK);
     }
 
-    #[Route('/{id}', name: 'api_basket_remove_product', methods: ['DELETE'])]
+    #[Route('/api/{id}', name: 'api_basket_remove_product', methods: ['DELETE'])]
     public function apiRemoveProduct(Product $product): JsonResponse
     {
         $user = $this->getUser();
@@ -101,7 +100,7 @@ final class BasketController extends AbstractController
         ], Response::HTTP_OK);
     }
 
-    #[Route('/clear/{id}', name: 'api_basket_clear', methods: ['POST'])]
+    #[Route('/api/clear/{id}', name: 'api_basket_clear', methods: ['POST'])]
     public function apiClearBasket(int $id, BasketService $basketService): JsonResponse
     {
         $basket = $this->basketRepository->find($id);
@@ -132,7 +131,6 @@ final class BasketController extends AbstractController
         }
         return $formatted;
     }
-    */
     // TWIG TEMPLATES
     #[Route('/',name: 'basket_view')]
     public function viewBasket(): Response
