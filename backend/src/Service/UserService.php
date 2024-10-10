@@ -92,7 +92,7 @@ class UserService
 
         return [
             'success' => true,
-            'user' => $user->getEmail(),
+            'user' => $user,
             'status_code' => Response::HTTP_OK
         ];
     }
