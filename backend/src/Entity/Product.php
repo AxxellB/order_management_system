@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: ProductRepository::class)]
 #[ORM\Table(name: 'products')]
@@ -15,23 +16,28 @@ class Product
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['product:read', 'category:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['product:read', 'category:read'])]
     private ?string $name = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
+    #[Groups(['product:read', 'category:read'])]
     private ?string $price = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Groups(['product:read', 'category:read'])]
     private ?string $description = null;
 
     #[ORM\Column]
+    #[Groups(['product:read', 'category:read'])]
     private ?int $stockQuantity = 0;
 
     #[ORM\Column(nullable: true)]
+    #[Groups(['product:read', 'category:read'])]
     private ?\DateTimeImmutable $deletedAt = null;
-
 
 
     /**
@@ -50,6 +56,7 @@ class Product
      * @var Collection<int, Category>
      */
     #[ORM\ManyToMany(targetEntity: Category::class, inversedBy: 'products')]
+    #[Groups(['category:read'])]
     private Collection $categories;
 
 
@@ -107,9 +114,9 @@ class Product
         return $this->stockQuantity;
     }
 
-    public function setStockQuantity(int $stock_quantity): static
+    public function setStockQuantity(int $stockQuantity): static
     {
-        $this->stockQuantity = $stock_quantity;
+        $this->stockQuantity = $stockQuantity;
 
         return $this;
     }

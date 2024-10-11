@@ -41,4 +41,48 @@ class ProductRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
     }
 
+    public function findByCriteriaAndOrder(array $criteria, array $orderBy): array
+    {
+        $queryBuilder = $this->createQueryBuilder('p');
+
+        $queryBuilder->andWhere('p.deletedAt IS NULL');
+
+        if (!empty($criteria['category'])) {
+            $queryBuilder->leftJoin('p.categories', 'c')
+                ->andWhere('c.id = :categoryId')
+                ->setParameter('categoryId', $criteria['category']);
+        }
+
+        if (!empty($criteria['minPrice']) && is_numeric($criteria['minPrice'])) {
+            $queryBuilder->andWhere('p.price >= :minPrice')
+                ->setParameter('minPrice', $criteria['minPrice']);
+        }
+
+        if (!empty($criteria['maxPrice']) && is_numeric($criteria['maxPrice'])) {
+            $queryBuilder->andWhere('p.price <= :maxPrice')
+                ->setParameter('maxPrice', $criteria['maxPrice']);
+        }
+
+        if (!empty($criteria['minStock']) && is_numeric($criteria['minStock'])) {
+            $queryBuilder->andWhere('p.stockQuantity >= :minStock')
+                ->setParameter('minStock', $criteria['minStock']);
+        }
+
+        if (!empty($criteria['maxStock']) && is_numeric($criteria['maxStock'])) {
+            $queryBuilder->andWhere('p.stockQuantity <= :maxStock')
+                ->setParameter('maxStock', $criteria['maxStock']);
+        }
+
+        foreach ($orderBy as $field => $direction) {
+            if (in_array($field, ['name', 'price', 'stockQuantity'])) {
+                $queryBuilder->addOrderBy('p.' . $field, $direction);
+            }
+        }
+
+        $query = $queryBuilder->getQuery();
+
+        return $query->getResult();
+    }
+
+
 }
