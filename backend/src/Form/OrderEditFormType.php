@@ -2,6 +2,7 @@
 
 namespace App\Form;
 
+use App\Entity\Address;
 use App\Entity\Order;
 use App\Entity\User;
 use App\Enum\OrderStatus;
@@ -16,7 +17,7 @@ class OrderEditFormType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('deliveryAddress')
+            ->add('address', AddressFormType::class)
             ->add('status', ChoiceType::class, [
                 'choices' => [
                     'New' => OrderStatus::NEW,

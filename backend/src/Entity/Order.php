@@ -43,9 +43,8 @@ class Order
     #[ORM\OneToMany(targetEntity: OrderProduct::class, mappedBy: 'orderEntity')]
     private Collection $orderProducts;
 
-    #[ORM\ManyToOne(inversedBy: 'orders')]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?Address $deliveryAddress = null;
+    #[ORM\OneToOne(mappedBy: 'orderEntity', cascade: ['persist', 'remove'])]
+    private ?Address $address = null;
 
     public function __construct()
     {
@@ -159,14 +158,24 @@ class Order
         return $this;
     }
 
-    public function getDeliveryAddress(): ?Address
+    public function getAddress(): ?Address
     {
-        return $this->deliveryAddress;
+        return $this->address;
     }
 
-    public function setDeliveryAddress(?Address $deliveryAddress): static
+    public function setAddress(?Address $address): static
     {
-        $this->deliveryAddress = $deliveryAddress;
+        // unset the owning side of the relation if necessary
+        if ($address === null && $this->address !== null) {
+            $this->address->setOrderEntity(null);
+        }
+
+        // set the owning side of the relation if necessary
+        if ($address !== null && $address->getOrderEntity() !== $this) {
+            $address->setOrderEntity($this);
+        }
+
+        $this->address = $address;
 
         return $this;
     }

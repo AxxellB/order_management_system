@@ -26,7 +26,10 @@ class AddressController extends AbstractController
     {
         $user = $this->getUser();
 
-        $addresses = $user->getAddresses();
+        $addresses = array_filter($user->getAddresses()->toArray(), function ($address) {
+            return $address->getOrderEntity() == null;
+        });
+
         return $this->render('address/index.html.twig', [
             'addresses' => $addresses,
         ]);
