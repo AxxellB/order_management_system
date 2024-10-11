@@ -9,7 +9,6 @@ use App\Entity\User;
 use App\Enum\BasketStatus;
 use App\Repository\BasketRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use PhpParser\Node\Expr\Array_;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class BasketService
@@ -56,14 +55,49 @@ class BasketService
             ->findOneBy(['basket' => $basket, 'product' => $product]);
 
         if ($basketProduct) {
-            $basketProduct->setQuantity($basketProduct->getQuantity() + $quantity);
+            $newProductQuantity = $basketProduct->getQuantity() + $quantity;
+            $basketProduct->setQuantity($newProductQuantity);
         } else {
             $basketProduct = new BasketProduct();
             $basketProduct->setBasket($basket);
             $basketProduct->setProduct($product);
             $basketProduct->setQuantity($quantity);
+
             $this->em->persist($basketProduct);
         }
+
+        $newStock = $product->getStockQuantity() - $quantity;
+
+        if ($newStock < 0) {
+            throw new \Exception('Not enough stock for this product');
+        }
+
+        $product->setStockQuantity($newStock);
+
+        $this->em->flush();
+    }
+
+    public function updateProductQuantity(Basket $basket, Product $product, int $newProductQuantity): void
+    {
+        $basketProduct = $this->em->getRepository(BasketProduct::class)->findOneBy([
+            'basket' => $basket,
+            'product' => $product
+        ]);
+
+        if (!$basketProduct) {
+            throw new NotFoundHttpException('Product not found in basket');
+        }
+
+        $currentProductQuantity = $basketProduct->getQuantity();
+        $quantityProductDifference = $currentProductQuantity - $newProductQuantity;
+        $updatedProductStock = $product->getStockQuantity() + $quantityProductDifference;
+
+        if ($updatedProductStock < 0) {
+            throw new \Exception('Not enough stock to fulfill the updated quantity');
+        }
+
+        $product->setStockQuantity($updatedProductStock);
+        $basketProduct->setQuantity($newProductQuantity);
 
         $this->em->flush();
     }
@@ -79,29 +113,21 @@ class BasketService
             throw new NotFoundHttpException('Product not found in basket');
         }
 
+        $returnStock = $product->getStockQuantity() + $basketProduct->getQuantity();
+        $product->setStockQuantity($returnStock);
+
         $this->em->remove($basketProduct);
-        $this->em->flush();
-    }
-
-    public function updateProductQuantity(Basket $basket, Product $product, int $quantity): void
-    {
-        $basketProduct = $this->em->getRepository(BasketProduct::class)->findOneBy([
-            'basket' => $basket,
-            'product' => $product
-        ]);
-
-        if (!$basketProduct) {
-            throw new NotFoundHttpException('Product not found in basket');
-        }
-
-        $basketProduct->setQuantity($quantity);
         $this->em->flush();
     }
 
     public function clearBasket(Basket $basket): void
     {
         foreach ($basket->getBasketProducts() as $basketProduct) {
-            $basket->removeBasketProduct($basketProduct);
+            $product = $basketProduct->getProduct();
+
+            $returnStock = $product->getStockQuantity() + $basketProduct->getQuantity();
+            $product->setStockQuantity($returnStock);
+
             $this->em->remove($basketProduct);
         }
 
