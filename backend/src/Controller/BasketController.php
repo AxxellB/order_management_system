@@ -6,6 +6,7 @@ use App\Entity\Basket;
 use App\Entity\Product;
 use App\Service\BasketService;
 use App\Repository\BasketRepository;
+use PHPUnit\Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -150,13 +151,13 @@ final class BasketController extends AbstractController
         $user = $this->getUser();
         $basket = $this->basketService->getOrCreateBasket($user);
 
-        if ($quantity > $product->getStockQuantity()) {
-            $this->addFlash('error', 'Not enough stock available. Please update the quantity.');
-
+        try {
+            $this->basketService->addProductToBasket($basket, $product, $quantity);
+            $this->addFlash('success', 'Product added to basket');
+        } catch (\Exception $e) {
+            $this->addFlash('error', $e->getMessage());
             return $this->redirectToRoute('homepage');
         }
-
-        $this->basketService->addProductToBasket($basket, $product, $quantity);
 
         return $this->redirectToRoute('homepage');
     }
@@ -168,17 +169,25 @@ final class BasketController extends AbstractController
         $basket = $this->basketService->getOrCreateBasket($user);
 
         $this->basketService->removeProductFromBasket($basket, $product);
+        $this->addFlash('success', 'Product removed from basket');
+
         return $this->redirectToRoute('basket_view');
     }
 
     #[Route('/edit/{id}', name: 'basket_edit_product', methods: ['POST'])]
     public function edit(Request $request, Product $product): Response
     {
-        $quantity = $request->request->get('quantity');
+        $newQuantity = $request->request->get('quantity');
         $user = $this->getUser();
         $basket = $this->basketService->getOrCreateBasket($user);
 
-        $basket = $this->basketService->updateProductQuantity($basket, $product, $quantity);
+        try {
+            $this->basketService->updateProductQuantity($basket, $product, $newQuantity);
+
+            $this->addFlash('success', 'Product quantity edited from basket');
+        } catch(\Exception $e) {
+            $this->addFlash('error', $e->getMessage());
+        }
 
         return $this->redirectToRoute('basket_view');
     }
@@ -193,6 +202,8 @@ final class BasketController extends AbstractController
         }
 
         $basketService->clearBasket($basket);
+
+        $this->addFlash('success', 'Basket successfully cleared');
 
         return $this->redirectToRoute('basket_view', [
             'id' => $id,
