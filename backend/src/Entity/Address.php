@@ -35,15 +35,11 @@ class Address
     #[ORM\JoinColumn(nullable: false)]
     private ?User $user = null;
 
-    /**
-     * @var Collection<int, Order>
-     */
-    #[ORM\OneToMany(targetEntity: Order::class, mappedBy: 'deliveryAddress')]
-    private Collection $orders;
+    #[ORM\OneToOne(inversedBy: 'address', cascade: ['persist', 'remove'])]
+    private ?Order $orderEntity = null;
 
     public function __construct()
     {
-        $this->orders = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -128,34 +124,15 @@ class Address
         return $this->line . ', ' . $this->city . ', ' . $this->postcode  . ', ' . $this->country;
     }
 
-    /**
-     * @return Collection<int, Order>
-     */
-    public function getOrders(): Collection
+    public function getOrderEntity(): ?Order
     {
-        return $this->orders;
+        return $this->orderEntity;
     }
 
-    public function addOrder(Order $order): static
+    public function setOrderEntity(?Order $orderEntity): static
     {
-        if (!$this->orders->contains($order)) {
-            $this->orders->add($order);
-            $order->setDeliveryAddress($this);
-        }
+        $this->orderEntity = $orderEntity;
 
         return $this;
     }
-
-    public function removeOrder(Order $order): static
-    {
-        if ($this->orders->removeElement($order)) {
-            // set the owning side to null (unless already changed)
-            if ($order->getDeliveryAddress() === $this) {
-                $order->setDeliveryAddress(null);
-            }
-        }
-
-        return $this;
-    }
-
 }

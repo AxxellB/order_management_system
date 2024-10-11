@@ -1,6 +1,7 @@
 <?php
 namespace App\Service;
 
+use App\Entity\Address;
 use App\Entity\Order;
 use App\Entity\OrderProduct;
 use App\Enum\OrderStatus;
@@ -33,9 +34,20 @@ class OrderService
             $totalAmount += $basketProduct->getQuantity() * $productPrice;
         }
         $order->setTotalAmount($totalAmount);
-        $order->setDeliveryAddress($user->getAddresses()[0]);
         $order->setPaymentMethod('debit card');
         $order->setStatus(OrderStatus::NEW);
+        $this->entityManager->persist($order);
+
+        $userAddress = $user->getAddresses()[0];
+        $deliveryAddress = new Address();
+        $deliveryAddress->setUser($user);
+        $deliveryAddress->setLine($userAddress->getLine());
+        $deliveryAddress->setCity($userAddress->getCity());
+        $deliveryAddress->setCountry($userAddress->getCountry());
+        $deliveryAddress->setPostcode($userAddress->getPostcode());
+        $deliveryAddress->setOrderEntity($order);
+
+        $this->entityManager->persist($deliveryAddress);
         $this->entityManager->persist($order);
 
         foreach ($basketProducts as $basketProduct) {

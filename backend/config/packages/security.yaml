@@ -14,10 +14,12 @@ security:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
         main:
+            lazy: true
             provider: app_user_provider
-            stateless: true
-            jwt:
-                authenticator: lexik_jwt_authentication.security.jwt_authenticator
+            form_login:
+                login_path: user_login
+                check_path: user_login
+                enable_csrf: true
             logout:
                 path: user_logout
                 target: homepage
