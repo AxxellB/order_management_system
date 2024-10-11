@@ -9,10 +9,13 @@ use App\Repository\ProductRepository;
 use App\Service\CategoryService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route('/categories')]
 final class CategoryController extends AbstractController
@@ -36,6 +39,23 @@ final class CategoryController extends AbstractController
         ]);
     }
 
+    #[Route('/api', name: 'api_categories_list', methods: ['GET'])]
+    public function listCategoriesApi(SerializerInterface $serializer): JsonResponse
+    {
+        $categories = $this->categoryService->getAll();
+
+        $context = [
+            'circular_reference_handler' => function ($object) {
+                return $object->getId();
+            }
+        ];
+
+        $jsonCategories = $serializer->serialize($categories, 'json', $context);
+
+        return new JsonResponse($jsonCategories, Response::HTTP_OK, [], true);
+    }
+
+
     #[Route('/{id<\d+>}', name: 'category_products', methods: ['GET'])]
     public function listProductsByCategory(int $id, CategoryRepository $categoryRepository, ProductRepository $productRepository): Response
     {
@@ -51,6 +71,19 @@ final class CategoryController extends AbstractController
             'category' => $category,
             'products' => $products,
         ]);
+    }
+
+    #[Route('/api/{id<\d+>}', name: 'api_category_products', methods: ['GET'])]
+    public function listProductsByCategoryApi(int $id, SerializerInterface $serializer): JsonResponse
+    {
+        $category = $this->categoryService->getCategoryById($id);
+
+        if (!$category) {
+            return new JsonResponse(['error' => 'Category not found'], Response::HTTP_NOT_FOUND);
+        }
+
+        $jsonProducts = $serializer->serialize($category->getProducts(), 'json', ['groups' => 'category:read']);
+        return new JsonResponse($jsonProducts, Response::HTTP_OK, [], true);
     }
 
 
@@ -84,7 +117,24 @@ final class CategoryController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}/edit', name: 'category_edit', methods: ['GET', 'POST'])]
+
+    #[Route('/api/new', name: 'api_category_new', methods: ['POST'])]
+    public function newApi(Request $request, EntityManagerInterface $entityManager, ValidatorInterface $validator): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+        $category = $this->categoryService->createCategory($data, $validator);
+
+        if (is_array($category) && isset($result['errors'])) {
+            return new JsonResponse($result['errors'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $entityManager->persist($category);
+        $entityManager->flush();
+
+        return new JsonResponse(['message' => 'Category created successfully', 'id' => $category->getId()], Response::HTTP_CREATED);
+    }
+
+    #[Route('/edit/{id}', name: 'category_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, Category $category, EntityManagerInterface $entityManager): Response
     {
         $form = $this->createForm(CategoryType::class, $category);
@@ -101,6 +151,32 @@ final class CategoryController extends AbstractController
             'form' => $form,
         ]);
     }
+
+    #[Route('/api/edit/{id<\d+>}', name: 'api_category_edit', methods: ['PUT'])]
+    public function editApi(Request $request, Category $category, EntityManagerInterface $entityManager): JsonResponse
+    {
+        if (!$category) {
+            return new JsonResponse(['error' => 'Category not found'], Response::HTTP_NOT_FOUND);
+        }
+
+        $data = json_decode($request->getContent(), true);
+        $form = $this->createForm(CategoryType::class, $category);
+        $form->submit($data);
+
+        if ($form->isSubmitted() && !$form->isValid()) {
+            $errorMessages = $this->categoryService->getFormErrors($form);
+
+            return new JsonResponse(['errors' => $errorMessages], Response::HTTP_BAD_REQUEST);
+        }
+
+        $entityManager->persist($category);
+        $entityManager->flush();
+
+        return new JsonResponse(['message' => 'Category updated successfully'], Response::HTTP_OK);
+    }
+
+
+
 
     #[Route('/{id}', name: 'category_delete', methods: ['POST'])]
     public function delete(Request $request, Category $category, EntityManagerInterface $entityManager): Response
@@ -120,6 +196,24 @@ final class CategoryController extends AbstractController
         }
 
         return $this->redirectToRoute('category_index', [], Response::HTTP_SEE_OTHER);
+    }
+
+    #[Route('/api/{id}', name: 'api_category_delete', methods: ['DELETE'])]
+    public function deleteApi(Category $category, EntityManagerInterface $entityManager): JsonResponse
+    {
+        if (!$category) {
+            return new JsonResponse(['error' => 'Category not found'], Response::HTTP_NOT_FOUND);
+        }
+
+        $result = $this->categoryService->deleteCategory($category);
+
+        if ($result['status'] === 'error') {
+            return new JsonResponse(['error' => $result['message']], Response::HTTP_BAD_REQUEST);
+        }
+
+        $entityManager->flush();
+
+        return new JsonResponse(['message' => 'Category deleted successfully'], Response::HTTP_OK);
     }
 
 }

@@ -28,7 +28,7 @@ class CategoryRepository extends ServiceEntityRepository
         return array_slice($categories, 0, $limit);
     }
 
-    public function fondAllNonDeletedCategories(): array
+    public function findAllNonDeletedCategories(): array
     {
         return $this->createQueryBuilder('c')
             ->andWhere('c.deletedAt IS NULL')
