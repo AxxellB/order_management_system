@@ -17,10 +17,7 @@ class OrderEditFormType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('address', EntityType::class, [
-                'class' => Address::class,
-                'choice_label' => 'line',
-            ])
+            ->add('address', AddressFormType::class)
             ->add('status', ChoiceType::class, [
                 'choices' => [
                     'New' => OrderStatus::NEW,
