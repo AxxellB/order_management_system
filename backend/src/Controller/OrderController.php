@@ -12,7 +12,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Serializer\SerializerInterface;
-
+#[Route(path: '/api')]
 class OrderController extends AbstractController
 {
     public function __construct(
@@ -23,7 +23,7 @@ class OrderController extends AbstractController
     ) {}
 
     // API
-    #[Route('/api/orders', name: 'api_orders', methods: ['GET'])]
+    #[Route('/orders', name: 'api_orders', methods: ['GET'])]
     public function apiViewOrders(): JsonResponse
     {
         $orders = $this->orderRepository->findAll();
@@ -33,7 +33,7 @@ class OrderController extends AbstractController
         return new JsonResponse($data, Response::HTTP_OK, [], true);
     }
 
-    #[Route('/api/orders/{id}', name: 'api_order', methods: ['GET'])]
+    #[Route('/order/{id}', name: 'api_order', methods: ['GET'])]
     public function apiViewOrder(int $id): JsonResponse
     {
         $order = $this->orderRepository->find($id);
@@ -47,7 +47,7 @@ class OrderController extends AbstractController
         return new JsonResponse($data, Response::HTTP_OK, [], true);
     }
 
-    #[Route('/api/orders', name: 'api_create_order', methods: ['POST'])]
+    #[Route('/orders', name: 'api_create_order', methods: ['POST'])]
     public function apiCreateOrder(): JsonResponse
     {
         $user = $this->getUser();
@@ -58,7 +58,7 @@ class OrderController extends AbstractController
         return new JsonResponse($data, Response::HTTP_CREATED, [], true);
     }
 
-    #[Route('/api/orders/{id}', name: 'api_edit_order', methods: ['PUT'])]
+    #[Route('/order/{id}', name: 'api_edit_order', methods: ['PUT'])]
     public function apiEditOrder(Request $request, int $id): JsonResponse
     {
         $order = $this->orderRepository->find($id);
@@ -83,7 +83,7 @@ class OrderController extends AbstractController
         }
     }
 
-    #[Route('/api/orders/{id}', name: 'api_delete_order', methods: ['DELETE'])]
+    #[Route('/order/{id}', name: 'api_delete_order', methods: ['DELETE'])]
     public function apiDeleteOrder(Request $request, int $id): JsonResponse
     {
         $order = $this->orderRepository->find($id);
