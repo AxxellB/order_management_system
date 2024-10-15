@@ -24,3 +24,7 @@
 /public/assets/
 /assets/vendor/
 ###< symfony/asset-mapper ###
+
+###> .evn files ###
+.env
+###< .evn files ###
