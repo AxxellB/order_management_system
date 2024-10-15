@@ -7,6 +7,7 @@ use App\Form\AddressFormType;
 use App\Repository\AddressRepository;
 use App\Service\AddressService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
@@ -35,6 +36,72 @@ class AddressController extends AbstractController
         ]);
     }
 
+    #[Route('/api/addresses', name: 'api_addresses')]
+    public function apiGetAddresses(): JsonResponse
+    {
+        $user = $this->getUser();
+
+        if (!$user) {
+            return new JsonResponse(['message' => 'You must be logged in to access this page.'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $addresses = array_filter($user->getAddresses()->toArray(), function ($address) {
+            return $address->getOrderEntity() == null;
+        });
+
+        if(!$addresses){
+            return new JsonResponse([
+                'message' => 'User addresses not found',
+            ], Response::HTTP_NOT_FOUND);
+        }
+
+        $addressData = array_map(function ($address) {
+            return [
+                'id' => $address->getId(),
+                'line' => $address->getLine(),
+                'line2' => $address->getLine2() ?? "",
+                'city' => $address->getCity(),
+                'postal_code' => $address->getPostCode(),
+            ];
+        }, $addresses);
+
+        $addressData = array_values($addressData);
+
+        return new JsonResponse([
+            'addresses' => $addressData
+        ]);
+    }
+
+    #[Route('/api/address/{id}', name: 'api_address')]
+    public function apiGetAddress(int $id): JsonResponse
+    {
+        $user = $this->getUser();
+
+        if (!$user) {
+            return new JsonResponse(['message' => 'You must be logged in to access this page.'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $address = $this->addressRepository->find($id);
+
+        if(!$address){
+            return new JsonResponse([
+                'message' => 'Address not found',
+            ], Response::HTTP_NOT_FOUND);
+        }
+
+        $addressData = [
+                'id' => $address->getId(),
+                'line' => $address->getLine(),
+                'line2' => $address->getLine2() ?? "",
+                'city' => $address->getCity(),
+                'postal_code' => $address->getPostCode(),
+            ];
+
+        return new JsonResponse([
+            'address' => $addressData
+        ]);
+    }
+
     #[Route('/me/create-address', name: 'create_address', methods: ['GET', 'POST'])]
     public function createAddress(Request $request): Response
     {
@@ -57,6 +124,23 @@ class AddressController extends AbstractController
 
         return $this->render('address/createAddress.html.twig', [
             'form' => $form->createView(),
+        ]);
+    }
+
+    #[Route('/api/create-address', name: 'api_create_address', methods: ['POST'])]
+    public function apiCreateAddress(Request $request): JsonResponse
+    {
+        $user = $this->getUser();
+
+        if (!$user) {
+            return new JsonResponse(['message' => 'You must be logged in to access this page.'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $data = json_decode($request->getContent(), true);
+        $addressResult = $this->addressService->addAddress($user, $data);
+
+        return new JsonResponse([
+                $addressResult
         ]);
     }
 

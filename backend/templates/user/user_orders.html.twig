@@ -41,33 +41,24 @@
             </tr>
             </thead>
             <tbody>
-                {% for order in orders %}
-                    {% if order.deletedAt == null %}
-                    <tr>
-                        <td>{{ order.id }}</td>
-                        <td>{{ order.orderDate|date('Y-m-d H:i:s') }}</td>
-                        <td>{{ order.totalAmount }}</td>
-                        <td>{{ order.address }}</td>
-                        <td>{{ order.paymentMethod }}</td>
-                        <td>{{ order.status.value }}</td>
-                    </tr>
-                    {% endif %}
-                {% else %}
-            {% for order in orders %}
-                <tr>
-                    <td>{{ order.id }}</td>
-                    <td>{{ order.orderDate|date('Y-m-d H:i:s') }}</td>
-                    <td>{{ order.totalAmount }}</td>
-                    <td>{{ order.address }}</td>
-                    <td>{{ order.paymentMethod }}</td>
-                    <td>{{ order.status.value }}</td>
-                </tr>
-            {% else %}
+            {% if orders is empty %}
                 <tr>
                     <td colspan="8">No orders found.</td>
                 </tr>
-            {% endfor %}
-
+            {% else %}
+                {% for order in orders %}
+                    {% if order.deletedAt == null %}
+                        <tr>
+                            <td>{{ order.id }}</td>
+                            <td>{{ order.orderDate|date('Y-m-d H:i:s') }}</td>
+                            <td>{{ order.totalAmount }}</td>
+                            <td>{{ order.address }}</td>
+                            <td>{{ order.paymentMethod }}</td>
+                            <td>{{ order.status.value }}</td>
+                        </tr>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
             </tbody>
         </table>
     </div>
