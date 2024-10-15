@@ -7,15 +7,97 @@ use App\Repository\OrderRepository;
 use App\Service\OrderService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Serializer\SerializerInterface;
 
 class OrderController extends AbstractController
 {
-    public function __construct(private readonly OrderService $orderService, private readonly OrderRepository $orderRepository, readonly EntityManagerInterface $em){
+    public function __construct(
+        private readonly OrderService $orderService,
+        private readonly OrderRepository $orderRepository,
+        private readonly EntityManagerInterface $em,
+        private readonly SerializerInterface $serializer
+    ) {}
+
+    // API
+    #[Route('/api/orders', name: 'api_orders', methods: ['GET'])]
+    public function apiViewOrders(): JsonResponse
+    {
+        $orders = $this->orderRepository->findAll();
+
+        $data = $this->serializer->serialize($orders, 'json', ['groups' => 'order:read']);
+
+        return new JsonResponse($data, Response::HTTP_OK, [], true);
     }
 
+    #[Route('/api/orders/{id}', name: 'api_order', methods: ['GET'])]
+    public function apiViewOrder(int $id): JsonResponse
+    {
+        $order = $this->orderRepository->find($id);
+
+        if (!$order) {
+            return new JsonResponse(['error' => 'Order not found'], Response::HTTP_NOT_FOUND);
+        }
+
+        $data = $this->serializer->serialize($order, 'json', ['groups' => 'order:read']);
+
+        return new JsonResponse($data, Response::HTTP_OK, [], true);
+    }
+
+    #[Route('/api/orders', name: 'api_create_order', methods: ['POST'])]
+    public function apiCreateOrder(): JsonResponse
+    {
+        $user = $this->getUser();
+        $order = $this->orderService->createOrder($user);
+
+        $data = $this->serializer->serialize($order, 'json', ['groups' => 'order:read']);
+
+        return new JsonResponse($data, Response::HTTP_CREATED, [], true);
+    }
+
+    #[Route('/api/orders/{id}', name: 'api_edit_order', methods: ['PUT'])]
+    public function apiEditOrder(Request $request, int $id): JsonResponse
+    {
+        $order = $this->orderRepository->find($id);
+        if (!$order) {
+            return new JsonResponse(['error' => 'Order not found'], Response::HTTP_NOT_FOUND);
+        }
+
+        $data = json_decode($request->getContent(), true);
+        if (!$data) {
+            return new JsonResponse(['error' => 'Invalid JSON data'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $productsData = $data['products'] ?? [];
+        $addressData = $data['address'] ?? [];
+
+        try {
+            $this->orderService->editOrder($id, $productsData, $addressData);
+
+            return new JsonResponse(['message' => 'Order successfully updated'], Response::HTTP_OK);
+        } catch (\Exception $e) {
+            return new JsonResponse(['error' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
+        }
+    }
+
+    #[Route('/api/orders/{id}', name: 'api_delete_order', methods: ['DELETE'])]
+    public function apiDeleteOrder(Request $request, int $id): JsonResponse
+    {
+        $order = $this->orderRepository->find($id);
+
+        if (!$order) {
+            return new JsonResponse(['error' => 'Order not found'], Response::HTTP_NOT_FOUND);
+        }
+
+        $this->orderService->deleteOrder($id);
+
+        return new JsonResponse(['message' => 'Order successfully deleted'], Response::HTTP_NO_CONTENT);
+    }
+
+    /*
     #[Route('/orders', name: 'orders_index', methods: ['GET'])]
     public function index(): Response
     {
@@ -57,4 +139,5 @@ class OrderController extends AbstractController
 
         return $this->redirectToRoute('orders_index');
     }
+    */
 }
