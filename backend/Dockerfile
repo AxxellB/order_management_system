@@ -1,10 +1,18 @@
 FROM php:8.2-fpm
 
 RUN apt-get update && apt-get install -y \
-    git \
+    libpng-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
+    libzip-dev \
+    zip \
     unzip \
-    libpq-dev \
-    && docker-php-ext-install pdo pdo_mysql
+    git \
+    curl \
+    wkhtmltopdf
+
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg
+RUN docker-php-ext-install pdo pdo_mysql gd zip
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
@@ -18,4 +26,4 @@ RUN composer install
 
 EXPOSE 9000
 
-CMD ["php", "-S", "0.0.0.0:9000", "-t", "public"]
+CMD ["php-fpm"]
