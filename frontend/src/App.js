@@ -4,7 +4,7 @@ import {useEffect} from "react";
 
 function App() {
   useEffect(() => {
-    fetch('http://localhost:9000/products/api')
+    fetch('http://0.0.0.0/api/register', {method: 'POST'})
         .then(response => {
           if (!response.ok) {
             throw new Error('Network response was not ok');
