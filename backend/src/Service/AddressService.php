@@ -4,14 +4,17 @@ use App\Entity\Address;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Symfony\Component\Validator\Constraints as Assert;
 
 class AddressService
 {
     private EntityManagerInterface $em;
 
-    public function __construct(EntityManagerInterface $em)
+    public function __construct(EntityManagerInterface $em, ValidatorInterface $validator)
     {
         $this->em = $em;
+        $this->validator = $validator;
     }
 
     private function formatValidationErrors(ConstraintViolationListInterface $errors): array
