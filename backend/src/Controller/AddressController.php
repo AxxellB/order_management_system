@@ -9,13 +9,14 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-#[Route('/api/')]
+#[Route('/api')]
 class AddressController extends AbstractController
 {
     private AddressService $addressService;
     private AddressRepository $addressRepository;
 
-    public function __construct(AddressRepository $addressRepository, AddressService $addressService){
+    public function __construct(AddressRepository $addressRepository, AddressService $addressService)
+    {
         $this->addressService = $addressService;
         $this->addressRepository = $addressRepository;
     }
@@ -30,30 +31,16 @@ class AddressController extends AbstractController
         }
 
         $addresses = array_filter($user->getAddresses()->toArray(), function ($address) {
-            return $address->getOrderEntity() == null;
+            return $address->getOrderEntity() === null;
         });
 
-        if(!$addresses){
-            return new JsonResponse([
-                'message' => 'User addresses not found',
-            ], Response::HTTP_NOT_FOUND);
+        if (!$addresses) {
+            return new JsonResponse(['message' => 'User addresses not found'], Response::HTTP_NOT_FOUND);
         }
 
-        $addressData = array_map(function ($address) {
-            return [
-                'id' => $address->getId(),
-                'line' => $address->getLine(),
-                'line2' => $address->getLine2() ?? "",
-                'city' => $address->getCity(),
-                'postal_code' => $address->getPostCode(),
-            ];
-        }, $addresses);
+        $addressData = array_map([$this, 'formatAddress'], $addresses);
 
-        $addressData = array_values($addressData);
-
-        return new JsonResponse([
-            'addresses' => $addressData
-        ]);
+        return new JsonResponse(['addresses' => $addressData]);
     }
 
     #[Route('/address/{id}', name: 'api_get_address', methods: ['GET'])]
@@ -67,23 +54,13 @@ class AddressController extends AbstractController
 
         $address = $this->addressRepository->find($id);
 
-        if(!$address){
-            return new JsonResponse([
-                'message' => 'Address not found',
-            ], Response::HTTP_NOT_FOUND);
+        if (!$address) {
+            return new JsonResponse(['message' => 'Address not found'], Response::HTTP_NOT_FOUND);
         }
 
-        $addressData = [
-                'id' => $address->getId(),
-                'line' => $address->getLine(),
-                'line2' => $address->getLine2() ?? "",
-                'city' => $address->getCity(),
-                'postal_code' => $address->getPostCode(),
-            ];
+        $addressData = $this->formatAddress($address);
 
-        return new JsonResponse([
-            'address' => $addressData
-        ]);
+        return new JsonResponse(['address' => $addressData]);
     }
 
     #[Route('/addresses', name: 'api_create_address', methods: ['POST'])]
@@ -96,12 +73,21 @@ class AddressController extends AbstractController
         }
 
         $data = json_decode($request->getContent(), true);
-        $addressResult = $this->addressService->addAddress($user, $data);
+        $errors = $this->addressService->validateAddressData($data);
+
+        if (count($errors) > 0) {
+            return new JsonResponse([
+                'errors' => $errors
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
+        $newAddress = $this->addressService->createAddress($user, $data);
 
         return new JsonResponse([
-            $addressResult
-        ]);
+            'address' => $this->formatAddress($newAddress)
+        ], Response::HTTP_CREATED);
     }
+
 
     #[Route('/address/{id}', name: 'api_edit_address', methods: ['PUT'])]
     public function apiEditAddress(int $id, Request $request): JsonResponse
@@ -114,18 +100,24 @@ class AddressController extends AbstractController
 
         $address = $this->addressRepository->find($id);
 
-        if(!$address){
-            return new JsonResponse([
-                'message' => 'Address not found',
-            ], Response::HTTP_NOT_FOUND);
+        if (!$address) {
+            return new JsonResponse(['message' => 'Address not found'], Response::HTTP_NOT_FOUND);
         }
 
         $data = json_decode($request->getContent(), true);
-        $addressResult = $this->addressService->editAddress($data, $address);
+        $errors = $this->addressService->validateAddressData($data);
+
+        if (count($errors) > 0) {
+            return new JsonResponse([
+                'errors' => $errors
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
+        $this->addressService->updateAddress($data, $address);
 
         return new JsonResponse([
-            $addressResult
-        ]);
+            'address' => $this->formatAddress($address)
+        ], Response::HTTP_OK);
     }
 
     #[Route('/address/{id}', name: 'api_delete_address', methods: ['DELETE'])]
@@ -139,17 +131,24 @@ class AddressController extends AbstractController
 
         $address = $this->addressRepository->find($id);
 
-        if(!$address){
-            return new JsonResponse([
-                'message' => 'Address not found',
-            ], Response::HTTP_NOT_FOUND);
+        if (!$address) {
+            return new JsonResponse(['message' => 'Address not found'], Response::HTTP_NOT_FOUND);
         }
 
         $this->addressService->deleteAddress($address);
 
-        return new JsonResponse([
-            'message' => 'Address deleted successfully!'
-        ], Response::HTTP_NO_CONTENT);
+        return new JsonResponse(['message' => 'Address deleted successfully!'], Response::HTTP_NO_CONTENT);
+    }
+
+    public function formatAddress($address): array
+    {
+        return [
+            'id' => $address->getId(),
+            'line' => $address->getLine(),
+            'line2' => $address->getLine2() ?? '',
+            'city' => $address->getCity(),
+            'postal_code' => $address->getPostCode(),
+        ];
     }
 
 //    #[Route('/me/addresses', name: 'user_addresses')]
