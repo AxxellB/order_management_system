@@ -8,6 +8,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: OrderRepository::class)]
 #[ORM\Table(name: 'orders')]
@@ -16,34 +17,43 @@ class Order
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['order:read'])]
     private ?int $id = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[Groups(['order:read'])]
     private ?\DateTimeInterface $orderDate = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
+    #[Groups(['order:read'])]
     private ?string $totalAmount = null;
 
     #[ORM\Column(length: 50)]
+    #[Groups(['order:read'])]
     private ?string $paymentMethod = null;
 
     #[ORM\Column(type: 'string', enumType: OrderStatus::class)]
+    #[Groups(['order:read'])]
     private OrderStatus $status;
 
     #[ORM\Column(nullable: true)]
+    #[Groups(['order:read'])]
     private ?\DateTimeImmutable $deletedAt = null;
 
     #[ORM\ManyToOne(inversedBy: 'orders')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['order:read'])]
     private ?User $users = null;
 
     /**
      * @var Collection<int, OrderProduct>
      */
     #[ORM\OneToMany(targetEntity: OrderProduct::class, mappedBy: 'orderEntity')]
+    #[Groups(['order:read'])]
     private Collection $orderProducts;
 
     #[ORM\OneToOne(mappedBy: 'orderEntity', cascade: ['persist', 'remove'])]
+    #[Groups(['order:read'])]
     private ?Address $address = null;
 
     public function __construct()

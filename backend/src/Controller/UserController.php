@@ -21,7 +21,6 @@ use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 
-#[Route(path: '/user')]
 class UserController extends AbstractController
 {
     private UserService $userService;

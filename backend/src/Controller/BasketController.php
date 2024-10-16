@@ -13,7 +13,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-#[Route(path: '/basket')]
+#[Route(path: '/api')]
 final class BasketController extends AbstractController
 {
     private BasketService $basketService;
@@ -26,7 +26,7 @@ final class BasketController extends AbstractController
     }
 
     // API
-    #[Route('/api',name: 'api_basket_view', methods: ['GET'])]
+    #[Route('/basket',name: 'api_basket_view', methods: ['GET'])]
     public function apiViewBasket(): JsonResponse
     {
         $user = $this->getUser();
@@ -42,7 +42,7 @@ final class BasketController extends AbstractController
         ], Response::HTTP_OK);
     }
 
-    #[Route('/api/add/{id}', name: 'api_basket_add_product', methods: ['POST'])]
+    #[Route('/basket', name: 'api_basket_add_product', methods: ['POST'])]
     public function apiAddProduct(Request $request, Product $product): JsonResponse
     {
         $user = $this->getUser();
@@ -62,7 +62,7 @@ final class BasketController extends AbstractController
         ], Response::HTTP_CREATED);
     }
 
-    #[Route('/api/edit/{id}', name: 'api_basket_edit_product', methods: ['PUT'])]
+    #[Route('/basket/{id}', name: 'api_basket_edit_product', methods: ['PUT'])]
     public function apiEdit(Request $request, Product $product): JsonResponse
     {
         $user = $this->getUser();
@@ -82,7 +82,7 @@ final class BasketController extends AbstractController
         ], Response::HTTP_OK);
     }
 
-    #[Route('/api/{id}', name: 'api_basket_remove_product', methods: ['DELETE'])]
+    #[Route('/basket/{id}', name: 'api_basket_remove_product', methods: ['DELETE'])]
     public function apiRemoveProduct(Product $product): JsonResponse
     {
         $user = $this->getUser();
@@ -101,7 +101,7 @@ final class BasketController extends AbstractController
         ], Response::HTTP_OK);
     }
 
-    #[Route('/api/clear/{id}', name: 'api_basket_clear', methods: ['POST'])]
+    #[Route('/basket/{id}', name: 'api_basket_clear', methods: ['POST'])]
     public function apiClearBasket(int $id, BasketService $basketService): JsonResponse
     {
         $basket = $this->basketRepository->find($id);
@@ -132,6 +132,7 @@ final class BasketController extends AbstractController
         }
         return $formatted;
     }
+    /*
     // TWIG TEMPLATES
     #[Route('/',name: 'basket_view')]
     public function viewBasket(): Response
@@ -209,4 +210,5 @@ final class BasketController extends AbstractController
             'id' => $id,
         ]);
     }
+    */
 }
