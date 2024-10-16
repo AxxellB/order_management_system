@@ -84,7 +84,7 @@ class AddressController extends AbstractController
         $newAddress = $this->addressService->createAddress($user, $data);
 
         return new JsonResponse([
-            'address' => $this->formatAddress($newAddress)
+            $this->formatAddress($newAddress)
         ], Response::HTTP_CREATED);
     }
 
@@ -116,7 +116,7 @@ class AddressController extends AbstractController
         $this->addressService->updateAddress($data, $address);
 
         return new JsonResponse([
-            'address' => $this->formatAddress($address)
+            $this->formatAddress($address)
         ], Response::HTTP_OK);
     }
 

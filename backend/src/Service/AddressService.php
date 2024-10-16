@@ -10,6 +10,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 class AddressService
 {
     private EntityManagerInterface $em;
+    private ValidatorInterface $validator;
 
     public function __construct(EntityManagerInterface $em, ValidatorInterface $validator)
     {
@@ -44,6 +45,8 @@ class AddressService
 
         $this->em->persist($address);
         $this->em->flush();
+
+        return $address;
     }
 
     public function deleteAddress(Address $address)
