@@ -10,11 +10,49 @@ use Symfony\Component\Validator\Constraints as Assert;
 class AddressService
 {
     private EntityManagerInterface $em;
+    private ValidatorInterface $validator;
 
     public function __construct(EntityManagerInterface $em, ValidatorInterface $validator)
     {
         $this->em = $em;
         $this->validator = $validator;
+    }
+
+    public function createAddress(User $user, array $data): Address
+    {
+        $address = new Address();
+        $address->setLine($data['line']);
+        $address->setLine2($data['line2'] ?? null);
+        $address->setCity($data['city']);
+        $address->setCountry($data['country']);
+        $address->setPostcode($data['postcode']);
+
+        $user->addAddress($address);
+        $this->em->persist($address);
+        $this->em->persist($user);
+        $this->em->flush();
+
+        return $address;
+    }
+
+    public function updateAddress(array $data, Address $address)
+    {
+        $address->setLine($data['line']);
+        $address->setLine2($data['line2'] ?? null);
+        $address->setCity($data['city']);
+        $address->setCountry($data['country']);
+        $address->setPostcode($data['postcode']);
+
+        $this->em->persist($address);
+        $this->em->flush();
+
+        return $address;
+    }
+
+    public function deleteAddress(Address $address)
+    {
+        $this->em->remove($address);
+        $this->em->flush();
     }
 
     private function formatValidationErrors(ConstraintViolationListInterface $errors): array
@@ -29,7 +67,7 @@ class AddressService
         return $formattedErrors;
     }
 
-    public function addAddress(User $user, array $data)
+    public function validateAddressData(array $data): array
     {
         $constraints = new Assert\Collection([
             'line' => new Assert\NotBlank(['message' => 'Line is required.']),
@@ -41,40 +79,6 @@ class AddressService
 
         $errors = $this->validator->validate($data, $constraints);
 
-        if (count($errors) > 0) {
-            return [
-                'status' => 'error',
-                'errors' => $this->formatValidationErrors($errors)
-            ];
-        }
-
-        $address = new Address();
-        $address->setLine($data['line']);
-        $address->setLine2($data['line2'] ?? null);
-        $address->setCity($data['city']);
-        $address->setCountry($data['country']);
-        $address->setPostcode($data['postcode']);
-
-        $user->addAddress($address);
-        $this->em->persist($address);
-        $this->em->persist($user);
-        $this->em->flush();
-
-        return [
-            'status' => 'success',
-            'address' => $address,
-        ];
-    }
-
-    public function editAddress(Address $address)
-    {
-        $this->em->persist($address);
-        $this->em->flush();
-    }
-
-    public function removeAddress(Address $address)
-    {
-        $this->em->remove($address);
-        $this->em->flush();
+        return $this->formatValidationErrors($errors);
     }
 }
