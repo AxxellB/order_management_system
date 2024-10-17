@@ -1,36 +1,17 @@
-import logo from './logo.svg';
-import './App.css';
-import {useEffect} from "react";
+import RegisterPage from "./pages/RegisterPage";
+import LoginPage from "./pages/LoginPage";
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Homepage from "./pages/Homepage";
 
 function App() {
-  useEffect(() => {
-    fetch('http://0.0.0.0/api/register', {method: 'POST'})
-        .then(response => {
-          if (!response.ok) {
-            throw new Error('Network response was not ok');
-          }
-          return response.json();
-        })
-        .then(data => console.log(data))
-        .catch(error => console.error('There was a problem with the fetch operation:', error));
-  }, []);
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+      <Router>
+        <Routes>
+            <Route path="/homepage" element={<Homepage />}></Route>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+        </Routes>
+      </Router>
   );
 }
 
