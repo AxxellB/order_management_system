@@ -5,15 +5,21 @@ import Homepage from "./pages/Homepage";
 import React from 'react';
 import './App.css'; // Import global styles (optional)
 import 'bootstrap/dist/css/bootstrap.min.css';
+import Navigation from "./components/Navigation";
+import {useState} from "react";
 
 function App() {
+    const [user, setUser] = useState(null);
+    const isAdmin = false;
+
   return (
       <Router>
-        <Routes>
-            <Route path="/homepage" element={<Homepage />}></Route>
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-        </Routes>
+          <Navigation user={user} isAdmin={isAdmin} />
+          <Routes>
+              <Route path="/" element={<Homepage />} />
+              <Route path="/login" element={<LoginPage setUser={setUser} />} />
+              <Route path="/register" element={<RegisterPage />} />
+          </Routes>
       </Router>
   );
 }
