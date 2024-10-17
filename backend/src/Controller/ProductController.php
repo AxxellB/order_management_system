@@ -15,7 +15,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
-#[Route('/products')]
+#[Route('/api/products')]
 final class ProductController extends AbstractController
 {
 
@@ -26,25 +26,7 @@ final class ProductController extends AbstractController
         $this->productService = $productService;
     }
 
-    #[Route('/',name: 'product_index', methods: ['GET'])]
-    public function getProducts(Request $request): Response
-    {
-        $status = $request->query->get('status', 'active');
-
-        if($status === 'deleted'){
-            $products = $this->productService->getAllDeleted();
-        } else{
-            $products = $this->productService->getAllNonDeleted();
-
-        }
-
-        return $this->render('product/index.html.twig', [
-            'products' => $products,
-            'status' => $status,
-        ]);
-    }
-
-    #[Route('/api', name: 'api_product_list', methods: ['GET'])]
+    #[Route('/', name: 'api_product_list', methods: ['GET'])]
     public function list(Request $request, SerializerInterface $serializer): JsonResponse
     {
         $criteria = [
@@ -97,20 +79,7 @@ final class ProductController extends AbstractController
         return new JsonResponse($jsonProducts, Response::HTTP_OK, [], true);
     }
 
-    #[Route('/{id<\d+>}', name: 'product_by_id', methods: ['GET'])]
-    public function GetProductById(int $id): Response
-    {
-        $productById = $this->productService->getProductById($id);
-
-        $isDeleted = ($productById->getDeletedAt() !== null);
-
-        return $this->render('product/show.html.twig', [
-            'product' => $productById,
-            'isDeleted' => $isDeleted,
-        ]);
-    }
-
-    #[Route('/api/{id<\d+>}', name: 'api_product_by_id', methods: ['GET'])]
+    #[Route('/{id<\d+>}', name: 'api_product_by_id', methods: ['GET'])]
     public function getProductByIdApi(int $id, SerializerInterface $serializer): JsonResponse
     {
         $product = $this->productService->getProductById($id);
@@ -123,27 +92,7 @@ final class ProductController extends AbstractController
         return new JsonResponse($jsonProduct, Response::HTTP_OK, [], true);
     }
 
-    #[Route('/new', name: 'product_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager): Response
-    {
-        $product = new Product();
-        $form = $this->createForm(ProductType::class, $product);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->persist($product);
-            $entityManager->flush();
-
-            return $this->redirectToRoute('product_index', [], Response::HTTP_SEE_OTHER);
-        }
-
-        return $this->render('product/new.html.twig', [
-            'product' => $product,
-            'form' => $form,
-        ]);
-    }
-
-    #[Route('/api/new', name: 'api_product_new', methods: ['POST'])]
+    #[Route('/new', name: 'api_product_new', methods: ['POST'])]
     public function newApi(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
@@ -164,30 +113,7 @@ final class ProductController extends AbstractController
         return new JsonResponse(['message' => 'Product created successfully', 'id' => $product->getId()], Response::HTTP_CREATED);
     }
 
-
-
-    #[Route('/edit/{id<\d+>}', name: 'product_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Product $product, EntityManagerInterface $entityManager): Response
-    {
-
-        $form = $this->createForm(ProductType::class, $product);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-
-            $entityManager->persist($product);
-            $entityManager->flush();
-
-            return $this->redirectToRoute('product_index', [], Response::HTTP_SEE_OTHER);
-        }
-
-        return $this->render('product/edit.html.twig', [
-            'product' => $product,
-            'form' => $form,
-        ]);
-    }
-
-    #[Route('/api/edit/{id<\d+>}', name: 'api_product_edit', methods: ['PUT'])]
+    #[Route('/{id<\d+>}', name: 'api_product_edit', methods: ['PUT'])]
     public function editApi(Request $request, Product $product, EntityManagerInterface $entityManager): JsonResponse
     {
         if (!$product) {
@@ -210,26 +136,7 @@ final class ProductController extends AbstractController
         return new JsonResponse(['message' => 'Product updated successfully'], Response::HTTP_OK);
     }
 
-    #[Route('/{id<\d+>}', name: 'product_delete_restore', methods: ['POST'])]
-    public function deleteOrRestore(Request $request, Product $product, EntityManagerInterface $entityManager): Response
-    {
-        if ($this->isCsrfTokenValid('delete'.$product->getId(), $request->getPayload()->getString('_token'))) {
-
-            $product->setDeletedAt(new \DateTimeImmutable());
-
-            $entityManager->flush();
-        }
-        else if ($this->isCsrfTokenValid('restore'.$product->getId(), $request->getPayload()->getString('_token'))) {
-
-            $product->setDeletedAt(null);
-
-            $entityManager->flush();
-        }
-
-        return $this->redirectToRoute('product_index', [], Response::HTTP_SEE_OTHER);
-    }
-
-    #[Route('/api/{id<\d+>}', name: 'api_product_delete_restore', methods: ['DELETE'])]
+    #[Route('/{id<\d+>}', name: 'api_product_delete_restore', methods: ['DELETE'])]
     public function deleteOrRestoreApi(Request $request, Product $product, EntityManagerInterface $entityManager): JsonResponse
     {
         if (!$product) {
