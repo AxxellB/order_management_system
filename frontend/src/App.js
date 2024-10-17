@@ -2,6 +2,9 @@ import RegisterPage from "./pages/RegisterPage";
 import LoginPage from "./pages/LoginPage";
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Homepage from "./pages/Homepage";
+import React from 'react';
+import './App.css'; // Import global styles (optional)
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 function App() {
   return (
