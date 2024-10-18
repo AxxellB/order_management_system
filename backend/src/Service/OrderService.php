@@ -22,7 +22,9 @@ class OrderService
         private readonly BasketRepository       $basketRepository,
         private readonly BasketService          $basketService,
         private readonly ProductRepository      $productRepository
-    ) {}
+    )
+    {
+    }
 
     public function createOrder($user): Order
     {
@@ -69,6 +71,9 @@ class OrderService
         return $order;
     }
 
+    /**
+     * @throws \Exception
+     */
     public function editOrder(int $orderId, array $orderProducts, array $orderAddress, ?string $status = null): Order
     {
         $order = $this->orderRepository->find($orderId);
@@ -143,6 +148,7 @@ class OrderService
         $deliveryAddress = $order->getAddress() ?: new Address();
         if (isset($orderAddress['line'])) {
             $deliveryAddress->setLine($orderAddress['line']);
+            $deliveryAddress->setLine2($orderAddress['line2']);
             $deliveryAddress->setCity($orderAddress['city']);
             $deliveryAddress->setCountry($orderAddress['country']);
             $deliveryAddress->setPostcode($orderAddress['postcode']);
@@ -151,6 +157,16 @@ class OrderService
 
             $this->entityManager->persist($deliveryAddress);
             $order->setAddress($deliveryAddress);
+        }
+
+        if ($status !== null) {
+            try {
+                $orderStatus = OrderStatus::from($status);
+                $order->setStatus($orderStatus);
+                $this->entityManager->persist($order);
+            } catch (\ValueError) {
+                throw new \Exception('Invalid status provided');
+            }
         }
 
         $this->entityManager->flush();
