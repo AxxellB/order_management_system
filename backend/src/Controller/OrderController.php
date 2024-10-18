@@ -59,7 +59,7 @@ class OrderController extends AbstractController
         return new JsonResponse($data, Response::HTTP_CREATED, [], true);
     }
 
-    #[Route('/order/{id}', name: 'api_edit_order', methods: ['PUT'])]
+    #[Route('/order/{id}', name: 'api_edit_order', methods: ['PUT', 'PATCH'])]
     public function apiEditOrder(Request $request, int $id): JsonResponse
     {
         $order = $this->orderRepository->find($id);
@@ -74,6 +74,8 @@ class OrderController extends AbstractController
 
         $productsData = $data['products'] ?? [];
         $addressData = $data['address'] ?? [];
+        $statusData = $data['status'] ?? [];
+
 
         $insufficientStockProducts = [];
 
@@ -101,7 +103,7 @@ class OrderController extends AbstractController
         }
 
         try {
-            $this->orderService->editOrder($id, $productsData, $addressData);
+            $this->orderService->editOrder($id, $productsData, $addressData, $statusData);
 
             return new JsonResponse(['message' => 'Order successfully updated'], Response::HTTP_OK);
         } catch (\Exception $e) {
