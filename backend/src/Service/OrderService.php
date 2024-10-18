@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Service;
 
 use App\Controller\OrderController;
@@ -20,9 +21,8 @@ class OrderService
         private readonly OrderRepository        $orderRepository,
         private readonly BasketRepository       $basketRepository,
         private readonly BasketService          $basketService,
-        private readonly ProductRepository $productRepository
-    ) {
-    }
+        private readonly ProductRepository      $productRepository
+    ) {}
 
     public function createOrder($user): Order
     {
@@ -69,7 +69,7 @@ class OrderService
         return $order;
     }
 
-    public function editOrder(int $orderId, array $orderProducts, array $orderAddress): Order
+    public function editOrder(int $orderId, array $orderProducts, array $orderAddress, ?string $status = null): Order
     {
         $order = $this->orderRepository->find($orderId);
         if (!$order) {
@@ -89,11 +89,23 @@ class OrderService
                 throw new \Exception('Product not found');
             }
 
-            $orderProduct = $currentOrderProducts->filter(function($op) use($product) {
-                return $op->getProduct()->getId() === $product->getId();
+            $orderProduct = $currentOrderProducts->filter(function ($op) use ($product) {
+                return $op->getProductEntity()->getId() === $product->getId();
             })->first();
 
             if ($orderProduct) {
+                $oldQuantity = $orderProduct->getQuantity();
+                $quantityDifference = $quantity - $oldQuantity;
+
+                if ($quantityDifference > 0) {
+                    if ($quantityDifference > $product->getStockQuantity()) {
+                        throw new \Exception('Insufficient stock for ' . $product->getName());
+                    }
+                    $product->setStockQuantity($product->getStockQuantity() - $quantityDifference);
+                } else {
+                    $product->setStockQuantity($product->getStockQuantity() + abs($quantityDifference));
+                }
+
                 if ($quantity === 0) {
                     $order->removeOrderProduct($orderProduct);
                     $this->entityManager->remove($orderProduct);
@@ -103,6 +115,10 @@ class OrderService
                 }
             } else {
                 if ($quantity > 0) {
+                    if ($quantity > $product->getStockQuantity()) {
+                        throw new \Exception('Insufficient stock for ' . $product->getName());
+                    }
+
                     $newOrderProduct = new OrderProduct();
                     $newOrderProduct->setOrderEntity($order);
                     $newOrderProduct->setProductEntity($product);
@@ -112,10 +128,14 @@ class OrderService
 
                     $this->entityManager->persist($newOrderProduct);
                     $order->addOrderProduct($newOrderProduct);
+
+                    $product->setStockQuantity($product->getStockQuantity() - $quantity);
                 }
             }
 
             $totalAmount += $quantity * $product->getPrice();
+
+            $this->entityManager->persist($product);
         }
 
         $order->setTotalAmount($totalAmount);
@@ -126,7 +146,7 @@ class OrderService
             $deliveryAddress->setCity($orderAddress['city']);
             $deliveryAddress->setCountry($orderAddress['country']);
             $deliveryAddress->setPostcode($orderAddress['postcode']);
-            $deliveryAddress->setUser($order->getUser());
+            $deliveryAddress->setUser($order->getUserId());
             $deliveryAddress->setOrderEntity($order);
 
             $this->entityManager->persist($deliveryAddress);
@@ -141,7 +161,7 @@ class OrderService
     public function deleteOrder(int $orderId): void
     {
         $order = $this->orderRepository->find($orderId);
-        if(!$order) {
+        if (!$order) {
             throw new \Exception("Order not found");
         }
         $order->setDeletedAt(new \DateTimeImmutable());

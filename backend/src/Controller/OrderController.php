@@ -2,8 +2,8 @@
 
 namespace App\Controller;
 
-use App\Form\OrderEditFormType;
 use App\Repository\OrderRepository;
+use App\Repository\ProductRepository;
 use App\Service\OrderService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -12,14 +12,15 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Serializer\SerializerInterface;
+
 #[Route(path: '/api')]
 class OrderController extends AbstractController
 {
     public function __construct(
-        private readonly OrderService $orderService,
-        private readonly OrderRepository $orderRepository,
+        private readonly OrderService           $orderService,
+        private readonly OrderRepository        $orderRepository,
         private readonly EntityManagerInterface $em,
-        private readonly SerializerInterface $serializer
+        private readonly SerializerInterface    $serializer, private readonly ProductRepository $productRepository
     ) {}
 
     // API
@@ -73,6 +74,31 @@ class OrderController extends AbstractController
 
         $productsData = $data['products'] ?? [];
         $addressData = $data['address'] ?? [];
+
+        $insufficientStockProducts = [];
+
+        foreach ($productsData as $productId => $quantity) {
+            $product = $this->productRepository->find($productId);
+
+            if (!$product) {
+                return new JsonResponse(['error' => 'Product not found'], Response::HTTP_NOT_FOUND);
+            }
+
+            if ($quantity > $product->getStockQuantity()) {
+                $insufficientStockProducts[] = [
+                    'product' => $product->getName(),
+                    'currentStock' => $product->getStockQuantity(),
+                    'requestedQuantity' => $quantity
+                ];
+            }
+        }
+
+        if (!empty($insufficientStockProducts)) {
+            return new JsonResponse([
+                'error' => 'Insufficient stock for the following products: ',
+                'products' => $insufficientStockProducts
+            ], Response::HTTP_CONFLICT);
+        }
 
         try {
             $this->orderService->editOrder($id, $productsData, $addressData);
