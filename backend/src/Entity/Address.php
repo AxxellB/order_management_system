@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Repository\AddressRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Serializer\Annotation\MaxDepth;
 
 #[ORM\Entity(repositoryClass: AddressRepository::class)]
@@ -13,21 +14,27 @@ class Address
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['order:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['order:read'])]
     private ?string $line = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['order:read'])]
     private ?string $line2 = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['order:read'])]
     private ?string $city = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['order:read'])]
     private ?string $country = null;
 
     #[ORM\Column(length: 15)]
+    #[Groups(['order:read'])]
     private ?string $postcode = null;
 
     #[ORM\ManyToOne(inversedBy: 'addresses')]
