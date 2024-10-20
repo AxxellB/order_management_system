@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import {useNavigate} from "react-router-dom";
+import {useAuth} from "../provider/AuthProvider";
 
 const LoginForm = () => {
     const [formData, setFormData] = useState({
@@ -9,7 +10,9 @@ const LoginForm = () => {
     });
 
     const [errors, setErrors] = useState({});
+    const { setToken } = useAuth();
     const navigate = useNavigate();
+
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
@@ -31,8 +34,8 @@ const LoginForm = () => {
             }
         ).then(function (response) {
             if(response.status === 200){
-                localStorage.setItem('jwtToken', response.data.token);
-                navigate('/homepage');
+                setToken(response.data.token);
+                navigate('/');
             } else {
                 alert(response.data.message);
             }
