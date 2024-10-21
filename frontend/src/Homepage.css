@@ -65,19 +65,6 @@
     margin-right: 10px;
 }
 
-button {
-    background-color: #28a745;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    padding: 8px 16px;
-    font-size: 1rem;
-    transition: background-color 0.3s ease;
-    display: flex;
-    align-items: center;
-    height: 30px;
-}
-
 button:hover {
     background-color: #218838;
     cursor: pointer;

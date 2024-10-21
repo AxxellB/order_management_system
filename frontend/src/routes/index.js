@@ -8,6 +8,10 @@ import RegisterPage from "../pages/RegisterPage";
 import Basket from "../pages/Basket";
 import Layout from "../components/Layout";
 import Checkout from "../pages/Checkout";
+import ProductsList from "../pages/ProductList";
+import ProductNew from "../pages/ProductNew";
+import ProductDetails from "../pages/ProductDetails";
+import ProductEdit from "../pages/ProductEdit";
 
 const Routes = () => {
     const { token } = useAuth();
@@ -20,6 +24,22 @@ const Routes = () => {
                 {
                     path: "/",
                     element: <Homepage />,
+                },
+                {
+                    path: "/admin/products",
+                    element: <ProductsList />,
+                },
+                {
+                    path: "/admin/products/new",
+                    element: <ProductNew />,
+                },
+                {
+                    path: "/admin/products/:id",
+                    element: <ProductDetails />,
+                },
+                {
+                    path: "/admin/products/edit/:id",
+                    element: <ProductEdit />,
                 },
             ],
         },
