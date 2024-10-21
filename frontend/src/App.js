@@ -11,6 +11,7 @@ function App() {
             <Routes />
         </AuthProvider>
     );
+
 }
 
 export default App;
