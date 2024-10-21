@@ -40,7 +40,6 @@ const EditOrderForm = ({
             try {
                 const response = await axios.get(`http://localhost/api/order/${orderId}`);
                 setOrder(response.data);
-                console.log(response.data.orderProducts);
 
                 if (response.data.orderProducts && Array.isArray(response.data.orderProducts)) {
                     const initialProducts = response.data.orderProducts.reduce((acc, product) => {
@@ -71,7 +70,7 @@ const EditOrderForm = ({
     const handleDeleteProduct = (productId) => {
         setProducts((prevProducts) => {
             const updatedProducts = {...prevProducts};
-            delete updatedProducts[productId];  // Remove the product
+            delete updatedProducts[productId];
             return updatedProducts;
         });
     };
