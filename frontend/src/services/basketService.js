@@ -36,9 +36,9 @@ const removeProduct = async (productId) => {
     try{
         const response = await axios.delete(`api/basket/${productId}`)
         if (response.status === 200) {
-            console.log('Product removed successfully');
+            alert('Product removed successfully');
         } else {
-            console.log('Failed to remove product');
+            alert('Failed to remove product');
         }
     }catch (error){
         console.log(error);
@@ -48,9 +48,9 @@ const clearBasket = async () =>{
     try{
         const response = await axios.delete('api/basket')
         if (response.status === 200) {
-            console.log('Basket cleared successfully');
+            alert('Basket cleared successfully');
         } else {
-            console.log('Failed to clear basket');
+            alert('Failed to clear basket');
         }
     }catch (error){
         console.log(error);
