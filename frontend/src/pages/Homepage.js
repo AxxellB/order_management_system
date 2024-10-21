@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import '../Homepage.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
+import { addToBasket } from '../services/basketService';
 
 const ProductsList = () => {
     const [products, setProducts] = useState([]);
@@ -31,11 +32,7 @@ const ProductsList = () => {
     }, []);
 
     const handleAddToBasket = (productId, quantity) => {
-        setBasket(prevBasket => ({
-            ...prevBasket,
-            [productId]: (prevBasket[productId] || 0) + quantity,
-        }));
-        alert(`Added ${quantity} item(s) to basket!`);
+        addToBasket(productId, quantity)
     };
 
     if (loading) return <div className="text-center mt-5">Loading...</div>;

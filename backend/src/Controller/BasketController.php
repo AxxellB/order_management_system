@@ -43,18 +43,21 @@ final class BasketController extends AbstractController
     }
 
     #[Route('/basket', name: 'api_basket_add_product', methods: ['POST'])]
-    public function apiAddProduct(Request $request, Product $product): JsonResponse
+    public function apiAddProduct(Request $request): JsonResponse
     {
         $user = $this->getUser();
 
         if (!$user) {
             return new JsonResponse(['error' => 'User not authenticated.'], Response::HTTP_UNAUTHORIZED);
         }
-
-        $quantity = $request->request->get('quantity', 1);
         $basket = $this->basketService->getOrCreateBasket($user);
 
-        $this->basketService->addProductToBasket($basket, $product, $quantity);
+        $data = json_decode($request->getContent(), true);
+        $quantity = $data['quantity'];
+        $productId = $data['productId'];
+
+
+        $this->basketService->addProductToBasket($basket, $productId, $quantity);
 
         return new JsonResponse([
             'message' => 'Product added to basket',
