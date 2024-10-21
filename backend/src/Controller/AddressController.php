@@ -147,7 +147,8 @@ class AddressController extends AbstractController
             'line' => $address->getLine(),
             'line2' => $address->getLine2() ?? '',
             'city' => $address->getCity(),
-            'postal_code' => $address->getPostCode(),
+            'country' => $address->getCountry(),
+            'postcode' => $address->getPostCode(),
         ];
     }
 
