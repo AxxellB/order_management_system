@@ -26,7 +26,7 @@ class OrderService
     {
     }
 
-    public function createOrder($user): Order
+    public function createOrder($user, $addressId): Order
     {
         $order = new Order();
         $order->setUserId($user);
@@ -39,11 +39,11 @@ class OrderService
             $totalAmount += $basketProduct->getQuantity() * $productPrice;
         }
         $order->setTotalAmount($totalAmount);
-        $order->setPaymentMethod('debit card');
+        $order->setPaymentMethod('Debit card');
         $order->setStatus(OrderStatus::NEW);
         $this->entityManager->persist($order);
 
-        $userAddress = $user->getAddresses()[0];
+        $userAddress = $user->getAddress($addressId);
         $deliveryAddress = new Address();
         $deliveryAddress->setUser($user);
         $deliveryAddress->setLine($userAddress->getLine());
@@ -51,9 +51,11 @@ class OrderService
         $deliveryAddress->setCountry($userAddress->getCountry());
         $deliveryAddress->setPostcode($userAddress->getPostcode());
         $deliveryAddress->setOrderEntity($order);
+        $order->setAddress($deliveryAddress);
 
         $this->entityManager->persist($deliveryAddress);
         $this->entityManager->persist($order);
+
 
         foreach ($basketProducts as $basketProduct) {
             $orderProduct = new OrderProduct();

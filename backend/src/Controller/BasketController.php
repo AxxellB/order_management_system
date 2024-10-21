@@ -70,8 +70,9 @@ final class BasketController extends AbstractController
         if (!$user) {
             return new JsonResponse(['error' => 'User not authenticated.'], Response::HTTP_UNAUTHORIZED);
         }
+        $data = json_decode($request->getContent(), true);
+        $quantity = $data['quantity'] ?? 1;
 
-        $quantity = $request->request->get('quantity', 1);
         $basket = $this->basketService->getOrCreateBasket($user);
 
         $this->basketService->updateProductQuantity($basket, $product, $quantity);
@@ -101,13 +102,19 @@ final class BasketController extends AbstractController
         ], Response::HTTP_OK);
     }
 
-    #[Route('/basket/{id}', name: 'api_basket_clear', methods: ['POST'])]
-    public function apiClearBasket(int $id, BasketService $basketService): JsonResponse
+    #[Route('/basket', name: 'api_basket_clear', methods: ['DELETE'])]
+    public function apiClearBasket(BasketService $basketService): JsonResponse
     {
-        $basket = $this->basketRepository->find($id);
+        $user = $this->getUser();
+
+        if (!$user) {
+            return new JsonResponse(['error' => 'User not authenticated.'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $basket = $user->getBasket();
 
         if (!$basket) {
-            throw $this->createNotFoundException('Basket not found');
+            return new JsonResponse(['error' => 'Basket not found'], Response::HTTP_NOT_FOUND);
         }
 
         $basketService->clearBasket($basket);

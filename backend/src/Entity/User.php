@@ -184,6 +184,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->addresses;
     }
 
+    public function getAddress(int $addressId): ?Address
+    {
+        $address = $this->addresses->filter(function (Address $address) use ($addressId) {
+            return $address->getId() == $addressId;
+        })->first();
+
+        return $address ? $address : null;
+    }
+
     public function addAddress(Address $address): static
     {
         if (!$this->addresses->contains($address)) {

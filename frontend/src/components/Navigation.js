@@ -1,7 +1,9 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
+import {useAuth} from "../provider/AuthProvider";
 
-const Navigation = ({ user, isAdmin }) => {
+const Navigation = () => {
+    const { user, isAdmin } = useAuth();
+
     return (
         <nav className="navbar navbar-expand-lg navbar-light bg-light">
             <div className="container">
