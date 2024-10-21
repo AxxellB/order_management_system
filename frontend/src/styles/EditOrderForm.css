@@ -1,0 +1,68 @@
+.edit-order-form {
+    padding: 20px;
+    max-width: 600px;
+    margin: 0 auto;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.edit-order-form h1 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.edit-order-form h3 {
+    margin-top: 20px;
+    color: #444;
+}
+
+.edit-order-form label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #333;
+}
+
+.edit-order-form input[type="text"],
+.edit-order-form input[type="number"],
+.edit-order-form select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.edit-order-form button {
+    padding: 10px 15px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.edit-order-form button:hover {
+    background-color: #0056b3;
+}
+
+.product-form {
+    border: 1px solid #ccc;
+    padding: 1em;
+    margin: 1em 0;
+    background-color: #fff;
+    border-radius: 8px;
+}
+
+.error-message {
+    color: red;
+    margin-bottom: 10px;
+}
+
+.loading {
+    text-align: center;
+    font-size: 1.2em;
+}

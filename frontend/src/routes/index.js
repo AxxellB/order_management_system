@@ -12,6 +12,9 @@ import ProductsList from "../pages/ProductList";
 import ProductNew from "../pages/ProductNew";
 import ProductDetails from "../pages/ProductDetails";
 import ProductEdit from "../pages/ProductEdit";
+import React from "react";
+import OrderManagementPage from "../pages/OrderManagementPage";
+import EditOrderForm from "../components/EditOrderForm";
 
 const Routes = () => {
     const { token } = useAuth();
@@ -40,6 +43,14 @@ const Routes = () => {
                 {
                     path: "/admin/products/edit/:id",
                     element: <ProductEdit />,
+                },
+                {
+                    path: "/admin/orders",
+                    element: <OrderManagementPage />
+                },
+                {
+                    path: "/admin/order/:id",
+                    element: <EditOrderForm />
                 },
             ],
         },

@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Order;
 use App\Repository\OrderRepository;
 use App\Repository\ProductRepository;
 use App\Service\OrderService;
@@ -21,7 +22,9 @@ class OrderController extends AbstractController
         private readonly OrderRepository        $orderRepository,
         private readonly EntityManagerInterface $em,
         private readonly SerializerInterface    $serializer, private readonly ProductRepository $productRepository
-    ) {}
+    )
+    {
+    }
 
     // API
     #[Route('/orders', name: 'api_orders', methods: ['GET'])]
@@ -29,9 +32,9 @@ class OrderController extends AbstractController
     {
         $orders = $this->orderRepository->findAll();
 
-        $data = $this->serializer->serialize($orders, 'json', ['groups' => 'order:read']);
+        $formattedOrders = array_map(fn($order) => $this->formatOrder($order), $orders);
 
-        return new JsonResponse($data, Response::HTTP_OK, [], true);
+        return new JsonResponse($formattedOrders, Response::HTTP_OK);
     }
 
     #[Route('/order/{id}', name: 'api_order', methods: ['GET'])]
@@ -43,9 +46,9 @@ class OrderController extends AbstractController
             return new JsonResponse(['error' => 'Order not found'], Response::HTTP_NOT_FOUND);
         }
 
-        $data = $this->serializer->serialize($order, 'json', ['groups' => 'order:read']);
+        $formattedOrder = $this->formatOrder($order);
 
-        return new JsonResponse($data, Response::HTTP_OK, [], true);
+        return new JsonResponse($formattedOrder, Response::HTTP_OK);
     }
 
     #[Route('/orders', name: 'api_create_order', methods: ['POST'])]
@@ -61,15 +64,17 @@ class OrderController extends AbstractController
         return new JsonResponse($data, Response::HTTP_CREATED, [], true);
     }
 
-    #[Route('/order/{id}', name: 'api_edit_order', methods: ['PUT', 'PATCH'])]
+    #[Route('/order/{id}', name: 'api_edit_order', methods: ['PUT'])]
     public function apiEditOrder(Request $request, int $id): JsonResponse
     {
         $order = $this->orderRepository->find($id);
+
         if (!$order) {
             return new JsonResponse(['error' => 'Order not found'], Response::HTTP_NOT_FOUND);
         }
 
         $data = json_decode($request->getContent(), true);
+
         if (!$data) {
             return new JsonResponse(['error' => 'Invalid JSON data'], Response::HTTP_BAD_REQUEST);
         }
@@ -125,6 +130,41 @@ class OrderController extends AbstractController
         $this->orderService->deleteOrder($id);
 
         return new JsonResponse(['message' => 'Order successfully deleted'], Response::HTTP_NO_CONTENT);
+    }
+
+    private function formatOrder(Order $order): array
+    {
+        $formattedProducts = [];
+        foreach ($order->getOrderProducts() as $orderProduct) {
+            $formattedProducts[] = [
+                'id' => $orderProduct->getProductEntity()->getId(),
+                'name' => $orderProduct->getProductEntity()->getName(),
+                'quantity' => $orderProduct->getQuantity(),
+                'pricePerUnit' => $orderProduct->getPricePerUnit(),
+                'subtotal' => $orderProduct->getSubtotal()
+            ];
+        }
+
+        $formattedAddress = [
+            'id' => $order->getAddress()->getId(),
+            'line' => $order->getAddress()->getLine(),
+            'line2' => $order->getAddress()->getLine2(),
+            'city' => $order->getAddress()->getCity(),
+            'country' => $order->getAddress()->getCountry(),
+            'postcode' => $order->getAddress()->getPostcode(),
+        ];
+
+        return [
+            'id' => $order->getId(),
+            'userId' => $order->getUserId()->getEmail(),
+            'orderDate' => $order->getOrderDate()->format('Y-m-d\TH:i:sP'),
+            'totalAmount' => $order->getTotalAmount(),
+            'paymentMethod' => $order->getPaymentMethod(),
+            'status' => $order->getStatus(),
+            'deletedAt' => $order->getDeletedAt() ? $order->getDeletedAt()->format('Y-m-d\TH:i:sP') : null,
+            'orderProducts' => $formattedProducts,
+            'address' => $formattedAddress,
+        ];
     }
 
     /*
