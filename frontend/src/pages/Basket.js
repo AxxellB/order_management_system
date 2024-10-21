@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from "axios";
 import { clearBasket, removeProduct, updateQuantity } from "../services/basketService";
+import './Basket.css';
 
 const Basket = () => {
     const [basket, setBasket] = useState([]);
@@ -66,19 +67,19 @@ const Basket = () => {
     const handleClearBasket = async () => {
         await clearBasket();
         setBasket([]);
-        setTotalPrice(0)
+        setTotalPrice(0);
     };
 
     const handleCheckout = () => {
-        navigate('/order/create');
+        navigate('/checkout');
     };
 
     return (
-        <div className="basket-container">
-            <h1>Your Basket</h1>
+        <div className="basket-container mt-4 mb-4">
+            <h1 className="basket-title">Your Basket</h1>
 
-            {loading ? ( // Show loading state
-                <div>Loading...</div>
+            {loading ? (
+                <div className="loading">Loading...</div>
             ) : (
                 basket && basket.length > 0 ? (
                     <>
@@ -105,12 +106,12 @@ const Basket = () => {
                                             value={item.quantity}
                                             min="1"
                                             onChange={(e) => handleQuantityChange(e, item.product.id)}
-                                            style={{ width: '50px' }}
+                                            className="quantity-input"
                                         />
                                     </form>
 
                                     <button
-                                        className="btn btn-danger"
+                                        className="btn-remove"
                                         onClick={() => handleRemoveProduct(item.product.id)}
                                     >
                                         Delete
@@ -120,7 +121,7 @@ const Basket = () => {
                         ))}
 
                         <div className="clear-basket-section">
-                            <button className="btn btn-danger" onClick={handleClearBasket}>
+                            <button className="btn-clear" onClick={handleClearBasket}>
                                 Clear Basket
                             </button>
                         </div>
@@ -133,12 +134,11 @@ const Basket = () => {
                         </div>
                     </>
                 ) : (
-                    <p>Your basket is empty.</p>
+                    <p className="empty-basket">Your basket is empty.</p>
                 )
             )}
         </div>
     );
 };
-
 
 export default Basket;

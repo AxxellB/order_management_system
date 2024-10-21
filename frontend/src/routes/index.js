@@ -7,6 +7,7 @@ import Homepage from "../pages/Homepage";
 import RegisterPage from "../pages/RegisterPage";
 import Basket from "../pages/Basket";
 import Layout from "../components/Layout";
+import Checkout from "../pages/Checkout";
 
 const Routes = () => {
     const { token } = useAuth();
@@ -40,6 +41,10 @@ const Routes = () => {
                         {
                             path: "/basket",
                             element: <Basket />
+                        },
+                        {
+                            path: "/checkout",
+                            element: <Checkout />
                         },
                         {
                             path: "/logout",

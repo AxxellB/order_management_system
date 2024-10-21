@@ -48,10 +48,12 @@ class OrderController extends AbstractController
     }
 
     #[Route('/orders', name: 'api_create_order', methods: ['POST'])]
-    public function apiCreateOrder(): JsonResponse
+    public function apiCreateOrder(Request $request): JsonResponse
     {
+        $data = json_decode($request->getContent(), true);
+        $addressId = $data["addressId"];
         $user = $this->getUser();
-        $order = $this->orderService->createOrder($user);
+        $order = $this->orderService->createOrder($user, $addressId);
 
         $data = $this->serializer->serialize($order, 'json', ['groups' => 'order:read']);
 
