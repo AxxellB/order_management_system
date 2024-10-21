@@ -5,18 +5,15 @@ namespace App\Controller;
 use App\Entity\Category;
 use App\Form\CategoryType;
 use App\Repository\CategoryRepository;
-use App\Repository\ProductRepository;
 use App\Service\CategoryService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
-use function Symfony\Component\Translation\t;
 
 #[Route('/api/categories')]
 final class CategoryController extends AbstractController
@@ -34,19 +31,14 @@ final class CategoryController extends AbstractController
     {
         $user = $this->getUser();
 
-        if(!$user){
+       /* if(!$user){
             return new JsonResponse(['message' => 'You must be logged in to access this page.'], Response::HTTP_FORBIDDEN);
-        }
+        }*/
 
         $categories = $this->categoryService->getAll();
 
-        $context = [
-            'circular_reference_handler' => function ($object) {
-                return $object->getId();
-            }
-        ];
 
-        $jsonCategories = $serializer->serialize($categories, 'json', $context);
+        $jsonCategories = $serializer->serialize($categories, 'json');
 
         return new JsonResponse($jsonCategories, Response::HTTP_OK, [], true);
     }
