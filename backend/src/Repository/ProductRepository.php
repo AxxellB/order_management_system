@@ -41,48 +41,58 @@ class ProductRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
     }
 
+
     public function findByCriteriaAndOrder(array $criteria, array $orderBy): array
     {
-        $queryBuilder = $this->createQueryBuilder('p');
+        $qb = $this->createQueryBuilder('p');
 
-        $queryBuilder->andWhere('p.deletedAt IS NULL');
-
-        if (!empty($criteria['category'])) {
-            $queryBuilder->leftJoin('p.categories', 'c')
-                ->andWhere('c.id = :categoryId')
-                ->setParameter('categoryId', $criteria['category']);
+        if (isset($criteria['category'])) {
+            $qb->join('p.categories', 'c')
+            ->andWhere('c.id = :category')
+            ->setParameter('category', $criteria['category']);
         }
 
-        if (!empty($criteria['minPrice']) && is_numeric($criteria['minPrice'])) {
-            $queryBuilder->andWhere('p.price >= :minPrice')
+        if (isset($criteria['minPrice'])) {
+            $qb->andWhere('p.price >= :minPrice')
                 ->setParameter('minPrice', $criteria['minPrice']);
         }
 
-        if (!empty($criteria['maxPrice']) && is_numeric($criteria['maxPrice'])) {
-            $queryBuilder->andWhere('p.price <= :maxPrice')
+        if (isset($criteria['maxPrice'])) {
+            $qb->andWhere('p.price <= :maxPrice')
                 ->setParameter('maxPrice', $criteria['maxPrice']);
         }
 
-        if (!empty($criteria['minStock']) && is_numeric($criteria['minStock'])) {
-            $queryBuilder->andWhere('p.stockQuantity >= :minStock')
+        if (isset($criteria['minStock'])) {
+            $qb->andWhere('p.stockQuantity >= :minStock')
                 ->setParameter('minStock', $criteria['minStock']);
         }
 
-        if (!empty($criteria['maxStock']) && is_numeric($criteria['maxStock'])) {
-            $queryBuilder->andWhere('p.stockQuantity <= :maxStock')
+        if (isset($criteria['maxStock'])) {
+            $qb->andWhere('p.stockQuantity <= :maxStock')
                 ->setParameter('maxStock', $criteria['maxStock']);
         }
 
-        foreach ($orderBy as $field => $direction) {
-            if (in_array($field, ['name', 'price', 'stockQuantity'])) {
-                $queryBuilder->addOrderBy('p.' . $field, $direction);
+        if (isset($criteria['deleted'])) {
+            if ($criteria['deleted'] === true) {
+                $qb->andWhere('p.deletedAt IS NOT NULL');
+            } else {
+                $qb->andWhere('p.deletedAt IS NULL');
             }
+        } else {
+            $qb->andWhere('p.deletedAt IS NULL');
         }
 
-        $query = $queryBuilder->getQuery();
+        foreach ($orderBy as $field => $direction) {
+            $qb->addOrderBy('p.' . $field, $direction);
+        }
 
-        return $query->getResult();
+        return $qb->getQuery()->getResult();
     }
+
+
+
+
+
 
 
 }

@@ -7,13 +7,11 @@ use App\Form\ProductType;
 use App\Service\ProductService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Serializer\SerializerInterface;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route('/api/products')]
 final class ProductController extends AbstractController
@@ -26,9 +24,11 @@ final class ProductController extends AbstractController
         $this->productService = $productService;
     }
 
-    #[Route('/', name: 'api_product_list', methods: ['GET'])]
+    #[Route('/list', name: 'api_product_list', methods: ['GET'])]
     public function list(Request $request, SerializerInterface $serializer): JsonResponse
     {
+        $status = $request->query->get('status', 'active');
+
         $criteria = [
             'category' => $request->query->get('category'),
             'minPrice' => is_numeric($request->query->get('minPrice')) ? (float) $request->query->get('minPrice') : null,
@@ -37,44 +37,23 @@ final class ProductController extends AbstractController
             'maxStock' => is_numeric($request->query->get('maxStock')) ? (int) $request->query->get('maxStock') : null,
         ];
 
-        $orderBy = [];
-        $orderParameter = $request->query->get('order');
-        $direction = strtolower($request->query->get('direction', 'asc')) === 'desc' ? 'desc' : 'asc';
-
-        switch ($orderParameter) {
-            case 'name':
-                $orderBy['name'] = $direction;
+        switch ($status) {
+            case 'deleted':
+                $criteria['deleted'] = true;
                 break;
-            case 'price':
-                $orderBy['price'] = $direction;
-                break;
-            case 'stock':
-                $orderBy['stockQuantity'] = $direction;
-                break;
+            case 'active':
             default:
-                $orderBy['name'] = $direction;
+                $criteria['deleted'] = false;
                 break;
         }
 
-        $products = $this->productService->getFilteredAndOrderedProducts($criteria, $orderBy);
-
+        $products = $this->productService->getFilteredAndOrderedProducts($criteria, []);
 
         if (empty($products)) {
             return new JsonResponse(['message' => 'No products found matching the given criteria.'], Response::HTTP_OK);
         }
 
-        $context = [
-            'groups' => ['product:read'],
-            'circular_reference_handler' => function ($object) {
-                return $object->getId();
-            }
-        ];
-
-        try {
-            $jsonProducts = $serializer->serialize($products, 'json', $context);
-        } catch (\Exception $e) {
-            return new JsonResponse(['error' => 'An error occurred while processing the products.', 'details' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
-        }
+        $jsonProducts = $serializer->serialize($products, 'json', ['groups' => ['product:read']]);
 
         return new JsonResponse($jsonProducts, Response::HTTP_OK, [], true);
     }

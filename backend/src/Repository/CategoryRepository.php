@@ -31,7 +31,10 @@ class CategoryRepository extends ServiceEntityRepository
     public function findAllNonDeletedCategories(): array
     {
         return $this->createQueryBuilder('c')
+            ->select('c.id, c.name, COUNT(p.id) as productCount')
+            ->leftJoin('c.products', 'p')
             ->andWhere('c.deletedAt IS NULL')
+            ->groupBy('c.id')
             ->getQuery()
             ->getResult();
     }

@@ -56,7 +56,7 @@ class Product
      * @var Collection<int, Category>
      */
     #[ORM\ManyToMany(targetEntity: Category::class, inversedBy: 'products')]
-    #[Groups(['category:read'])]
+    #[Groups(['product:read', 'category:read'])]
     private Collection $categories;
 
 
