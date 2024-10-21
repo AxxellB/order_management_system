@@ -1,5 +1,22 @@
 import axios from "axios";
 
+const addToBasket = async (productId, quantity) => {
+    const payload = {
+        productId: productId,
+        quantity: quantity
+    }
+    try{
+        const response = await axios.post('/api/basket', payload)
+        if(response.status === 201){
+            alert("Product was added to basket")
+        }
+        else{
+            alert("Product could not be added to basket")
+        }
+    }catch (error){
+        console.log(error)
+    }
+}
 const updateQuantity = async (productId, newQuantity) => {
     try {
         const response = await axios.put(`/api/basket/${productId}`, {
@@ -40,4 +57,4 @@ const clearBasket = async () =>{
     }
 }
 
-export { clearBasket, removeProduct, updateQuantity };
+export { addToBasket, clearBasket, removeProduct, updateQuantity };

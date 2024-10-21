@@ -8,6 +8,7 @@ use App\Entity\Product;
 use App\Entity\User;
 use App\Enum\BasketStatus;
 use App\Repository\BasketRepository;
+use App\Repository\ProductRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -15,11 +16,13 @@ class BasketService
 {
     private EntityManagerInterface $em;
     private BasketRepository $basketRepository;
+    private ProductRepository $productRepository;
 
-    public function __construct(EntityManagerInterface $em, BasketRepository $basketRepository)
+    public function __construct(EntityManagerInterface $em, BasketRepository $basketRepository, ProductRepository $productRepository)
     {
         $this->em = $em;
         $this->basketRepository = $basketRepository;
+        $this->productRepository = $productRepository;
     }
 
     public function createNewBasket(User $user): Basket
@@ -49,8 +52,9 @@ class BasketService
         return $basket;
     }
 
-    public function addProductToBasket(Basket $basket, Product $product, int $quantity): void
+    public function addProductToBasket(Basket $basket, int $productId, int $quantity): void
     {
+        $product = $this->productRepository->find($productId);
         $basketProduct = $this->em->getRepository(BasketProduct::class)
             ->findOneBy(['basket' => $basket, 'product' => $product]);
 
