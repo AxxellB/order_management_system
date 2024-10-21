@@ -59,7 +59,7 @@ class UserController extends AbstractController
             $token = $jwtManager->create($user);
 
             return new JsonResponse([
-                'message' => 'Login successful!!!!!!!!!',
+                'message' => 'Login successful!',
                 'token' => $token
             ], Response::HTTP_OK);
         }
