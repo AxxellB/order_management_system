@@ -25,7 +25,7 @@ const EditOrderForm = ({
     useEffect(() => {
         const fetchAvailableProducts = async () => {
             try {
-                const response = await axios.get('http://localhost/api/products');
+                const response = await axios.get('http://localhost/api/products/list');
                 setAvailableProducts(response.data);
             } catch (error) {
                 console.error('Error fetching available products:', error);
@@ -40,6 +40,7 @@ const EditOrderForm = ({
             try {
                 const response = await axios.get(`http://localhost/api/order/${orderId}`);
                 setOrder(response.data);
+                console.log(response.data.orderProducts);
 
                 if (response.data.orderProducts && Array.isArray(response.data.orderProducts)) {
                     const initialProducts = response.data.orderProducts.reduce((acc, product) => {
@@ -65,6 +66,14 @@ const EditOrderForm = ({
 
     const handleAddProduct = () => {
         setShowProductForm(true);
+    };
+
+    const handleDeleteProduct = (productId) => {
+        setProducts((prevProducts) => {
+            const updatedProducts = {...prevProducts};
+            delete updatedProducts[productId];  // Remove the product
+            return updatedProducts;
+        });
     };
 
     const handleProductChange = (e) => {
@@ -140,7 +149,7 @@ const EditOrderForm = ({
             }
 
             onFinishEditing();
-            navigate('/orders');
+            navigate('/admin/orders');
 
         } catch (error) {
             console.error('Error updating order:', error);
@@ -207,15 +216,18 @@ const EditOrderForm = ({
                     Object.entries(products).map(([productId, quantity]) => {
                         const product = availableProducts.find(p => p.id === parseInt(productId));
                         return (
-                            <div key={productId}>
+                            <div key={productId} className="product-form">
                                 <label>{`Product ID: ${productId} | Name: ${product?.name || 'Unknown'}`}</label>
                                 <input
                                     type="number"
                                     max={product?.stockQuantity}
-                                    min="0"
+                                    min="1"
                                     value={quantity}
                                     onChange={(e) => handleProductQuantityChange(productId, parseInt(e.target.value))}
                                 />
+                                <button type="delete-button" onClick={() => handleDeleteProduct(productId)}>
+                                    Delete
+                                </button>
                             </div>
                         );
                     })
