@@ -4,7 +4,7 @@ services:
       context: ./backend
     container_name: symfony_app
     volumes:
-      - ./backend:/var/www/html
+      - ./backend:/var/www/symfony
     ports:
       - "${BACKEND_PORT}:9000"
     depends_on:
