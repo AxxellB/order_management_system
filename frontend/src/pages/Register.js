@@ -1,7 +1,7 @@
 import React from 'react';
 import RegisterForm from '../components/RegisterForm';
 
-const RegisterPage = () => {
+const Register = () => {
     return (
         <div className="container d-flex flex-column justify-content-center align-items-center mt-5">
             <h1>Register</h1>
@@ -10,4 +10,4 @@ const RegisterPage = () => {
     );
 };
 
-export default RegisterPage;
+export default Register;

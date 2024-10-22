@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import {useNavigate} from "react-router-dom";
-import './Checkout.css';
+import '../styles/Checkout.css';
 
 const Checkout = () => {
     const [basket, setBasket] = useState([]);

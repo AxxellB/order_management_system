@@ -1,10 +1,10 @@
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import { useAuth } from "../provider/AuthProvider";
 import { ProtectedRoute } from "./ProtectedRoute";
-import LoginPage from "../pages/LoginPage";
+import Login from "../pages/Login";
 import Logout from "../pages/Logout";
 import Homepage from "../pages/Homepage";
-import RegisterPage from "../pages/RegisterPage";
+import Register from "../pages/Register";
 import Basket from "../pages/Basket";
 import Layout from "../components/Layout";
 import Checkout from "../pages/Checkout";
@@ -94,11 +94,11 @@ const Routes = () => {
             children: [
                 {
                     path: "/login",
-                    element: <LoginPage />,
+                    element: <Login />,
                 },
                 {
                     path: "/register",
-                    element: <RegisterPage />,
+                    element: <Register />,
                 },
             ]
         }

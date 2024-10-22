@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from "axios";
 import { clearBasket, removeProduct, updateQuantity } from "../services/basketService";
-import './Basket.css';
+import '../styles/Basket.css';
 
 const Basket = () => {
     const [basket, setBasket] = useState([]);
