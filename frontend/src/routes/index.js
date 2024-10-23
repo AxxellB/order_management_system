@@ -110,7 +110,6 @@ const Routes = () => {
                         {
                             path: "/admin/categories/edit/:id",
                             element: <CategoryEdit />,
-                            element: <UserProfile />
                         },
                         {
                             path: "/profile/security-centre",
