@@ -17,17 +17,6 @@ class ProductService
         $this->productRepository = $productRepository;
     }
 
-    public function getAllNonDeleted(): array
-    {
-        return $this->productRepository->findAllNonDeletedProducts();
-
-    }
-
-    public function getAllDeleted(): array
-    {
-        return $this->productRepository->findAllDeletedProducts();
-
-    }
 
     public function getProductById(int $id): Product
     {

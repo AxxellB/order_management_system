@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Category;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\Tools\Pagination\Paginator;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -16,27 +17,43 @@ class CategoryRepository extends ServiceEntityRepository
         parent::__construct($registry, Category::class);
     }
 
-    public function findRandomCategories(int $limit): array
-    {
-        $categories = $this->createQueryBuilder('c')
-            ->andWhere('c.deletedAt IS NULL')
-            ->getQuery()
-            ->getResult();
-
-        shuffle($categories);
-
-        return array_slice($categories, 0, $limit);
-    }
-
-    public function findAllNonDeletedCategories(): array
+    public function findById(int $id): ?Category
     {
         return $this->createQueryBuilder('c')
+            ->andWhere('c.id = :id')
+            ->setParameter('id', $id)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+
+    public function findAllNonDeletedCategories(int $offset, int $limit): array
+    {
+        $query = $this->createQueryBuilder('c')
             ->select('c.id, c.name, COUNT(p.id) as productCount')
             ->leftJoin('c.products', 'p')
             ->andWhere('c.deletedAt IS NULL')
             ->groupBy('c.id')
-            ->getQuery()
-            ->getResult();
+            ->setFirstResult($offset)
+            ->setMaxResults($limit)
+            ->getQuery();
+
+        $paginator = new Paginator($query, true);
+        $categories = $paginator->getQuery()->getArrayResult();
+
+        $countQuery = $this->createQueryBuilder('c')
+            ->select('COUNT(c.id)')
+            ->andWhere('c.deletedAt IS NULL')
+            ->getQuery();
+
+        $totalCount = (int) $countQuery->getSingleScalarResult();
+
+        return [
+            'categories' => $categories,
+            'totalCount' => $totalCount,
+        ];
     }
+
+
 
 }

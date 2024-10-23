@@ -20,6 +20,9 @@ import SecurityCentre from "../components/SecurityCentre";
 import AddressTab from "../components/AddressTab";
 import MyOrdersTab from "../components/MyOrdersTab";
 import MyOrdersDetailsTab from "../components/MyOrdersDetailsTab";
+import CategoriesList from "../pages/CategoryList";
+import CategoryNew from "../pages/CategoryNew";
+import CategoryEdit from "../pages/CategoryEdit";
 
 const Routes = () => {
     const { token } = useAuth();
@@ -34,22 +37,6 @@ const Routes = () => {
                     element: <Homepage />,
                 },
                 {
-                    path: "/admin/products",
-                    element: <ProductsList />,
-                },
-                {
-                    path: "/admin/products/new",
-                    element: <ProductNew />,
-                },
-                {
-                    path: "/admin/products/:id",
-                    element: <ProductDetails />,
-                },
-                {
-                    path: "/admin/products/edit/:id",
-                    element: <ProductEdit />,
-                },
-                {
                     path: "/admin/orders",
                     element: <OrderManagementPage />
                 },
@@ -57,6 +44,8 @@ const Routes = () => {
                     path: "/admin/order/:id",
                     element: <EditOrderForm />
                 },
+
+
             ],
         },
     ];
@@ -72,6 +61,55 @@ const Routes = () => {
                     children: [
                         {
                             path: "/profile",
+                            element: <UserProfile />
+                        },
+                        {
+                            path: "/profile/security-centre",
+                            element: <SecurityCentre />
+                        },
+                        {
+                            path: "/profile/addresses",
+                            element: <AddressTab />
+                        },
+                        {
+                            path: "/profile/orders",
+                            element: <MyOrdersTab />
+                        },
+                        {
+                            path: `/profile/orders/:id`,
+                            element: <MyOrdersDetailsTab />
+                        },
+                        {
+                            path: "/admin/products",
+                            element: <ProductsList />,
+                        },
+                        {
+                            path: "/admin/products/new",
+                            element: <ProductNew />,
+                        },
+                        {
+                            path: "/admin/products/:id",
+                            element: <ProductDetails />,
+                        },
+                        {
+                            path: "/admin/products/edit/:id",
+                            element: <ProductEdit />,
+                        },
+                        {
+                            path: "/admin/categories",
+                            element: <CategoriesList />,
+                        },
+                        {
+                            path: "/admin/categories/new",
+                            element: <CategoryNew />,
+                        },
+                        {
+                            path: "/admin/categories/:id",
+                            element: <CategoryNew />,
+                        },
+                        {
+                            path: "/admin/categories/edit/:id",
+                            element: <CategoryEdit />,
                             element: <UserProfile />
                         },
                         {

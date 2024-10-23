@@ -16,21 +16,6 @@ class ProductRepository extends ServiceEntityRepository
         parent::__construct($registry, Product::class);
     }
 
-    public function findAllNonDeletedProducts(): array
-    {
-        return $this->createQueryBuilder('p')
-            ->andWhere('p.deletedAt IS NULL')
-            ->getQuery()
-            ->getResult();
-    }
-
-    public function findAllDeletedProducts(): array
-    {
-        return $this->createQueryBuilder('p')
-            ->andWhere('p.deletedAt IS NOT NULL')
-            ->getQuery()
-            ->getResult();
-    }
 
     public function findById(int $id): ?Product
     {
