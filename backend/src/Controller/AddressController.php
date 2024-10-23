@@ -40,6 +40,7 @@ class AddressController extends AbstractController
 
         $addressData = array_map([$this, 'formatAddress'], $addresses);
 
+        $addressData = array_values($addressData);
         return new JsonResponse(['addresses' => $addressData]);
     }
 
@@ -58,7 +59,9 @@ class AddressController extends AbstractController
             return new JsonResponse(['message' => 'Address not found'], Response::HTTP_NOT_FOUND);
         }
 
-        $addressData = $this->formatAddress($address);
+        $addressData = array_map([$this, 'formatAddress'], $address);
+
+        $addressData = array_values($addressData);
 
         return new JsonResponse(['address' => $addressData]);
     }
@@ -151,80 +154,4 @@ class AddressController extends AbstractController
             'postcode' => $address->getPostCode(),
         ];
     }
-
-//    #[Route('/me/addresses', name: 'user_addresses')]
-//    public function index(): Response
-//    {
-//        $user = $this->getUser();
-//
-//        $addresses = array_filter($user->getAddresses()->toArray(), function ($address) {
-//            return $address->getOrderEntity() == null;
-//        });
-//
-//        return $this->render('address/index.html.twig', [
-//            'addresses' => $addresses,
-//        ]);
-//    }
-
-//    #[Route('/me/create-address', name: 'create_address', methods: ['GET', 'POST'])]
-//    public function createAddress(Request $request): Response
-//    {
-//        $user = $this->getUser();
-//
-//        if (!$user) {
-//            throw new AccessDeniedHttpException('You must be logged in to access this page.');
-//        }
-//
-//        $address = new Address();
-//        $form = $this->createForm(AddressFormType::class, $address);
-//        $form->handleRequest($request);
-//
-//        if ($form->isSubmitted() && $form->isValid()) {
-//            $this->addressService->addAddress($user, $address);
-//
-//            $this->addFlash('success', 'You have successfully created a new address.');
-//            return $this->redirectToRoute('user_addresses');
-//        }
-//
-//        return $this->render('address/createAddress.html.twig', [
-//            'form' => $form->createView(),
-//        ]);
-//    }
-//    #[Route('/me/edit-address/{id}', name: 'edit_address', methods: ['GET', 'POST'])]
-//    public function editAddress(Request $request, int $id): Response
-//    {
-//        $address = $this->addressRepository->find($id);
-//
-//        if (!$address) {
-//            throw $this->createNotFoundException('Address not found');
-//        }
-//
-//        $form = $this->createForm(AddressFormType::class, $address);
-//        $form->handleRequest($request);
-//
-//        if ($form->isSubmitted() && $form->isValid()) {
-//            $this->addressService->editAddress($address);
-//
-//            $this->addFlash('success', 'Address updated successfully.');
-//            return $this->redirectToRoute('user_addresses');
-//        }
-//
-//        return $this->render('address/editAddress.html.twig', [
-//            'form' => $form->createView(),
-//        ]);
-//    }
-//
-//    #[Route('/me/delete-address/{id}', name: 'delete_address', methods: ['POST'])]
-//    public function deleteAddress(int $id): Response
-//    {
-//        $address = $this->addressRepository->find($id);
-//
-//        if (!$address) {
-//            throw $this->createNotFoundException('Address not found');
-//        }
-//
-//        $this->addressService->removeAddress($address);
-//        $this->addFlash('success', 'Address deleted successfully.');
-//        return $this->redirectToRoute('user_addresses');
-//    }
 }
