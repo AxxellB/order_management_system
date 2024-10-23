@@ -15,6 +15,11 @@ import ProductEdit from "../pages/ProductEdit";
 import React from "react";
 import OrderManagementPage from "../pages/OrderManagementPage";
 import EditOrderForm from "../components/EditOrderForm";
+import UserProfile from "../components/UserProfile";
+import SecurityCentre from "../components/SecurityCentre";
+import AddressTab from "../components/AddressTab";
+import MyOrdersTab from "../components/MyOrdersTab";
+import MyOrdersDetailsTab from "../components/MyOrdersDetailsTab";
 
 const Routes = () => {
     const { token } = useAuth();
@@ -67,7 +72,23 @@ const Routes = () => {
                     children: [
                         {
                             path: "/profile",
-                            element: <div>User Profile</div>,
+                            element: <UserProfile />
+                        },
+                        {
+                            path: "/profile/security-centre",
+                            element: <SecurityCentre />
+                        },
+                        {
+                            path: "/profile/addresses",
+                            element: <AddressTab />
+                        },
+                        {
+                            path: "/profile/orders",
+                            element: <MyOrdersTab />
+                        },
+                        {
+                            path: `/profile/orders/:id`,
+                            element: <MyOrdersDetailsTab />
                         },
                         {
                             path: "/basket",

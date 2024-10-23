@@ -45,13 +45,20 @@ const Checkout = () => {
             setAddressLoading(true);
             try {
                 const response = await axios.get('/api/addresses');
-                setAddresses(response.data.addresses);
+                if (response.data.addresses && typeof response.data.addresses === 'object') {
+                    setAddresses(Object.values(response.data.addresses));
+                } else {
+                    console.error('Unexpected response structure:', response.data);
+                    setAddresses([]);
+                }
             } catch (error) {
                 console.error('Error fetching addresses', error);
+                setAddresses([]);
             } finally {
                 setAddressLoading(false);
             }
         };
+
         fetchAddresses();
     }, []);
 

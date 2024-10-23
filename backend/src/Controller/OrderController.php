@@ -26,7 +26,6 @@ class OrderController extends AbstractController
     {
     }
 
-    // API
     #[Route('/orders', name: 'api_orders', methods: ['GET'])]
     public function apiViewOrders(): JsonResponse
     {
@@ -49,6 +48,27 @@ class OrderController extends AbstractController
         $formattedOrder = $this->formatOrder($order);
 
         return new JsonResponse($formattedOrder, Response::HTTP_OK);
+    }
+
+    // User's "My Orders" tab
+    #[Route(path: '/user-orders', name: 'api_user_orders', methods: ['GET'])]
+    public function apiUserOrders(): JsonResponse
+    {
+        $user = $this->getUser();
+
+        if (!$user) {
+            return new JsonResponse(['message' => 'You must be logged in to access this page!'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $orders = $this->orderRepository->findBy(['users' => $user]);
+
+        if (empty($orders)) {
+            return new JsonResponse(['message' => 'There are no orders for this user'], Response::HTTP_NOT_FOUND);
+        }
+
+        $formattedOrders = array_map(fn($order) => $this->formatOrder($order), $orders);
+
+        return new JsonResponse($formattedOrders, Response::HTTP_OK);
     }
 
     #[Route('/orders', name: 'api_create_order', methods: ['POST'])]
@@ -166,48 +186,4 @@ class OrderController extends AbstractController
             'address' => $formattedAddress,
         ];
     }
-
-    /*
-    #[Route('/orders', name: 'orders_index', methods: ['GET'])]
-    public function index(): Response
-    {
-        $orders = $this->orderRepository->findActiveOrders();
-        return $this->render('order/index.html.twig', [
-            'orders' => $orders,
-        ]);
-    }
-    #[Route('/order_create', name: 'order_create')]
-    public function createOrder(): Response
-    {
-        $user = $this->getUser();
-        $this->orderService->createOrder($user);
-        return $this->redirectToRoute('homepage');
-    }
-
-    #[Route('/order_edit/{id}', name: 'order_edit')]
-    public function editOrder(int $id, Request $request): Response
-    {
-        $order = $this->orderRepository->find($id);
-        $form = $this->createForm(OrderEditFormType::class, $order);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $this->em->flush();
-
-            return $this->redirectToRoute('orders_index', [], Response::HTTP_SEE_OTHER);
-        }
-
-        return $this->render('order/orderEdit.html.twig', [
-            'form' => $form,
-        ]);
-    }
-
-    #[Route('/order_delete/{id}', name: 'order_delete')]
-    public function deleteOrder(int $id): Response
-    {
-        $this->orderService->deleteOrder($id);
-
-        return $this->redirectToRoute('orders_index');
-    }
-    */
 }

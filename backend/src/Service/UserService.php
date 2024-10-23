@@ -21,11 +21,12 @@ class UserService
     private ValidatorInterface $validator;
 
     public function __construct(
-        EntityManagerInterface $entityManager,
-        UserRepository $userRepository,
+        EntityManagerInterface      $entityManager,
+        UserRepository              $userRepository,
         UserPasswordHasherInterface $passwordHasher,
-        ValidatorInterface $validator,
-    ) {
+        ValidatorInterface          $validator,
+    )
+    {
         $this->entityManager = $entityManager;
         $this->userRepository = $userRepository;
         $this->passwordHasher = $passwordHasher;
@@ -108,23 +109,54 @@ class UserService
         return implode(', ', $errorMessages);
     }
 
-    public function editUser(User $user, FormInterface $form): void
+    public function changePassword(User $user, string $oldPassword, string $newPassword, string $confirmPassword, UserPasswordHasherInterface $passwordHasher): array
     {
-
-        $plainPassword = $form->get('password')->getData();
-        if ($plainPassword) {
-            $hashedPassword = $this->passwordHasher->hashPassword($user, $plainPassword);
-            $user->setPassword($hashedPassword);
+        if (empty($oldPassword) || empty($newPassword) || empty($confirmPassword)) {
+            return ['success' => false,
+                    'message' => 'All fields are required',
+                    'statusCode' => Response::HTTP_BAD_REQUEST];
         }
+
+        if (!$passwordHasher->isPasswordValid($user, $oldPassword)) {
+            return ['success' => false,
+                    'message' => 'Incorrect old password',
+                    'statusCode' => Response::HTTP_BAD_REQUEST];
+        }
+
+        if ($oldPassword == $newPassword) {
+            return ['success' => false,
+                    'message' => 'New password cannot be the same as the old one',
+                    'statusCode' => Response::HTTP_BAD_REQUEST];
+        }
+
+        if ($newPassword !== $confirmPassword) {
+            return ['success' => false,
+                    'message' => 'Confirm password should match the new one',
+                    'statusCode' => Response::HTTP_BAD_REQUEST];
+        }
+
+        $pattern = "/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/";
+        if (!preg_match($pattern, $newPassword)) {
+            return ['success' => false,
+                    'message' => 'Password must contain at least one letter, one number and be at least 8 characters long',
+                    'statusCode' => Response::HTTP_BAD_REQUEST];
+        }
+
+        $hashedNewPassword = $this->passwordHasher->hashPassword($user, $newPassword);
+        $user->setPassword($hashedNewPassword);
 
         $this->entityManager->persist($user);
         $this->entityManager->flush();
+
+        return ['success' => true,
+                'message' => 'Password changed!',
+                'statusCode' => Response::HTTP_OK];
     }
 
     public function deleteUser(User $user): void
     {
         $user = $this->userRepository->find($user->getId());
-        if(!$user){
+        if (!$user) {
             throw new \Exception("User not found");
         }
         $user->setDeletedAt(new \DateTimeImmutable());
