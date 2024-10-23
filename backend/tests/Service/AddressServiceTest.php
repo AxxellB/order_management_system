@@ -2,7 +2,6 @@
 namespace App\Tests\Service;
 
 use App\Entity\Address;
-use App\Entity\User;
 use App\Repository\AddressRepository;
 use App\Repository\UserRepository;
 use App\Service\AddressService;
