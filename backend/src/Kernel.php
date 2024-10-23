@@ -15,4 +15,5 @@ class Kernel extends BaseKernel
 
         date_default_timezone_set('Europe/London');
     }
+
 }
