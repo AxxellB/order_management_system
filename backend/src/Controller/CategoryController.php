@@ -7,6 +7,7 @@ use App\Form\CategoryType;
 use App\Repository\CategoryRepository;
 use App\Service\CategoryService;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -26,48 +27,29 @@ final class CategoryController extends AbstractController
         $this->categoryService = $categoryService;
     }
 
-    #[Route('/', name: 'api_categories_list', methods: ['GET'])]
-    public function listCategoriesApi(SerializerInterface $serializer): JsonResponse
+    #[Route('/list', name: 'api_categories_list', methods: ['GET'])]
+    public function listCategoriesApi(Request $request, SerializerInterface $serializer, LoggerInterface $logger): JsonResponse
     {
-        $user = $this->getUser();
+        $page = (int) $request->query->get('page', 1);
+        $limit = (int) $request->query->get('limit', 3);
 
-       /* if(!$user){
-            return new JsonResponse(['message' => 'You must be logged in to access this page.'], Response::HTTP_FORBIDDEN);
-        }*/
+        try {
+            $paginatedCategories = $this->categoryService->getAllPaginated($page, $limit);
 
-        $categories = $this->categoryService->getAll();
+            $serializedData = $serializer->serialize($paginatedCategories['data'], 'json', ['groups' => 'category:read']);
 
+            $response = [
+                'data' => json_decode($serializedData, true),
+                'totalPages' => $paginatedCategories['totalPages'],
+                'currentPage' => $page
+            ];
 
-        $jsonCategories = $serializer->serialize($categories, 'json');
-
-        return new JsonResponse($jsonCategories, Response::HTTP_OK, [], true);
-    }
-
-    #[Route('/{id<\d+>}', name: 'api_category_products', methods: ['GET'])]
-    public function listProductsByCategoryApi(int $id, SerializerInterface $serializer): JsonResponse
-    {
-        $category = $this->categoryService->getCategoryById($id);
-
-        if (!$category) {
-            return new JsonResponse(['error' => 'Category not found'], Response::HTTP_NOT_FOUND);
+            return new JsonResponse($response, Response::HTTP_OK);
+        } catch (\Exception $e) {
+            $logger->error('Error fetching paginated categories: ' . $e->getMessage());
+            return new JsonResponse(['error' => 'Server error: ' . $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
-
-        $jsonProducts = $serializer->serialize($category->getProducts(), 'json', ['groups' => 'category:read']);
-        return new JsonResponse($jsonProducts, Response::HTTP_OK, [], true);
     }
-
-
-    #[Route('/view',name: 'category_index', methods: ['GET'])]
-    public function index(CategoryRepository $categoryRepository): Response
-    {
-        $categories = $this->categoryService->getAll();
-
-        return $this->render('category/index.html.twig', [
-            'categories' => $categories,
-        ]);
-    }
-
-
 
     #[Route('/new', name: 'api_category_new', methods: ['POST'])]
     public function newApi(Request $request, EntityManagerInterface $entityManager, ValidatorInterface $validator): JsonResponse
@@ -85,16 +67,31 @@ final class CategoryController extends AbstractController
         return new JsonResponse(['message' => 'Category created successfully', 'id' => $category->getId()], Response::HTTP_CREATED);
     }
 
+    #[Route('/{id<\d+>}', name: 'api_category_get', methods: ['GET'])]
+    public function getCategoryById(int $id, SerializerInterface $serializer): JsonResponse
+    {
+        $category = $this->categoryService->getCategoryById($id);
+
+        $jsonProduct = $serializer->serialize($category, 'json', ['groups' => 'category:read']);
+        return new JsonResponse($jsonProduct, Response::HTTP_OK, [], true);
+    }
+
+
+
     #[Route('/{id<\d+>}', name: 'api_category_edit', methods: ['PUT'])]
-    public function editApi(Request $request, Category $category, EntityManagerInterface $entityManager): JsonResponse
+    public function editApi(Request $request, ?Category $category, EntityManagerInterface $entityManager): JsonResponse
     {
         if (!$category) {
             return new JsonResponse(['error' => 'Category not found'], Response::HTTP_NOT_FOUND);
         }
 
         $data = json_decode($request->getContent(), true);
+        if (!$data) {
+            return new JsonResponse(['error' => 'Invalid JSON data'], Response::HTTP_BAD_REQUEST);
+        }
+
         $form = $this->createForm(CategoryType::class, $category);
-        $form->submit($data);
+        $form->submit($data, false);
 
         if ($form->isSubmitted() && !$form->isValid()) {
             $errorMessages = $this->categoryService->getFormErrors($form);
@@ -107,6 +104,8 @@ final class CategoryController extends AbstractController
 
         return new JsonResponse(['message' => 'Category updated successfully'], Response::HTTP_OK);
     }
+
+
 
     #[Route('/{id}', name: 'api_category_delete', methods: ['DELETE'])]
     public function deleteApi(Category $category, EntityManagerInterface $entityManager): JsonResponse

@@ -5,6 +5,10 @@ namespace App\Service;
 use App\Entity\Category;
 use App\Repository\CategoryRepository;
 use Symfony\Component\Form\FormInterface;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class CategoryService
@@ -12,6 +16,8 @@ class CategoryService
 
 
     private CategoryRepository $categoryRepository;
+    private $formFactory;
+    private $entityManager;
 
 
     public function __construct(CategoryRepository $categoryRepository)
@@ -20,15 +26,29 @@ class CategoryService
     }
 
 
-    public function getAll(): array
+    public function getAllPaginated(int $page, int $limit): array
     {
-        return $this->categoryRepository->findAllNonDeletedCategories();
+        $offset = ($page - 1) * $limit;
+        $categoriesData = $this->categoryRepository->findAllNonDeletedCategories($offset, $limit);
+
+        return [
+            'data' => $categoriesData['categories'],
+            'totalPages' => ceil($categoriesData['totalCount'] / $limit),
+        ];
     }
 
-    public function getCategoryById(int $id): ?Category
+
+    public function getCategoryById(int $id): Category
     {
-        return $this->categoryRepository->find($id);
+        $category = $this->categoryRepository->findById($id);
+
+        if (!$category) {
+            throw new NotFoundHttpException('Category not found');
+        }
+
+        return $category;
     }
+
 
     public function createCategory(array $data, ValidatorInterface $validator): Category|array
     {
@@ -48,22 +68,6 @@ class CategoryService
         return $category;
     }
 
-    public function updateCategory(Category $category, array $data, ValidatorInterface $validator): Category|array
-    {
-        $category->setName($data['name'] ?? $category->getName());
-
-        $errors = $validator->validate($category);
-        if (count($errors) > 0) {
-            $errorMessages = [];
-            foreach ($errors as $error) {
-                $errorMessages[$error->getPropertyPath()] = $error->getMessage();
-            }
-
-            return ['errors' => $errorMessages];
-        }
-
-        return $category;
-    }
 
     public function deleteCategory(Category $category): array
     {
