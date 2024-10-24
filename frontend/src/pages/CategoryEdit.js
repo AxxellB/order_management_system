@@ -14,7 +14,7 @@ const EditCategory = () => {
         const fetchCategory = async () => {
             try {
                 const response = await axios.get(`http://localhost/api/categories/${id}`);
-                // Specifically setting the 'name' field to avoid other fields being added to state
+
                 setFormData({ name: response.data.name });
             } catch (err) {
                 console.error('Error fetching category:', err);
