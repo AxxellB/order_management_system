@@ -27,9 +27,15 @@ class OrderController extends AbstractController
     }
 
     #[Route('/orders', name: 'api_orders', methods: ['GET'])]
-    public function apiViewOrders(): JsonResponse
+    public function apiViewOrders(Request $request): JsonResponse
     {
-        $orders = $this->orderRepository->findAll();
+        $status = $request->query->get('status', 'active');
+
+        $orders = $this->orderRepository->findByStatus($status);
+
+        if (!$orders) {
+            return new JsonResponse([], Response::HTTP_OK);
+        }
 
         $formattedOrders = array_map(fn($order) => $this->formatOrder($order), $orders);
 
@@ -42,7 +48,7 @@ class OrderController extends AbstractController
         $order = $this->orderRepository->find($id);
 
         if (!$order) {
-            return new JsonResponse(['error' => 'Order not found'], Response::HTTP_NOT_FOUND);
+            return new JsonResponse([], Response::HTTP_OK);
         }
 
         $formattedOrder = $this->formatOrder($order);
@@ -138,13 +144,23 @@ class OrderController extends AbstractController
         }
     }
 
-    #[Route('/order/{id}', name: 'api_delete_order', methods: ['DELETE'])]
-    public function apiDeleteOrder(Request $request, int $id): JsonResponse
+    #[Route('/order/{id}', name: 'api_delete_or_restore_order', methods: ['DELETE'])]
+    public function apiDeleteOrRestoreOrder(int $id): JsonResponse
     {
         $order = $this->orderRepository->find($id);
 
         if (!$order) {
             return new JsonResponse(['error' => 'Order not found'], Response::HTTP_NOT_FOUND);
+        }
+
+        if ($order->getDeletedAt()) {
+            try {
+                $this->orderService->restoreOrder($id);
+
+                return new JsonResponse(['message' => 'Order successfully restored'], Response::HTTP_OK);
+            } catch (\Exception $e) {
+                return new JsonResponse(['error' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
+            }
         }
 
         $this->orderService->deleteOrder($id);

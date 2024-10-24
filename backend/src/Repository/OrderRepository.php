@@ -24,6 +24,20 @@ class OrderRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    public function findByStatus(string $status)
+    {
+        $queryBuilder = $this->createQueryBuilder('o');
+
+        if ($status === 'active') {
+            $queryBuilder->where('o.deletedAt IS NULL');
+        } elseif ($status === 'deleted') {
+            $queryBuilder->where('o.deletedAt IS NOT NULL');
+        }
+
+        return $queryBuilder->getQuery()->getResult();
+    }
+
+
 //    /**
 //     * @return Order[] Returns an array of Order objects
 //     */
