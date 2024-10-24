@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
-import '../styles/OrderManagementPage.css';
+import '../styles/OrderManagementPage.module.css';
 import EditOrderForm from '../components/EditOrderForm';
 import {Link} from 'react-router-dom';
 import axios from 'axios';

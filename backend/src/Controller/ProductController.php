@@ -14,7 +14,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Serializer\SerializerInterface;
 
 #[Route('/api/products')]
-final class ProductController extends AbstractController
+class ProductController extends AbstractController
 {
 
     private ProductService $productService;

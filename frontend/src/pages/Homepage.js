@@ -29,7 +29,7 @@ const Homepage = () => {
             setLoading(true);
 
             const queryParams = new URLSearchParams({
-                status: 'active'
+                status: 'active',
             });
 
             if (filters.category) queryParams.append('category', filters.category);
@@ -37,7 +37,7 @@ const Homepage = () => {
             if (filters.maxPrice) queryParams.append('maxPrice', filters.maxPrice);
 
             const response = await axios.get(`http://localhost/api/products/list?${queryParams.toString()}`);
-            setProducts(response.data);
+            setProducts(Array.isArray(response.data) ? response.data : []);
             setLoading(false);
         } catch (error) {
             setError(error.message);
@@ -47,8 +47,8 @@ const Homepage = () => {
 
     const fetchCategories = async () => {
         try {
-            const response = await axios.get('http://localhost/api/categories/');
-            setCategories(response.data);
+            const response = await axios.get('http://localhost/api/categories/list?filter=true');
+            setCategories(response.data.categories);
         } catch (error) {
             console.error('Error fetching categories:', error);
         }
@@ -133,38 +133,41 @@ const Homepage = () => {
 
                 <div className="col-md-10">
                     <div className="product-grid">
-                        {products.map(product => (
-                            <div key={product.id} className="card mb-4 shadow-sm">
-                                <div className="card-body">
-                                    <h5 className="card-title">{product.name}</h5>
-                                    <p className="card-text">Price: ${Number(product.price).toFixed(2)}</p>
+                        {Array.isArray(products) && products.length > 0 ? (
+                        products.map(product => (
+                        <div key={product.id} className="card mb-4 shadow-sm">
+                            <div className="card-body">
+                                <h5 className="card-title">{product.name}</h5>
+                                <p className="card-text">Price: ${Number(product.price).toFixed(2)}</p>
 
-                                    <div className="d-flex justify-content-end align-items-center">
-                                        <input
-                                            type="number"
-                                            className="quantity-input"
-                                            min="1"
-                                            max={product.stockQuantity}
-                                            defaultValue="1"
-                                            id={`quantity-${product.id}`}
-                                        />
-                                        <button
-                                            className="btn btn-success ms-2"
-                                            onClick={() => {
-                                                const quantity = parseInt(document.getElementById(`quantity-${product.id}`).value, 10);
-                                                if (quantity > 0 && quantity <= product.stockQuantity) {
-                                                    handleAddToBasket(product.id, quantity);
-                                                } else {
-                                                    alert('Invalid quantity');
-                                                }
-                                            }}
-                                        >
-                                            <i className="bi bi-cart"></i>
-                                        </button>
-                                    </div>
+                                <div className="d-flex justify-content-end align-items-center">
+                                    <input
+                                        type="number"
+                                        className="quantity-input"
+                                        min="1"
+                                        max={product.stockQuantity}
+                                        defaultValue="1"
+                                        id={`quantity-${product.id}`}
+                                    />
+                                    <button
+                                        className="btn btn-success ms-2"
+                                        onClick={() => {
+                                            const quantity = parseInt(document.getElementById(`quantity-${product.id}`).value, 10);
+                                            if (quantity > 0 && quantity <= product.stockQuantity) {
+                                                handleAddToBasket(product.id, quantity);
+                                            } else {
+                                                alert('Invalid quantity');
+                                            }
+                                        }}
+                                    >
+                                        <i className="bi bi-cart"></i>
+                                    </button>
                                 </div>
                             </div>
-                        ))}
+                        </div>
+                        ))
+                        ): (<div>No products found.</div>)}
+
                     </div>
                 </div>
             </div>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 
+
 const ProductsList = () => {
     const navigate = useNavigate();
     const [products, setProducts] = useState([]);
@@ -42,10 +43,10 @@ const ProductsList = () => {
 
     const fetchCategories = async () => {
         try {
-            const response = await axios.get('http://localhost/api/categories/');
-            setCategories(response.data);
-        } catch (err) {
-            console.error('Error fetching categories:', err);
+            const response = await axios.get('http://localhost/api/categories/list?filter=true');
+            setCategories(response.data.categories);
+        } catch (error) {
+            console.error('Error fetching categories:', error);
         }
     };
 

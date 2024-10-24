@@ -1,0 +1,62 @@
+.navbar {
+    background: linear-gradient(47deg, rgba(23, 61, 173, 1) 33%, rgba(189, 17, 58, 1) 100%);
+    height: 4rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 0 1rem;
+}
+
+
+.brand {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #ffffff;
+}
+
+.navLink {
+    color: #ffffff;
+    font-size: 0.95rem;
+    padding: 0.5rem 0.75rem;
+    transition: color 0.3s ease;
+}
+
+.navLink:hover,
+.brand:hover,
+.dropdownItem:hover,
+.basketIcon:hover {
+    color: #ff6600;
+}
+
+
+.dropdownMenu {
+    background-color: #ffffff;
+    border: none;
+    border-radius: 0.3rem;
+}
+
+.dropdownItem {
+    color: #ffffff;
+    padding: 0.5rem 1rem;
+    transition: color 0.3s ease;
+}
+
+
+.basketIcon {
+    margin-right: 0.5rem;
+    color: #ffffff;
+    transition: transform 0.3s ease, color 0.3s ease;
+}
+
+.basketIcon:hover {
+    transform: scale(1.1);
+    color: #ff6600;
+}
+
+
+.navbarToggler {
+    border: none;
+    outline: none;
+}
+
+.navbarTogglerIcon {
+    filter: invert(1);
+}
