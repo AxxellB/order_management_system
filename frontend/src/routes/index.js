@@ -23,6 +23,7 @@ import MyOrdersDetailsTab from "../components/MyOrdersDetailsTab";
 import CategoriesList from "../pages/CategoryList";
 import CategoryNew from "../pages/CategoryNew";
 import CategoryEdit from "../pages/CategoryEdit";
+import SendEmail from "../pages/SendEmail";
 
 const Routes = () => {
     const { token } = useAuth();
@@ -44,7 +45,10 @@ const Routes = () => {
                     path: "/admin/order/:id",
                     element: <EditOrderForm />
                 },
-
+                {
+                    path:  "react/send-email",
+                    element: <SendEmail />
+                },
 
             ],
         },
