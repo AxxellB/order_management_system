@@ -70,14 +70,6 @@ class BasketService
             $this->em->persist($basketProduct);
         }
 
-        $newStock = $product->getStockQuantity() - $quantity;
-
-        if ($newStock < 0) {
-            throw new \Exception('Not enough stock for this product');
-        }
-
-        $product->setStockQuantity($newStock);
-
         $this->em->flush();
     }
 
@@ -92,15 +84,6 @@ class BasketService
             throw new NotFoundHttpException('Product not found in basket');
         }
 
-        $currentProductQuantity = $basketProduct->getQuantity();
-        $quantityProductDifference = $currentProductQuantity - $newProductQuantity;
-        $updatedProductStock = $product->getStockQuantity() + $quantityProductDifference;
-
-        if ($updatedProductStock < 0) {
-            throw new \Exception('Not enough stock to fulfill the updated quantity');
-        }
-
-        $product->setStockQuantity($updatedProductStock);
         $basketProduct->setQuantity($newProductQuantity);
 
         $this->em->flush();
