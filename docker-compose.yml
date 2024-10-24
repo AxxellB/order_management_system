@@ -5,6 +5,7 @@ services:
     container_name: symfony_app
     volumes:
       - ./backend:/var/www/symfony
+      - ./backend/.env:/var/www/symfony/.env
     ports:
       - "${BACKEND_PORT}:9000"
     depends_on:
@@ -43,6 +44,28 @@ services:
       - db_data:/var/lib/mysql
     ports:
       - "3307:3306"
+
+  mailer:
+    image: axllent/mailpit
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    environment:
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+
+
+  messenger_worker:
+    build:
+      context: ./backend
+    container_name: symfony_messenger_worker
+    command: php bin/console messenger:consume async -vv
+    depends_on:
+      - backend
+    restart: always
+    volumes:
+      - ./backend:/var/www/symfony
+
 
 volumes:
   db_data:
