@@ -179,10 +179,25 @@ class OrderService
     public function deleteOrder(int $orderId): void
     {
         $order = $this->orderRepository->find($orderId);
+
         if (!$order) {
             throw new \Exception("Order not found");
         }
+
         $order->setDeletedAt(new \DateTimeImmutable());
+        $this->entityManager->persist($order);
+        $this->entityManager->flush();
+    }
+
+    public function restoreOrder(int $orderId): void
+    {
+        $order = $this->orderRepository->find($orderId);
+
+        if (!$order) {
+            throw new \Exception("Order not found");
+        }
+
+        $order->setDeletedAt(null);
         $this->entityManager->persist($order);
         $this->entityManager->flush();
     }
