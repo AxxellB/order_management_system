@@ -25,10 +25,6 @@ class FileStorageService
 
     public function store(UploadedFile $file): array
     {
-        if(!$file){
-            return ['message' => 'No file uploaded', 'code' => Response::HTTP_BAD_REQUEST];
-        }
-
         $fileName = $file->getClientOriginalName();
         $fileExists = $this->filesystem->fileExists($fileName);
         if($fileExists){
