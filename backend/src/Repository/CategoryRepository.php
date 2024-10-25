@@ -26,8 +26,23 @@ class CategoryRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
     }
 
+    public function findAllNonDeleted(): array
+    {
+        $query = $this->createQueryBuilder('c')
+            ->select('c.id, c.name')
+            ->andWhere('c.deletedAt IS NULL')
+            ->getQuery();
 
-    public function findAllNonDeletedCategories(int $offset, int $limit): array
+        $categories = $query->getArrayResult();
+
+        return [
+            'categories' => $categories,
+        ];
+    }
+
+
+
+    public function findAllNonDeletedCategoriesWithPagination(int $offset, int $limit): array
     {
         $query = $this->createQueryBuilder('c')
             ->select('c.id, c.name, COUNT(p.id) as productCount')

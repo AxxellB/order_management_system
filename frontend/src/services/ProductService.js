@@ -10,4 +10,9 @@ const hasAvailableQuantity = async (product, quantity) => {
     return null;
 }
 
+const canAddToBasket = async(product, quantity) => {
+    const response = await axios.get('api/basket');
+
+}
+
 export default hasAvailableQuantity;

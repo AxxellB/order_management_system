@@ -26,10 +26,15 @@ class CategoryService
     }
 
 
+    public function getAllNonDeleted(): array
+    {
+       return $this->categoryRepository->findAllNonDeleted();
+
+    }
     public function getAllPaginated(int $page, int $limit): array
     {
         $offset = ($page - 1) * $limit;
-        $categoriesData = $this->categoryRepository->findAllNonDeletedCategories($offset, $limit);
+        $categoriesData = $this->categoryRepository->findAllNonDeletedCategoriesWithPagination($offset, $limit);
 
         return [
             'data' => $categoriesData['categories'],

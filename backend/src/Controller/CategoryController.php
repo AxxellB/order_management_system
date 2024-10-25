@@ -4,7 +4,6 @@ namespace App\Controller;
 
 use App\Entity\Category;
 use App\Form\CategoryType;
-use App\Repository\CategoryRepository;
 use App\Service\CategoryService;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
@@ -17,7 +16,7 @@ use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route('/api/categories')]
-final class CategoryController extends AbstractController
+class CategoryController extends AbstractController
 {
 
     private CategoryService $categoryService;
@@ -30,26 +29,48 @@ final class CategoryController extends AbstractController
     #[Route('/list', name: 'api_categories_list', methods: ['GET'])]
     public function listCategoriesApi(Request $request, SerializerInterface $serializer, LoggerInterface $logger): JsonResponse
     {
-        $page = (int) $request->query->get('page', 1);
-        $limit = (int) $request->query->get('limit', 3);
+        $page = $request->query->get('page');
+        $limit = $request->query->get('limit');
+        $filter = $request->query->get('filter');
 
-        try {
-            $paginatedCategories = $this->categoryService->getAllPaginated($page, $limit);
+        if ($filter !== null) {
+            try {
+                $Categories = $this->categoryService->getAllNonDeleted();
 
-            $serializedData = $serializer->serialize($paginatedCategories['data'], 'json', ['groups' => 'category:read']);
+                $serializedCategories = $serializer->serialize($Categories, 'json', ['groups' => 'category:read']);
 
-            $response = [
-                'data' => json_decode($serializedData, true),
-                'totalPages' => $paginatedCategories['totalPages'],
-                'currentPage' => $page
-            ];
-
-            return new JsonResponse($response, Response::HTTP_OK);
-        } catch (\Exception $e) {
-            $logger->error('Error fetching paginated categories: ' . $e->getMessage());
-            return new JsonResponse(['error' => 'Server error: ' . $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
+                return new JsonResponse($serializedCategories, Response::HTTP_OK, [], true);
+            } catch (\Exception $e) {
+                $logger->error('Error fetching filtered categories: ' . $e->getMessage());
+                return new JsonResponse(['error' => 'Server error: ' . $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
+            }
         }
+
+        if ($page !== null && $limit !== null) {
+            try {
+                $page = (int) $page;
+                $limit = (int) $limit;
+
+                $paginatedCategories = $this->categoryService->getAllPaginated($page, $limit);
+
+                $serializedData = $serializer->serialize($paginatedCategories['data'], 'json', ['groups' => 'category:read']);
+
+                $response = [
+                    'data' => json_decode($serializedData, true),
+                    'totalPages' => $paginatedCategories['totalPages'],
+                    'currentPage' => $page
+                ];
+
+                return new JsonResponse($response, Response::HTTP_OK);
+            } catch (\Exception $e) {
+                $logger->error('Error fetching paginated categories: ' . $e->getMessage());
+                return new JsonResponse(['error' => 'Server error: ' . $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
+            }
+        }
+
+        return new JsonResponse(['error' => 'Invalid parameters. Provide either page & limit or filter.'], JsonResponse::HTTP_BAD_REQUEST);
     }
+
 
     #[Route('/new', name: 'api_category_new', methods: ['POST'])]
     public function newApi(Request $request, EntityManagerInterface $entityManager, ValidatorInterface $validator): JsonResponse

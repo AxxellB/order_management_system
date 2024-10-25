@@ -84,6 +84,10 @@ class BasketService
             throw new NotFoundHttpException('Product not found in basket');
         }
 
+        if($product->getStockQuantity() < $newProductQuantity){
+            throw new NotFoundHttpException('Product out of stock');
+        }
+
         $basketProduct->setQuantity($newProductQuantity);
 
         $this->em->flush();
@@ -100,9 +104,6 @@ class BasketService
             throw new NotFoundHttpException('Product not found in basket');
         }
 
-        $returnStock = $product->getStockQuantity() + $basketProduct->getQuantity();
-        $product->setStockQuantity($returnStock);
-
         $this->em->remove($basketProduct);
         $this->em->flush();
     }
@@ -110,11 +111,6 @@ class BasketService
     public function clearBasket(Basket $basket): void
     {
         foreach ($basket->getBasketProducts() as $basketProduct) {
-            $product = $basketProduct->getProduct();
-
-            $returnStock = $product->getStockQuantity() + $basketProduct->getQuantity();
-            $product->setStockQuantity($returnStock);
-
             $this->em->remove($basketProduct);
         }
 
