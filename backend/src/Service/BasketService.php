@@ -70,14 +70,6 @@ class BasketService
             $this->em->persist($basketProduct);
         }
 
-        $newStock = $product->getStockQuantity() - $quantity;
-
-        if ($newStock < 0) {
-            throw new \Exception('Not enough stock for this product');
-        }
-
-        $product->setStockQuantity($newStock);
-
         $this->em->flush();
     }
 
@@ -92,15 +84,10 @@ class BasketService
             throw new NotFoundHttpException('Product not found in basket');
         }
 
-        $currentProductQuantity = $basketProduct->getQuantity();
-        $quantityProductDifference = $currentProductQuantity - $newProductQuantity;
-        $updatedProductStock = $product->getStockQuantity() + $quantityProductDifference;
-
-        if ($updatedProductStock < 0) {
-            throw new \Exception('Not enough stock to fulfill the updated quantity');
+        if($product->getStockQuantity() < $newProductQuantity){
+            throw new NotFoundHttpException('Product out of stock');
         }
 
-        $product->setStockQuantity($updatedProductStock);
         $basketProduct->setQuantity($newProductQuantity);
 
         $this->em->flush();
@@ -117,9 +104,6 @@ class BasketService
             throw new NotFoundHttpException('Product not found in basket');
         }
 
-        $returnStock = $product->getStockQuantity() + $basketProduct->getQuantity();
-        $product->setStockQuantity($returnStock);
-
         $this->em->remove($basketProduct);
         $this->em->flush();
     }
@@ -127,11 +111,6 @@ class BasketService
     public function clearBasket(Basket $basket): void
     {
         foreach ($basket->getBasketProducts() as $basketProduct) {
-            $product = $basketProduct->getProduct();
-
-            $returnStock = $product->getStockQuantity() + $basketProduct->getQuantity();
-            $product->setStockQuantity($returnStock);
-
             $this->em->remove($basketProduct);
         }
 

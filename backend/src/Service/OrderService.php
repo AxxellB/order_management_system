@@ -56,11 +56,16 @@ class OrderService
         $this->entityManager->persist($deliveryAddress);
         $this->entityManager->persist($order);
 
-
         foreach ($basketProducts as $basketProduct) {
+            $currentProduct = $basketProduct->getProduct();
+            if($currentProduct->getStockQuantity() < $basketProduct->getQuantity()) {
+                throw new \Exception('Product out of stock');
+            }
+            $currentProduct->setStockQuantity($currentProduct->getStockQuantity() - $basketProduct->getQuantity());
+
             $orderProduct = new OrderProduct();
             $orderProduct->setOrderEntity($order);
-            $orderProduct->setProductEntity($basketProduct->getProduct());
+            $orderProduct->setProductEntity($currentProduct);
             $orderProduct->setQuantity($basketProduct->getQuantity());
             $orderProduct->setPricePerUnit($basketProduct->getProduct()->getPrice());
             $orderProduct->setSubtotal($basketProduct->getQuantity() * $basketProduct->getProduct()->getPrice());

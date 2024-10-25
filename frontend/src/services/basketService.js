@@ -6,15 +6,10 @@ const addToBasket = async (productId, quantity) => {
         quantity: quantity
     }
     try{
-        const response = await axios.post('/api/basket', payload)
-        if(response.status === 201){
-            alert("Product was added to basket")
-        }
-        else{
-            alert("Product could not be added to basket")
-        }
+        await axios.post('/api/basket', payload)
+        alert("Product was added to basket")
     }catch (error){
-        console.log(error)
+        alert("Product could not be added to basket")
     }
 }
 const updateQuantity = async (productId, newQuantity) => {

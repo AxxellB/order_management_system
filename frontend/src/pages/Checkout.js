@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import {useNavigate} from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import '../styles/Checkout.css';
+import { hasAvailableQuantity } from "../services/productService";
 
 const Checkout = () => {
     const [basket, setBasket] = useState([]);
@@ -15,6 +16,8 @@ const Checkout = () => {
         cardCVC: ''
     });
     const [totalPrice, setTotalPrice] = useState(0);
+    const [preventCheckout, setPreventCheckout] = useState(false);
+    const [basketErrors, setBasketErrors] = useState([]);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -22,22 +25,27 @@ const Checkout = () => {
             setBasketLoading(true);
             try {
                 const response = await axios.get('/api/basket');
-                setBasket(response.data.basket);
+                if (response.data.basket) {
+                    setBasket(response.data.basket);
+                }
+                setBasketLoading(false);
             } catch (error) {
                 console.error('Error fetching basket items', error);
-            } finally {
-                setBasketLoading(false);
             }
         };
         fetchBasketItems();
     }, []);
 
     useEffect(() => {
-        const total = basket.reduce(
-            (acc, item) => acc + item.product.price * item.quantity,
-            0
-        );
-        setTotalPrice(parseFloat(total.toFixed(2)));
+        const getTotalPrice = () => {
+            const total = basket.reduce(
+                (acc, item) => acc + item.product.price * item.quantity,
+                0
+            );
+            setTotalPrice(parseFloat(total.toFixed(2)));
+        };
+
+        getTotalPrice();
     }, [basket]);
 
     useEffect(() => {
@@ -71,40 +79,76 @@ const Checkout = () => {
     };
 
     const handleCheckout = async () => {
+        setBasketErrors([]);
+        let errors = [];
+
+        for (const item of basket) {
+            const availableQuantity = await hasAvailableQuantity(item.product.id, item.quantity);
+            if (availableQuantity !== null) {
+                errors.push({
+                    productId: item.product.id,
+                    productName: item.product.name,
+                    availableQuantity,
+                    userQuantity: item.quantity
+                });
+            }
+        }
+
+        if (errors.length > 0) {
+            setBasketErrors(errors);
+            alert('Some products exceed available stock. Please adjust the quantities.');
+            setPreventCheckout(true);
+            return;
+        }
+
         try {
             const checkoutData = {
-                addressId: selectedAddress
+                addressId: selectedAddress,
+                cardDetails
             };
 
             await axios.post('/api/orders', checkoutData);
             alert('Checkout successful');
-            navigate('/')
+            navigate('/');
         } catch (error) {
             console.error('Error during checkout', error);
             alert('Checkout failed');
         }
     };
 
+    if (basketLoading) {
+        return <div className="loading">Loading checkout page...</div>;
+    }
+
+    if (basket.length === 0) {
+        return <div className="empty-basket">Your basket is empty</div>;
+    }
+
     return (
         <div className="checkout-page mt-4 mb-4">
             <h2 className="checkout-title">Checkout</h2>
 
-            {basketLoading ? (
-                <div className="loading">Loading basket items...</div>
-            ) : basket.length === 0 ? (
-                <div className="empty-basket">Your basket is empty</div>
-            ) : (
-                <div className="basket-items">
-                    <h3>Your Basket</h3>
-                    {basket.map(item => (
+            <div className="basket-items">
+                <h3>Your Basket</h3>
+                {basket.map(item => {
+                    const error = basketErrors.find(err => err.productId === item.product.id);
+
+                    return (
                         <div key={item.id} className="basket-item">
                             <p className="product-name">Product: {item.product.name}</p>
-                            <p className="product-details">Quantity: {item.quantity} | Price: ${item.product.price}</p>
+                            <p className="product-details">
+                                Quantity: {item.quantity} | Price: ${item.product.price}
+                            </p>
+                            {error && (
+                                <p className="stock-error" style={{ color: 'red' }}>
+                                    Only {error.availableQuantity} units available. You've requested {error.userQuantity}.
+                                </p>
+                            )}
                         </div>
-                    ))}
-                    <h3 className="total-price">Total Price: ${totalPrice.toFixed(2)}</h3>
-                </div>
-            )}
+                    );
+                })}
+                <h3 className="total-price">Total Price: ${totalPrice.toFixed(2)}</h3>
+            </div>
 
             <div className="address-selection">
                 <h3>Select Address</h3>
@@ -121,8 +165,7 @@ const Checkout = () => {
                             <option key={address.id} value={address.id}>
                                 {address.line2
                                     ? `${address.line}, ${address.line2}, ${address.city}, ${address.country}, ${address.postcode}`
-                                    : `${address.line}, ${address.city}, ${address.country}, ${address.postcode}`
-                                }
+                                    : `${address.line}, ${address.city}, ${address.country}, ${address.postcode}`}
                             </option>
                         ))}
                     </select>
@@ -157,7 +200,9 @@ const Checkout = () => {
                 />
             </div>
 
-            <button onClick={handleCheckout} className="checkout-button">Complete Checkout</button>
+            <button onClick={handleCheckout} disabled={preventCheckout} className="checkout-button">
+                Complete Checkout
+            </button>
         </div>
     );
 };

@@ -62,7 +62,7 @@ final class BasketController extends AbstractController
         return new JsonResponse([
             'message' => 'Product added to basket',
             'basket' => $this->formatBasket($basket),
-        ], Response::HTTP_CREATED);
+        ], Response::HTTP_OK);
     }
 
     #[Route('/basket/{id}', name: 'api_basket_edit_product', methods: ['PUT'])]
@@ -83,7 +83,7 @@ final class BasketController extends AbstractController
         return new JsonResponse([
             'message' => 'Product quantity edited from basket',
             'basket' => $this->formatBasket($basket),
-        ], Response::HTTP_OK);
+        ]);
     }
 
     #[Route('/basket/{id}', name: 'api_basket_remove_product', methods: ['DELETE'])]
