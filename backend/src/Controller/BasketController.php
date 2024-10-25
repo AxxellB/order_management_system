@@ -62,7 +62,7 @@ final class BasketController extends AbstractController
         return new JsonResponse([
             'message' => 'Product added to basket',
             'basket' => $this->formatBasket($basket),
-        ], Response::HTTP_BAD_REQUEST);
+        ], Response::HTTP_OK);
     }
 
     #[Route('/basket/{id}', name: 'api_basket_edit_product', methods: ['PUT'])]

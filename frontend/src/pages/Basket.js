@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from "axios";
 import { clearBasket, removeProduct, updateQuantity } from "../services/basketService";
-import hasAvailableQuantity from '../services/ProductService';
+import { hasAvailableQuantity } from '../services/productService';
 import '../styles/Basket.css';
 
 const Basket = () => {
@@ -17,7 +17,7 @@ const Basket = () => {
             try {
                 const response = await axios.get('/api/basket');
                 const basketItems = await Promise.all(response.data.basket.map(async (item) => {
-                    const stockQuantity = await hasAvailableQuantity(item.product, item.quantity);
+                    const stockQuantity = await hasAvailableQuantity(item.product.id, item.quantity);
                     if (stockQuantity !== null) {
                         await updateQuantity(item.product.id, stockQuantity);
                         return { ...item, quantity: stockQuantity, stockWarning: true };
@@ -52,11 +52,10 @@ const Basket = () => {
         }
 
         const product = basket.find(item => item.product.id === productId).product;
-        const stockQuantity = await hasAvailableQuantity(product, newQuantity);
+        const stockQuantity = await hasAvailableQuantity(product.id, newQuantity);
 
         if (stockQuantity !== null) {
             await updateQuantity(productId, stockQuantity);
-            alert(`Only ${stockQuantity} units are available for ${product.name}.`);
             setBasket((prevBasket) => {
                 return prevBasket.map((item) => {
                     if (item.product.id === productId) {

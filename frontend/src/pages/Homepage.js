@@ -4,14 +4,12 @@ import '../styles/Homepage.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import { addToBasket } from '../services/basketService';
+import { canAddToBasket } from "../services/productService";
 
 const Homepage = () => {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-
-    const [basket, setBasket] = useState({});
-
     const [categories, setCategories] = useState([]);
     const [filters, setFilters] = useState({
         category: '',
@@ -27,11 +25,7 @@ const Homepage = () => {
     const fetchProducts = async () => {
         try {
             setLoading(true);
-
-            const queryParams = new URLSearchParams({
-                status: 'active',
-            });
-
+            const queryParams = new URLSearchParams({ status: 'active' });
             if (filters.category) queryParams.append('category', filters.category);
             if (filters.minPrice) queryParams.append('minPrice', filters.minPrice);
             if (filters.maxPrice) queryParams.append('maxPrice', filters.maxPrice);
@@ -54,8 +48,14 @@ const Homepage = () => {
         }
     };
 
-    const handleAddToBasket = (productId, quantity) => {
-        addToBasket(productId, quantity)
+    const handleAddToBasket = async (productId, quantity) => {
+        const result = await canAddToBasket(productId, quantity);
+
+        if (result === null) {
+            await addToBasket(productId, quantity);
+        } else {
+            alert(`Insufficient stock quantity. Only ${result} items are available.`);
+        }
     };
 
     const handleFilterChange = (e) => {
@@ -134,40 +134,51 @@ const Homepage = () => {
                 <div className="col-md-10">
                     <div className="product-grid">
                         {Array.isArray(products) && products.length > 0 ? (
-                        products.map(product => (
-                        <div key={product.id} className="card mb-4 shadow-sm">
-                            <div className="card-body">
-                                <h5 className="card-title">{product.name}</h5>
-                                <p className="card-text">Price: ${Number(product.price).toFixed(2)}</p>
+                            products.map(product => (
+                                <div key={product.id} className="card mb-4 shadow-sm">
+                                    <div className="card-body">
+                                        <h5 className="card-title">{product.name}</h5>
+                                        <p className="card-text">Price: ${Number(product.price).toFixed(2)}</p>
 
-                                <div className="d-flex justify-content-end align-items-center">
-                                    <input
-                                        type="number"
-                                        className="quantity-input"
-                                        min="1"
-                                        max={product.stockQuantity}
-                                        defaultValue="1"
-                                        id={`quantity-${product.id}`}
-                                    />
-                                    <button
-                                        className="btn btn-success ms-2"
-                                        onClick={() => {
-                                            const quantity = parseInt(document.getElementById(`quantity-${product.id}`).value, 10);
-                                            if (quantity > 0 && quantity <= product.stockQuantity) {
-                                                handleAddToBasket(product.id, quantity);
-                                            } else {
-                                                alert('Invalid quantity');
-                                            }
-                                        }}
-                                    >
-                                        <i className="bi bi-cart"></i>
-                                    </button>
+                                        <div className="d-flex justify-content-end align-items-center">
+                                            {product.stockQuantity > 0 ? (
+                                                <>
+                                                    <input
+                                                        type="number"
+                                                        className="quantity-input"
+                                                        min="1"
+                                                        defaultValue="1"
+                                                        id={`quantity-${product.id}`}
+                                                    />
+                                                    <button
+                                                        className="btn btn-success ms-2"
+                                                        onClick={() => {
+                                                            const quantity = parseInt(document.getElementById(`quantity-${product.id}`).value, 10);
+                                                            if (quantity > 0) {
+                                                                handleAddToBasket(product.id, quantity);
+                                                            } else {
+                                                                alert('Invalid quantity');
+                                                            }
+                                                        }}
+                                                    >
+                                                        <i className="bi bi-cart"></i>
+                                                    </button>
+                                                </>
+                                            ) : (
+                                                <button
+                                                    className="btn btn-secondary ms-2"
+                                                    disabled
+                                                >
+                                                    Out of Stock
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-                        ))
-                        ): (<div>No products found.</div>)}
-
+                            ))
+                        ) : (
+                            <div>No products found.</div>
+                        )}
                     </div>
                 </div>
             </div>

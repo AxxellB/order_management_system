@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from "react-router-dom";
 import '../styles/Checkout.css';
-import hasAvailableQuantity from "../services/ProductService";
+import { hasAvailableQuantity } from "../services/productService";
 
 const Checkout = () => {
     const [basket, setBasket] = useState([]);
@@ -83,7 +83,7 @@ const Checkout = () => {
         let errors = [];
 
         for (const item of basket) {
-            const availableQuantity = await hasAvailableQuantity(item.product, item.quantity);
+            const availableQuantity = await hasAvailableQuantity(item.product.id, item.quantity);
             if (availableQuantity !== null) {
                 errors.push({
                     productId: item.product.id,
