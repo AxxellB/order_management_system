@@ -25,15 +25,20 @@ class FileStorageController extends AbstractController
     #[Route("/file", name: "api_file_upload", methods: ["POST"])]
     public function upload(Request $request): JsonResponse
     {
+
         $file = $request->files->get('file');
+
+        if(!$file){
+            return new JsonResponse(['message' => 'No file uploaded'], Response::HTTP_BAD_REQUEST);
+        }
 
         $serviceResponse = $this->fileStorageService->store($file);
 
         if(isset($serviceResponse['message'])) {
             return new JsonResponse(['message' => $serviceResponse['message']], $serviceResponse['code']);
-        }else{
-            return new JsonResponse(['filePath' => $serviceResponse['filePath'], $serviceResponse['code']]);
         }
+
+        return new JsonResponse(['filePath' => $serviceResponse['filePath'], $serviceResponse['code']]);
     }
 
     #[Route("/file/{filename}", name: "api_file_download", methods: ["GET"])]
