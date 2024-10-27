@@ -127,8 +127,7 @@ const OrderList = () => {
                                     <td>
                                         {status === 'active' ? (
                                             <>
-                                                <button className="btn btn-primary"
-                                                        onClick={() => startEditing(order.id)}>
+                                                <button className="btn btn-primary">
                                                     <Link to={`/admin/order/${order.id}`}
                                                           style={{color: 'white', textDecoration: 'none'}}>
                                                         Edit

@@ -38,18 +38,9 @@ const Routes = () => {
                     element: <Homepage />,
                 },
                 {
-                    path: "/admin/orders",
-                    element: <OrderManagementPage />
-                },
-                {
-                    path: "/admin/order/:id",
-                    element: <EditOrderForm />
-                },
-                {
                     path:  "react/send-email",
                     element: <SendEmail />
                 },
-
             ],
         },
     ];
@@ -114,6 +105,14 @@ const Routes = () => {
                         {
                             path: "/admin/categories/edit/:id",
                             element: <CategoryEdit />,
+                        },
+                        {
+                            path: "/admin/orders",
+                            element: <OrderManagementPage />
+                        },
+                        {
+                            path: "/admin/order/:id",
+                            element: <EditOrderForm />
                         },
                         {
                             path: "/profile/security-centre",
