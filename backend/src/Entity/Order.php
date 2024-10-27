@@ -56,9 +56,16 @@ class Order
     #[Groups(['order:read'])]
     private ?Address $address = null;
 
+    /**
+     * @var Collection<int, OrderHistoryLogs>
+     */
+    #[ORM\OneToMany(targetEntity: OrderHistoryLogs::class, mappedBy: 'relatedOrder')]
+    private Collection $orderHistoryLogs;
+
     public function __construct()
     {
         $this->orderProducts = new ArrayCollection();
+        $this->orderHistoryLogs = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -186,6 +193,36 @@ class Order
         }
 
         $this->address = $address;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, OrderHistoryLogs>
+     */
+    public function getOrderHistoryLogs(): Collection
+    {
+        return $this->orderHistoryLogs;
+    }
+
+    public function addOrderHistoryLog(OrderHistoryLogs $orderHistoryLog): static
+    {
+        if (!$this->orderHistoryLogs->contains($orderHistoryLog)) {
+            $this->orderHistoryLogs->add($orderHistoryLog);
+            $orderHistoryLog->setRelatedOrder($this);
+        }
+
+        return $this;
+    }
+
+    public function removeOrderHistoryLog(OrderHistoryLogs $orderHistoryLog): static
+    {
+        if ($this->orderHistoryLogs->removeElement($orderHistoryLog)) {
+            // set the owning side to null (unless already changed)
+            if ($orderHistoryLog->getRelatedOrder() === $this) {
+                $orderHistoryLog->setRelatedOrder(null);
+            }
+        }
 
         return $this;
     }

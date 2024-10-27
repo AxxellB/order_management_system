@@ -59,10 +59,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: Address::class, mappedBy: 'user', orphanRemoval: true)]
     private Collection $addresses;
 
+    /**
+     * @var Collection<int, OrderHistoryLogs>
+     */
+    #[ORM\OneToMany(targetEntity: OrderHistoryLogs::class, mappedBy: 'user')]
+    private Collection $orderHistoryLogs;
+
     public function __construct()
     {
         $this->addresses = new ArrayCollection();
         $this->orders = new ArrayCollection();
+        $this->orderHistoryLogs = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -292,5 +299,35 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function __toString(): string
     {
         return $this->getEmail();
+    }
+
+    /**
+     * @return Collection<int, OrderHistoryLogs>
+     */
+    public function getOrderHistoryLogs(): Collection
+    {
+        return $this->orderHistoryLogs;
+    }
+
+    public function addOrderHistoryLog(OrderHistoryLogs $orderHistoryLog): static
+    {
+        if (!$this->orderHistoryLogs->contains($orderHistoryLog)) {
+            $this->orderHistoryLogs->add($orderHistoryLog);
+            $orderHistoryLog->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeOrderHistoryLog(OrderHistoryLogs $orderHistoryLog): static
+    {
+        if ($this->orderHistoryLogs->removeElement($orderHistoryLog)) {
+            // set the owning side to null (unless already changed)
+            if ($orderHistoryLog->getUser() === $this) {
+                $orderHistoryLog->setUser(null);
+            }
+        }
+
+        return $this;
     }
 }

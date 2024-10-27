@@ -20,6 +20,10 @@ services:
             - '../src/Entity/'
             - '../src/Kernel.php'
 
+    App\EventListener\OrderChangeListener:
+        tags:
+            - { name: doctrine.event_listener, event: postUpdate, entity: App\Entity\Order }
+
     App\Security\UserChecker:
         tags:
             - { name: 'security.user_checker' }
