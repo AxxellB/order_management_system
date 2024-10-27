@@ -1,0 +1,151 @@
+.adminSidebarWrapper {
+    margin: 0;
+    padding: 0;
+    font-family: 'Poppins', sans-serif;
+    box-sizing: border-box;
+}
+
+.adminSidebarBg {
+    padding: 20px;
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    background-size: cover;
+    filter: brightness(30%);
+    transform: rotateY(180deg);
+    z-index: -1;
+}
+
+.adminSidebar {
+    position: absolute;
+    height: 100%;
+    width: 183px;
+    transition: 0.5s ease;
+    transform: translateX(-200px);
+    background: linear-gradient(47deg, rgba(23, 61, 173, 1) 33%, rgba(189, 17, 58, 1) 100%);
+    margin-top: 26.5px;
+}
+
+.adminSidebar h1 {
+    color: #fff;
+    background: linear-gradient(47deg, rgba(23, 61, 173, 1) 33%, rgba(189, 17, 58, 1) 100%);
+    font-weight: 800;
+    text-align: right;
+    padding: 10px;
+    padding-right: 30px;
+    pointer-events: none;
+}
+
+.adminSidebarList {
+    margin-top: -20px;
+    position: relative;
+    background: linear-gradient(47deg, rgba(23, 61, 173, 1) 33%, rgba(189, 17, 58, 1) 100%);
+}
+
+.adminSidebarItem {
+    list-style: none;
+    transition: 1s ease;
+    transform: translateX(calc(-200px * var(--i)));
+}
+
+.adminSidebarLink {
+    background: linear-gradient(47deg, rgba(23, 61, 173, 1) 33%, rgba(189, 17, 58, 1) 100%);
+    color: #fff;
+    display: block;
+    padding: 5px 0;
+    font-weight: 400;
+    text-decoration: none;
+    text-transform: capitalize;
+}
+
+.adminSidebarItem:hover .adminSidebarLink {
+    color: #ff6600;
+}
+
+.adminSidebarLinkIcon {
+    width: 40px;
+    text-align: center;
+}
+
+.adminSidebarInput {
+    -webkit-appearance: none;
+    visibility: hidden;
+    display: none;
+}
+
+.adminSidebarToggle {
+    background: linear-gradient(47deg, rgba(23, 61, 173, 1) 33%, rgba(189, 17, 58, 1) 100%);
+    position: absolute;
+    height: 30px;
+    width: 30px;
+    top: 20px;
+    left: 20px;
+    border: 0.8px solid rgba(255, 255, 255, 0.2);
+    cursor: pointer;
+    border-radius: 2px;
+    z-index: 1;
+}
+
+.adminSidebarToggleCommon {
+    position: absolute;
+    height: 2px;
+    width: 20px;
+    left: 50%;
+    background: #fff;
+    border-radius: 50px;
+    transform: translate(-50%, -50%);
+    transition: 0.3s ease;
+}
+
+.adminSidebarTopLine {
+    visibility: hidden;
+    display: none;
+    top: 30%;
+}
+
+.adminSidebarMiddleLine {
+    visibility: hidden;
+    display: none;
+    top: 50%;
+}
+
+.adminSidebarBottomLine {
+    visibility: hidden;
+    display: none;
+    top: 70%;
+}
+
+.adminSidebarImageLineIcon {
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-top: 5.5px;
+}
+
+input[type="checkbox"]:checked ~ .adminSidebarToggle .adminSidebarTopLine {
+    transform: rotate(-45deg);
+    left: 2px;
+    top: 14px;
+    width: 25px;
+}
+
+input[type="checkbox"]:checked ~ .adminSidebarToggle .adminSidebarBottomLine {
+    transform: rotate(45deg);
+    left: 2px;
+    top: 14px;
+    width: 25px;
+}
+
+input[type="checkbox"]:checked ~ .adminSidebarToggle .adminSidebarMiddleLine {
+    transform: translateX(20px);
+    opacity: 0;
+}
+
+input[type="checkbox"]:checked ~ .adminSidebar {
+    transform: translateX(-17px);
+}
+
+input[type="checkbox"]:checked ~ .adminSidebar ul li {
+    transform: translateX(0);
+}

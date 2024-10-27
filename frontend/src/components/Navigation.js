@@ -2,12 +2,14 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from "../provider/AuthProvider";
 import styles from '../styles/Navigation.module.css';
+import AdminSidebar from "./AdminSidebar";
 
 const Navigation = () => {
     const { user, isAdmin } = useAuth();
 
     return (
         <nav className={`navbar navbar-expand-md ${styles.navbar}`}>
+            {isAdmin && <AdminSidebar />}
             <div className="container d-flex align-items-center justify-content-between">
                 <Link className={`navbar-brand ${styles.brand}`} to="/">ECommerce</Link>
 
@@ -25,19 +27,20 @@ const Navigation = () => {
                             <Link className={`nav-link ${styles.navLink}`} to="/categories">Categories</Link>
                         </li>
 
-                        {isAdmin && (
-                            <li className="nav-item dropdown">
-                                <a className={`nav-link dropdown-toggle ${styles.navLink}`} href="#" id="adminDropdown" role="button"
-                                   data-bs-toggle="dropdown" aria-expanded="false">
-                                    Admin
-                                </a>
-                                <ul className={`dropdown-menu ${styles.dropdownMenu}`} aria-labelledby="adminDropdown">
-                                    <li><Link className={`dropdown-item ${styles.dropdownItem}`} to="/admin/products">Product Edit</Link></li>
-                                    <li><Link className={`dropdown-item ${styles.dropdownItem}`} to="/admin/categories">Category Edit</Link></li>
-                                    <li><Link className={`dropdown-item ${styles.dropdownItem}`} to="/admin/orders">Orders</Link></li>
-                                </ul>
-                            </li>
-                        )}
+                        {/* OLD ADMIN */}
+                        {/*{isAdmin && (*/}
+                        {/*    <li className="nav-item dropdown">*/}
+                        {/*        <a className={`nav-link dropdown-toggle ${styles.navLink}`} href="#" id="adminDropdown" role="button"*/}
+                        {/*           data-bs-toggle="dropdown" aria-expanded="false">*/}
+                        {/*            Admin*/}
+                        {/*        </a>*/}
+                        {/*        <ul className={`dropdown-menu ${styles.dropdownMenu}`} aria-labelledby="adminDropdown">*/}
+                        {/*            <li><Link className={`dropdown-item ${styles.dropdownItem}`} to="/admin/products">Product Edit</Link></li>*/}
+                        {/*            <li><Link className={`dropdown-item ${styles.dropdownItem}`} to="/admin/categories">Category Edit</Link></li>*/}
+                        {/*            <li><Link className={`dropdown-item ${styles.dropdownItem}`} to="/admin/orders">Orders</Link></li>*/}
+                        {/*        </ul>*/}
+                        {/*    </li>*/}
+                        {/*)}*/}
 
                         {user && (
                             <li className="nav-item">
