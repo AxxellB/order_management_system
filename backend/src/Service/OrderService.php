@@ -12,6 +12,7 @@ use App\Repository\OrderRepository;
 use App\Repository\ProductRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 class OrderService
 {
@@ -24,6 +25,13 @@ class OrderService
         private readonly ProductRepository      $productRepository
     )
     {
+    }
+
+    public function validateOrder(Order $order): void
+    {
+        if (count($order->getOrderProducts()) === 0) {
+            throw new BadRequestHttpException('An order must contain at least one product.');
+        }
     }
 
     public function createOrder($user, $addressId): Order
@@ -84,6 +92,7 @@ class OrderService
     public function editOrder(int $orderId, array $orderProducts, array $orderAddress, ?string $status = null): Order
     {
         $order = $this->orderRepository->find($orderId);
+
         if (!$order) {
             throw new \Exception('Order not found');
         }
@@ -92,65 +101,88 @@ class OrderService
             throw new \Exception('This order cannot be modified at this stage');
         }
 
-        $currentOrderProducts = $order->getOrderProducts();
-        $totalAmount = 0;
+        $originalStatus = $order->getStatus();
 
-        foreach ($orderProducts as $productId => $quantity) {
-            $product = $this->productRepository->find($productId);
-            if (!$product) {
-                throw new \Exception('Product not found');
-            }
-
-            $orderProduct = $currentOrderProducts->filter(function ($op) use ($product) {
-                return $op->getProductEntity()->getId() === $product->getId();
-            })->first();
-
-            if ($orderProduct) {
-                $oldQuantity = $orderProduct->getQuantity();
-                $quantityDifference = $quantity - $oldQuantity;
-
-                if ($quantityDifference > 0) {
-                    if ($quantityDifference > $product->getStockQuantity()) {
-                        throw new \Exception('Insufficient stock for ' . $product->getName());
-                    }
-                    $product->setStockQuantity($product->getStockQuantity() - $quantityDifference);
-                } else {
-                    $product->setStockQuantity($product->getStockQuantity() + abs($quantityDifference));
-                }
-
-                if ($quantity === 0) {
-                    $order->removeOrderProduct($orderProduct);
-                    $this->entityManager->remove($orderProduct);
-                } else {
-                    $orderProduct->setQuantity($quantity);
-                    $orderProduct->setSubtotal($quantity * $product->getPrice());
-                }
-            } else {
-                if ($quantity > 0) {
-                    if ($quantity > $product->getStockQuantity()) {
-                        throw new \Exception('Insufficient stock for ' . $product->getName());
-                    }
-
-                    $newOrderProduct = new OrderProduct();
-                    $newOrderProduct->setOrderEntity($order);
-                    $newOrderProduct->setProductEntity($product);
-                    $newOrderProduct->setQuantity($quantity);
-                    $newOrderProduct->setPricePerUnit($product->getPrice());
-                    $newOrderProduct->setSubtotal($quantity * $product->getPrice());
-
-                    $this->entityManager->persist($newOrderProduct);
-                    $order->addOrderProduct($newOrderProduct);
-
-                    $product->setStockQuantity($product->getStockQuantity() - $quantity);
-                }
-            }
-
-            $totalAmount += $quantity * $product->getPrice();
-
-            $this->entityManager->persist($product);
+        if ($order->getStatus() === OrderStatus::CANCELLED) {
+            throw new \Exception('This order cannot be modified as it is cancelled');
         }
 
-        $order->setTotalAmount($totalAmount);
+        if ($status !== null) {
+            try {
+                $orderStatus = OrderStatus::from($status);
+                $order->setStatus($orderStatus);
+                $this->entityManager->persist($order);
+            } catch (\ValueError) {
+                throw new \Exception('Invalid status provided');
+            }
+        }
+
+        if ($order->getStatus() === OrderStatus::CANCELLED && $originalStatus !== OrderStatus::CANCELLED) {
+            foreach ($order->getOrderProducts() as $orderProduct) {
+                $product = $orderProduct->getProductEntity();
+                $product->setStockQuantity($product->getStockQuantity() + $orderProduct->getQuantity());
+                $this->entityManager->persist($product);
+            }
+        } else {
+            $currentOrderProducts = $order->getOrderProducts();
+            $totalAmount = 0;
+
+            foreach ($orderProducts as $productId => $quantity) {
+                $product = $this->productRepository->find($productId);
+                if (!$product) {
+                    throw new \Exception('Product not found');
+                }
+
+                $orderProduct = $currentOrderProducts->filter(function ($op) use ($product) {
+                    return $op->getProductEntity()->getId() === $product->getId();
+                })->first();
+
+                if ($orderProduct) {
+                    $oldQuantity = $orderProduct->getQuantity();
+                    $quantityDifference = $quantity - $oldQuantity;
+
+                    if ($quantityDifference > 0) {
+                        if ($quantityDifference > $product->getStockQuantity()) {
+                            throw new \Exception('Insufficient stock for ' . $product->getName());
+                        }
+                        $product->setStockQuantity($product->getStockQuantity() - $quantityDifference);
+                    } else {
+                        $product->setStockQuantity($product->getStockQuantity() + abs($quantityDifference));
+                    }
+
+                    if ($quantity === 0) {
+                        $order->removeOrderProduct($orderProduct);
+                        $this->entityManager->remove($orderProduct);
+                    } else {
+                        $orderProduct->setQuantity($quantity);
+                        $orderProduct->setSubtotal($quantity * $product->getPrice());
+                    }
+                } else {
+                    if ($quantity > 0) {
+                        if ($quantity > $product->getStockQuantity()) {
+                            throw new \Exception('Insufficient stock for ' . $product->getName());
+                        }
+
+                        $newOrderProduct = new OrderProduct();
+                        $newOrderProduct->setOrderEntity($order);
+                        $newOrderProduct->setProductEntity($product);
+                        $newOrderProduct->setQuantity($quantity);
+                        $newOrderProduct->setPricePerUnit($product->getPrice());
+                        $newOrderProduct->setSubtotal($quantity * $product->getPrice());
+
+                        $this->entityManager->persist($newOrderProduct);
+                        $order->addOrderProduct($newOrderProduct);
+
+                        $product->setStockQuantity($product->getStockQuantity() - $quantity);
+                    }
+                }
+
+                $totalAmount += $quantity * $product->getPrice();
+                $this->entityManager->persist($product);
+            }
+
+            $order->setTotalAmount($totalAmount);
+        }
 
         $deliveryAddress = $order->getAddress() ?: new Address();
         if (isset($orderAddress['line'])) {
@@ -166,18 +198,7 @@ class OrderService
             $order->setAddress($deliveryAddress);
         }
 
-        if ($status !== null) {
-            try {
-                $orderStatus = OrderStatus::from($status);
-                $order->setStatus($orderStatus);
-                $this->entityManager->persist($order);
-            } catch (\ValueError) {
-                throw new \Exception('Invalid status provided');
-            }
-        }
-
         $this->entityManager->flush();
-
         return $order;
     }
 

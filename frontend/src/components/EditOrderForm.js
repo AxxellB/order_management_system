@@ -11,12 +11,12 @@ const EditOrderForm = ({
     const [order, setOrder] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [productError, setProductError] = useState(null);
     const [products, setProducts] = useState({});
     const [address, setAddress] = useState({});
     const [status, setStatus] = useState('');
 
     const navigate = useNavigate();
-
     const [availableProducts, setAvailableProducts] = useState([]);
     const [showProductForm, setShowProductForm] = useState(false);
     const [selectedProductId, setSelectedProductId] = useState('');
@@ -68,11 +68,10 @@ const EditOrderForm = ({
     };
 
     const handleDeleteProduct = (productId) => {
-        setProducts((prevProducts) => {
-            const updatedProducts = {...prevProducts};
-            delete updatedProducts[productId];
-            return updatedProducts;
-        });
+        setProducts((prevProducts) => ({
+            ...prevProducts,
+            [productId]: 0,
+        }));
     };
 
     const handleProductChange = (e) => {
@@ -130,6 +129,11 @@ const EditOrderForm = ({
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        if (Object.keys(products).length === 0 || Object.values(products).every(qty => qty === 0)) {
+            setProductError('The order must contain at least one product.');
+            return;
+        }
+
         const updatedOrderData = {
             products: products,
             address: address,
@@ -143,16 +147,17 @@ const EditOrderForm = ({
                 },
             });
 
-            if (!response.status === 200) {
+            if (response.status !== 200) {
                 throw new Error('Failed to update order.');
             }
 
+            setProductError(null);
             onFinishEditing();
             navigate('/admin/orders');
 
         } catch (error) {
             console.error('Error updating order:', error);
-            setError(error.message);
+            setError('You cannot modify this order because the status is completed');
         }
     };
 
@@ -214,7 +219,7 @@ const EditOrderForm = ({
                 {Object.keys(products).length > 0 ? (
                     Object.entries(products).map(([productId, quantity]) => {
                         const product = availableProducts.find(p => p.id === parseInt(productId));
-                        return (
+                        return quantity > 0 ? (
                             <div key={productId} className="product-form">
                                 <label>{`Product ID: ${productId} | Name: ${product?.name || 'Unknown'}`}</label>
                                 <input
@@ -224,11 +229,11 @@ const EditOrderForm = ({
                                     value={quantity}
                                     onChange={(e) => handleProductQuantityChange(productId, parseInt(e.target.value))}
                                 />
-                                <button type="delete-button" onClick={() => handleDeleteProduct(productId)}>
+                                <button type="button" onClick={() => handleDeleteProduct(productId)}>
                                     Delete
                                 </button>
                             </div>
-                        );
+                        ) : null;
                     })
                 ) : (
                     <div>No products available for this order.</div>
@@ -270,6 +275,8 @@ const EditOrderForm = ({
                         </button>
                     </div>
                 )}
+
+                {productError && <div className="error-message">{productError}</div>}
 
                 <h3>Status</h3>
                 <select value={status} onChange={handleStatusChange}>

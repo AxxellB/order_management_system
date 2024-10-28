@@ -109,7 +109,6 @@ class OrderController extends AbstractController
         $addressData = $data['address'] ?? [];
         $statusData = $data['status'] ?? [];
 
-
         $insufficientStockProducts = [];
 
         foreach ($productsData as $productId => $quantity) {
@@ -136,6 +135,8 @@ class OrderController extends AbstractController
         }
 
         try {
+            $this->orderService->validateOrder($order);
+
             $this->orderService->editOrder($id, $productsData, $addressData, $statusData);
 
             return new JsonResponse(['message' => 'Order successfully updated'], Response::HTTP_OK);
