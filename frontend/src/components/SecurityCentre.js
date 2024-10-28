@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import ProfileNavbar from './ProfileNavBar';
+import styles from '../styles/SecurityCentre.module.css';
 
 const SecurityCentre = () => {
     const [formData, setFormData] = useState({
@@ -36,14 +37,14 @@ const SecurityCentre = () => {
     };
 
     return (
-        <div className="security-container">
-            <ProfileNavbar />
+        <div className={styles.securityCenterContainer}>
+            <ProfileNavbar/>
 
-            {errorMessage && <div className="error-message">{errorMessage}</div>}
-            {successMessage && <div className="success-message">{successMessage}</div>}
+            {errorMessage && <div className={styles.errorMessage}>{errorMessage}</div>}
+            {successMessage && <div className={styles.successMessage}>{successMessage}</div>}
 
             <form onSubmit={handleSubmit}>
-                <div className="form-group">
+                <div className={styles.securityCenterFormGroup}>
                     <label>Old Password</label>
                     <input
                         type="password"
@@ -53,7 +54,7 @@ const SecurityCentre = () => {
                         required
                     />
                 </div>
-                <div className="form-group">
+                <div className={styles.securityCenterFormGroup}>
                     <label>New Password</label>
                     <input
                         type="password"
@@ -63,7 +64,7 @@ const SecurityCentre = () => {
                         required
                     />
                 </div>
-                <div className="form-group">
+                <div className={styles.securityCenterFormGroup}>
                     <label>Confirm New Password</label>
                     <input
                         type="password"
@@ -73,7 +74,7 @@ const SecurityCentre = () => {
                         required
                     />
                 </div>
-                <button type="submit" className="btn btn-primary">Submit</button>
+                <button type="submit" className={`btn btn-primary ${styles.submitButton}`}>Submit</button>
             </form>
         </div>
     );
