@@ -24,6 +24,8 @@ import CategoriesList from "../pages/CategoryList";
 import CategoryNew from "../pages/CategoryNew";
 import CategoryEdit from "../pages/CategoryEdit";
 import SendEmail from "../pages/SendEmail";
+import OrderAuditLogs from "../pages/OrderAuditLogs";
+import ViewOrderLog from "../components/ViewOrderHistoryLog";
 
 const Routes = () => {
     const { token } = useAuth();
@@ -113,6 +115,14 @@ const Routes = () => {
                         {
                             path: "/admin/order/:id",
                             element: <EditOrderForm />
+                        },
+                        {
+                            path: "/admin/order-history-logs",
+                            element: <OrderAuditLogs />,
+                        },
+                        {
+                            path: "/admin/order-history-logs/:id",
+                            element: <ViewOrderLog />
                         },
                         {
                             path: "/profile/security-centre",

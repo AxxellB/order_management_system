@@ -16,7 +16,6 @@ class OrderChangeListener implements EventSubscriberInterface
 {
     private OrderLoggerService $loggerService;
     private Security $security;
-    private array $removals = [];
 
     public function __construct(OrderLoggerService $loggerService, Security $security)
     {
@@ -74,38 +73,35 @@ class OrderChangeListener implements EventSubscriberInterface
         $entityManager = $event->getObjectManager();
         $unitOfWork = $entityManager->getUnitOfWork();
 
-        $oldValue = [];
-        $newValue = [];
-
         if ($entity instanceof Order) {
             $orderChanges = $unitOfWork->getEntityChangeSet($entity);
 
             foreach ($orderChanges as $field => [$old, $new]) {
-                $oldValue[$field] = $old;
-                $newValue[$field] = $new;
+                if ($field !== 'totalAmount') {
+                    $this->loggerService->logOrderChange(
+                        $entity,
+                        $user,
+                        $action,
+                        [$field => $old],
+                        [$field => $new]
+                    );
+                }
             }
+        }
 
-            foreach ($entity->getOrderProducts() as $orderProduct) {
-                $productChanges = $unitOfWork->getEntityChangeSet($orderProduct);
-                $productName = $orderProduct->getProductEntity()->getName();
+        if ($entity instanceof OrderProduct) {
+            $productChanges = $unitOfWork->getEntityChangeSet($entity);
+            $productName = $entity->getProductEntity()->getName();
 
-                foreach ($productChanges as $field => [$old, $new]) {
-                    if ($field === 'quantity') {
-                        if (!isset($oldValue['products'])) {
-                            $oldValue['products'] = [];
-                        }
-                        if (!isset($newValue['products'])) {
-                            $newValue['products'] = [];
-                        }
-                        $oldValue['products'][] = [
-                            'product' => $productName,
-                            'quantity' => $old,
-                        ];
-                        $newValue['products'][] = [
-                            'product' => $productName,
-                            'quantity' => $new,
-                        ];
-                    }
+            foreach ($productChanges as $field => [$old, $new]) {
+                if ($field === 'quantity') {
+                    $this->loggerService->logOrderChange(
+                        $entity->getOrderEntity(),
+                        $user,
+                        $action,
+                        ['product' => $productName, 'quantity' => $old],
+                        ['product' => $productName, 'quantity' => $new]
+                    );
                 }
             }
         }
@@ -114,20 +110,14 @@ class OrderChangeListener implements EventSubscriberInterface
             $addressChanges = $unitOfWork->getEntityChangeSet($entity);
 
             foreach ($addressChanges as $field => [$old, $new]) {
-                $oldValue[$field] = $old;
-                $newValue[$field] = $new;
+                $this->loggerService->logOrderChange(
+                    $entity->getOrderEntity(),
+                    $user,
+                    'address_update',
+                    [$field => $old],
+                    [$field => $new]
+                );
             }
-            $action = 'address_update';
-        }
-
-        if (!empty($oldValue) || !empty($newValue)) {
-            $this->loggerService->logOrderChange(
-                $entity instanceof Order ? $entity : $entity->getOrderEntity(),
-                $user,
-                $action,
-                $oldValue,
-                $newValue
-            );
         }
     }
 }
