@@ -16,28 +16,24 @@ class OrderHistoryLogsRepository extends ServiceEntityRepository
         parent::__construct($registry, OrderHistoryLogs::class);
     }
 
-    //    /**
-    //     * @return OrderHistoryLogs[] Returns an array of OrderHistoryLogs objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('o')
-    //            ->andWhere('o.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('o.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
+    public function getPaginatedLogs(int $page, int $limit)
+    {
+        $offset = ($page - 1) * $limit;
 
-    //    public function findOneBySomeField($value): ?OrderHistoryLogs
-    //    {
-    //        return $this->createQueryBuilder('o')
-    //            ->andWhere('o.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+        return $this->createQueryBuilder('o')
+            ->orderBy('o.changedAt', 'DESC')
+            ->setFirstResult($offset)
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function getTotalLogCount(): int
+    {
+        return count($this->createQueryBuilder('o')
+            ->select('o.id')
+            ->getQuery()
+            ->getResult());
+    }
+
 }
