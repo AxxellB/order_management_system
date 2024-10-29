@@ -127,11 +127,18 @@ const OrderList = () => {
                                     <td>
                                         {status === 'active' ? (
                                             <>
-                                                <button className="btn btn-primary">
-                                                    <Link to={`/admin/order/${order.id}`}
-                                                          style={{color: 'white', textDecoration: 'none'}}>
-                                                        Edit
-                                                    </Link>
+                                                <button
+                                                    className={`btn ${order.status === 'cancelled' ? 'btn-secondary' : 'btn-primary'}`}
+                                                    disabled={order.status === 'cancelled'}
+                                                >
+                                                    {order.status === 'cancelled' ? (
+                                                        'Edit'
+                                                    ) : (
+                                                        <Link to={`/admin/order/${order.id}`}
+                                                              style={{color: 'white', textDecoration: 'none'}}>
+                                                            Edit
+                                                        </Link>
+                                                    )}
                                                 </button>
                                                 <button className="btn btn-danger"
                                                         onClick={() => deleteOrder(order.id)}>
