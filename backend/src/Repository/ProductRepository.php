@@ -27,14 +27,14 @@ class ProductRepository extends ServiceEntityRepository
     }
 
 
-    public function findByCriteriaAndOrder(array $criteria, array $orderBy): array
+    public function findByCriteriaAndOrder(array $criteria, array $orderBy, ?string $search = null, int $page = 1, int $itemsPerPage = 10): array
     {
         $qb = $this->createQueryBuilder('p');
 
         if (isset($criteria['category'])) {
             $qb->join('p.categories', 'c')
-            ->andWhere('c.id = :category')
-            ->setParameter('category', $criteria['category']);
+                ->andWhere('c.id = :category')
+                ->setParameter('category', $criteria['category']);
         }
 
         if (isset($criteria['minPrice'])) {
@@ -58,25 +58,29 @@ class ProductRepository extends ServiceEntityRepository
         }
 
         if (isset($criteria['deleted'])) {
-            if ($criteria['deleted'] === true) {
-                $qb->andWhere('p.deletedAt IS NOT NULL');
-            } else {
-                $qb->andWhere('p.deletedAt IS NULL');
-            }
+            $qb->andWhere('p.deletedAt ' . ($criteria['deleted'] ? 'IS NOT NULL' : 'IS NULL'));
         } else {
             $qb->andWhere('p.deletedAt IS NULL');
         }
 
-        foreach ($orderBy as $field => $direction) {
-            $qb->addOrderBy('p.' . $field, $direction);
+        if ($search) {
+            $qb->andWhere('p.name LIKE :searchTerm')
+                ->setParameter('searchTerm', '%' . $search . '%');
         }
 
-        return $qb->getQuery()->getResult();
+        if (!empty($orderBy['sort'])) {
+            $qb->orderBy('p.' . $orderBy['sort'], $orderBy['order']);
+        }
+
+        $totalItems = count($qb->getQuery()->getResult());
+
+        $qb->setFirstResult(($page - 1) * $itemsPerPage)
+            ->setMaxResults($itemsPerPage);
+
+        $products = $qb->getQuery()->getResult();
+
+        return ['products' => $products, 'totalItems' => $totalItems];
     }
-
-
-
-
 
 
 
