@@ -32,7 +32,7 @@ class ProductController extends AbstractController
         $itemsPerPage = (int) $request->query->get('itemsPerPage', 10);
         $searchTerm = $request->query->get('search', '');
 
-        $sort = $request->query->get('sort', 'name'); // Default sort by 'name'
+        $sort = $request->query->get('sort', 'name');
         $order = $request->query->get('order', 'asc');
 
         $criteria = [
@@ -75,6 +75,40 @@ class ProductController extends AbstractController
 
         $jsonProduct = $serializer->serialize($product, 'json', ['groups' => 'product:read']);
         return new JsonResponse($jsonProduct, Response::HTTP_OK, [], true);
+    }
+
+    #[Route('/available/list', name: 'api_available_products', methods: ['GET'])]
+    public function availableProducts(Request $request, SerializerInterface $serializer): JsonResponse
+    {
+        $status = $request->query->get('status', 'active');
+
+        $criteria = [
+            'category' => $request->query->get('category'),
+            'minPrice' => is_numeric($request->query->get('minPrice')) ? (float) $request->query->get('minPrice') : null,
+            'maxPrice' => is_numeric($request->query->get('maxPrice')) ? (float) $request->query->get('maxPrice') : null,
+            'minStock' => is_numeric($request->query->get('minStock')) ? (int) $request->query->get('minStock') : null,
+            'maxStock' => is_numeric($request->query->get('maxStock')) ? (int) $request->query->get('maxStock') : null,
+        ];
+
+        switch ($status) {
+            case 'deleted':
+                $criteria['deleted'] = true;
+                break;
+            case 'active':
+            default:
+                $criteria['deleted'] = false;
+                break;
+        }
+
+        $products = $this->productService->getAvailableProductsToAddToOrder($criteria, []);
+
+        if (empty($products)) {
+            return new JsonResponse(['message' => 'No products found matching the given criteria.'], Response::HTTP_OK);
+        }
+
+        $jsonProducts = $serializer->serialize($products, 'json', ['groups' => ['product:read']]);
+
+        return new JsonResponse($jsonProducts, Response::HTTP_OK, [], true);
     }
 
     #[Route('/new', name: 'api_product_new', methods: ['POST'])]
