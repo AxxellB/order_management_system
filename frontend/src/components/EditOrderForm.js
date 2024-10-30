@@ -25,7 +25,7 @@ const EditOrderForm = ({
     useEffect(() => {
         const fetchAvailableProducts = async () => {
             try {
-                const response = await axios.get('http://localhost/api/products/list');
+                const response = await axios.get('http://localhost/api/products/available/list');
                 setAvailableProducts(response.data);
             } catch (error) {
                 console.error('Error fetching available products:', error);

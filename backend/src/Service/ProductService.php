@@ -34,6 +34,10 @@ class ProductService
         return $this->productRepository->findByCriteriaAndOrder($criteria, $orderBy, $search, $page, $itemsPerPage);
     }
 
+    public function getAvailableProductsToAddToOrder(array $criteria, array $orderBy): array
+    {
+        return $this->productRepository->findAvailableProductsToAddToOrder($criteria, $orderBy);
+    }
 
     public function getFormErrors(FormInterface $form): array
     {
