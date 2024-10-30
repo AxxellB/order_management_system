@@ -11,6 +11,7 @@ const Navigation = () => {
         <nav className={`navbar navbar-expand-md ${styles.navbar}`}>
             {isAdmin && <AdminSidebar />}
             <div className="container d-flex align-items-center justify-content-between">
+
                 <Link className={`navbar-brand ${styles.brand}`} to="/">ECommerce</Link>
 
                 <button className={`navbar-toggler ${styles.navbarToggler}`} type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
@@ -19,6 +20,7 @@ const Navigation = () => {
                 </button>
 
                 <div className="collapse navbar-collapse" id="navbarNav">
+
                     <ul className="navbar-nav me-auto d-flex align-items-center">
                         <li className="nav-item">
                             <Link className={`nav-link ${styles.navLink}`} to="/">Home</Link>
@@ -56,9 +58,6 @@ const Navigation = () => {
                                     <Link className={`nav-link ${styles.navLink}`} to="/basket">
                                         <i className={`bi bi-basket ${styles.basketIcon}`}></i>
                                     </Link>
-                                </li>
-                                <li className="nav-item">
-                                    <Link className={`nav-link ${styles.navLink}`} to="/profile">{user.firstName}</Link>
                                 </li>
                                 <li className="nav-item">
                                     <Link className={`nav-link ${styles.navLink}`} to="/logout">Logout</Link>

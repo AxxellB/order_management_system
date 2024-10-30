@@ -29,22 +29,27 @@ const AdminSidebar = () => {
                     <div className={styles.adminSidebar}>
                         <h1>Admin</h1>
                         <ul className={styles.adminSidebarList}>
-                            <li className={styles.adminSidebarItem} style={{ '--i': 1 }}>
+                            <li className={styles.adminSidebarItem} style={{'--i': 1}}>
                                 <Link to="/admin/products" className={styles.adminSidebarLink}>
                                     <i className="fa-solid fa-cube"></i> Products
                                 </Link>
                             </li>
-                            <li className={styles.adminSidebarItem} style={{ '--i': 2 }}>
+                            <li className={styles.adminSidebarItem} style={{'--i': 2}}>
                                 <Link to="/admin/categories" className={styles.adminSidebarLink}>
                                     <i className="fa-solid fa-shapes"></i> Categories
                                 </Link>
                             </li>
-                            <li className={styles.adminSidebarItem} style={{ '--i': 3 }}>
+                            <li className={styles.adminSidebarItem} style={{'--i': 3}}>
+                                <Link to="/admin/inventory" className={styles.adminSidebarLink}>
+                                    <i className="fa-solid fa-cart-flatbed"></i> Inventory
+                                </Link>
+                            </li>
+                            <li className={styles.adminSidebarItem} style={{'--i': 4}}>
                                 <Link to="/admin/orders" className={styles.adminSidebarLink}>
                                     <i className="fa-regular fa-rectangle-list"></i> Orders
                                 </Link>
                             </li>
-                            <li className={styles.adminSidebarItem} style={{ '--i': 4 }}>
+                            <li className={styles.adminSidebarItem} style={{'--i': 5}}>
                                 <Link to="/admin/order-history-logs" className={styles.adminSidebarLink}>
                                     <i className="fas fa-tv"></i> Logs
                                 </Link>
