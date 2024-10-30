@@ -24,6 +24,7 @@ import CategoriesList from "../pages/CategoryList";
 import CategoryNew from "../pages/CategoryNew";
 import CategoryEdit from "../pages/CategoryEdit";
 import SendEmail from "../pages/SendEmail";
+import InventoryManagement from "../pages/InventoryManagement";
 import OrderAuditLogs from "../pages/OrderAuditLogs";
 import ViewOrderLog from "../components/ViewOrderHistoryLog";
 
@@ -40,9 +41,18 @@ const Routes = () => {
                     element: <Homepage />,
                 },
                 {
-                    path:  "react/send-email",
+                    path: "/admin/orders",
+                    element: <OrderManagementPage />
+                },
+                {
+                    path: "/admin/order/:id",
+                    element: <EditOrderForm />
+                },
+                {
+                    path:  "/send-email",
                     element: <SendEmail />
                 },
+
             ],
         },
     ];
@@ -107,6 +117,10 @@ const Routes = () => {
                         {
                             path: "/admin/categories/edit/:id",
                             element: <CategoryEdit />,
+                        },
+                        {
+                            path:  "admin/inventory",
+                            element: <InventoryManagement />
                         },
                         {
                             path: "/admin/orders",

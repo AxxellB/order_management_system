@@ -9,7 +9,6 @@
     padding: 20px;
     position: absolute;
     height: 100%;
-    width: 100%;
     background-size: cover;
     filter: brightness(30%);
     transform: rotateY(180deg);
@@ -17,9 +16,11 @@
 }
 
 .adminSidebar {
+    opacity: 93%;
+    z-index: 1;
     position: absolute;
     height: 100%;
-    width: 183px;
+    width: 11.3rem;
     transition: 0.5s ease;
     transform: translateX(-200px);
     background: linear-gradient(47deg, rgba(23, 61, 173, 1) 33%, rgba(189, 17, 58, 1) 100%);
