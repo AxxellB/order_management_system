@@ -24,6 +24,10 @@ services:
         tags:
             - { name: doctrine.event_listener, event: postUpdate, entity: App\Entity\Order }
 
+    App\EventListener\ProductStockChangeListener:
+        tags:
+            - { name: doctrine.event_listener, event: preUpdate, entity: App\Entity\Product  }
+
     App\Security\UserChecker:
         tags:
             - { name: 'security.user_checker' }

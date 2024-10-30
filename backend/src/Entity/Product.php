@@ -59,6 +59,12 @@ class Product
     #[Groups(['product:read', 'category:read'])]
     private Collection $categories;
 
+    /**
+     * @var Collection<int, ProductStockHistory>
+     */
+    #[ORM\OneToMany(targetEntity: ProductStockHistory::class, mappedBy: 'productId')]
+    private Collection $productStockHistories;
+
 
     public function __construct()
     {
@@ -66,6 +72,7 @@ class Product
         $this->orderProducts = new ArrayCollection();
         $this->basketProducts = new ArrayCollection();
         $this->categories = new ArrayCollection();
+        $this->productStockHistories = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -214,6 +221,36 @@ class Product
     public function removeCategory(Category $category): static
     {
         $this->categories->removeElement($category);
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ProductStockHistory>
+     */
+    public function getProductStockHistories(): Collection
+    {
+        return $this->productStockHistories;
+    }
+
+    public function addProductStockHistory(ProductStockHistory $productStockHistory): static
+    {
+        if (!$this->productStockHistories->contains($productStockHistory)) {
+            $this->productStockHistories->add($productStockHistory);
+            $productStockHistory->setProductId($this);
+        }
+
+        return $this;
+    }
+
+    public function removeProductStockHistory(ProductStockHistory $productStockHistory): static
+    {
+        if ($this->productStockHistories->removeElement($productStockHistory)) {
+            // set the owning side to null (unless already changed)
+            if ($productStockHistory->getProductId() === $this) {
+                $productStockHistory->setProductId(null);
+            }
+        }
 
         return $this;
     }
