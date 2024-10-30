@@ -28,6 +28,12 @@ class ProductController extends AbstractController
     public function list(Request $request, SerializerInterface $serializer): JsonResponse
     {
         $status = $request->query->get('status', 'active');
+        $page = (int) $request->query->get('page', 1);
+        $itemsPerPage = (int) $request->query->get('itemsPerPage', 10);
+        $searchTerm = $request->query->get('search', '');
+
+        $sort = $request->query->get('sort', 'name'); // Default sort by 'name'
+        $order = $request->query->get('order', 'asc');
 
         $criteria = [
             'category' => $request->query->get('category'),
@@ -47,16 +53,16 @@ class ProductController extends AbstractController
                 break;
         }
 
-        $products = $this->productService->getFilteredAndOrderedProducts($criteria, []);
+        $result = $this->productService->getFilteredAndOrderedProducts($criteria, ['sort' => $sort, 'order' => $order], $searchTerm, $page, $itemsPerPage);
 
-        if (empty($products)) {
-            return new JsonResponse(['message' => 'No products found matching the given criteria.'], Response::HTTP_OK);
-        }
+        $jsonProducts = $serializer->serialize($result['products'], 'json', ['groups' => ['product:read']]);
 
-        $jsonProducts = $serializer->serialize($products, 'json', ['groups' => ['product:read']]);
-
-        return new JsonResponse($jsonProducts, Response::HTTP_OK, [], true);
+        return new JsonResponse([
+            'products' => json_decode($jsonProducts, true),
+            'totalItems' => $result['totalItems'],
+        ], Response::HTTP_OK);
     }
+
 
     #[Route('/{id<\d+>}', name: 'api_product_by_id', methods: ['GET'])]
     public function getProductByIdApi(int $id, SerializerInterface $serializer): JsonResponse
@@ -114,6 +120,33 @@ class ProductController extends AbstractController
 
         return new JsonResponse(['message' => 'Product updated successfully'], Response::HTTP_OK);
     }
+
+    #[Route('/{id<\d+>}', name: 'api_product_patch', methods: ['PATCH'])]
+    public function patchQuantity(Request $request, Product $product, EntityManagerInterface $entityManager): JsonResponse
+    {
+        if (!$product) {
+            return new JsonResponse(['error' => 'Product not found'], Response::HTTP_NOT_FOUND);
+        }
+
+        $data = json_decode($request->getContent(), true);
+        if (!isset($data['quantity']) || !is_numeric($data['quantity'])) {
+            return new JsonResponse(['error' => 'Invalid or missing quantity'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $addedQuantity = (int)$data['quantity'];
+        $newQuantity = $product->getStockQuantity() + $addedQuantity;
+        $product->setStockQuantity($newQuantity);
+
+        $entityManager->persist($product);
+        $entityManager->flush();
+
+        return new JsonResponse([
+            'message' => 'Quantity updated successfully',
+            'addedQuantity' => $addedQuantity,
+            'newQuantity' => $newQuantity
+        ], Response::HTTP_OK);
+    }
+
 
     #[Route('/{id<\d+>}', name: 'api_product_delete_restore', methods: ['DELETE'])]
     public function deleteOrRestoreApi(Request $request, Product $product, EntityManagerInterface $entityManager): JsonResponse

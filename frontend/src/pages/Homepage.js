@@ -1,37 +1,55 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import '../styles/Homepage.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import { addToBasket } from '../services/basketService';
 import { canAddToBasket } from "../services/productService";
+import { debounce } from "../components/debounce";
 
 const Homepage = () => {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [categories, setCategories] = useState([]);
+
     const [filters, setFilters] = useState({
         category: '',
         minPrice: '',
         maxPrice: ''
     });
 
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalItems, setTotalItems] = useState(0);
+    const itemsPerPage = 10;
+
+    const [searchTerm, setSearchTerm] = useState("");
+    const [sortOption, setSortOption] = useState("name_asc");
+
     useEffect(() => {
         fetchCategories();
         fetchProducts();
-    }, []);
+    }, [currentPage, searchTerm, sortOption]);
 
     const fetchProducts = async () => {
         try {
             setLoading(true);
-            const queryParams = new URLSearchParams({ status: 'active' });
+            const [sortField, sortOrder] = sortOption.split('_');
+            const queryParams = new URLSearchParams({
+                status: 'active',
+                page: currentPage.toString(),
+                itemsPerPage: itemsPerPage.toString(),
+                search: searchTerm,
+                sort: sortField,
+                order: sortOrder
+            });
             if (filters.category) queryParams.append('category', filters.category);
             if (filters.minPrice) queryParams.append('minPrice', filters.minPrice);
             if (filters.maxPrice) queryParams.append('maxPrice', filters.maxPrice);
 
             const response = await axios.get(`http://localhost/api/products/list?${queryParams.toString()}`);
-            setProducts(Array.isArray(response.data) ? response.data : []);
+            setProducts(Array.isArray(response.data.products) ? response.data.products : []);
+            setTotalItems(response.data.totalItems || 0);
             setLoading(false);
         } catch (error) {
             setError(error.message);
@@ -48,14 +66,17 @@ const Homepage = () => {
         }
     };
 
-    const handleAddToBasket = async (productId, quantity) => {
-        const result = await canAddToBasket(productId, quantity);
 
-        if (result === null) {
-            await addToBasket(productId, quantity);
-        } else {
-            alert(`Insufficient stock quantity. Only ${result} items are available.`);
-        }
+    const debouncedSearch = useCallback(
+        debounce((term) => {
+            setSearchTerm(term);
+            setCurrentPage(1);
+        }, 300),
+        []
+    );
+
+    const handleSearch = (e) => {
+        debouncedSearch(e.target.value);
     };
 
     const handleFilterChange = (e) => {
@@ -67,18 +88,28 @@ const Homepage = () => {
     };
 
     const applyFilters = () => {
+        setCurrentPage(1);
         fetchProducts();
     };
 
-    if (loading) return <div className="text-center mt-5">Loading...</div>;
-    if (error) return <div className="text-center text-danger mt-5">Error: {error}</div>;
+    const handleAddToBasket = async (productId, quantity) => {
+        const result = await canAddToBasket(productId, quantity);
+
+        if (result === null) {
+            await addToBasket(productId, quantity);
+        } else {
+            alert(`Insufficient stock quantity. Only ${result} items are available.`);
+        }
+    };
+
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
 
     return (
         <div className="container mt-5">
-            <h1 className="text-center mb-5">Shop Our Products</h1>
+            <h1 className="text-center mb-5">Our Selection of Products</h1>
             <div className="row">
                 <div className="col-md-2">
-                    <div className="card shadow-sm p-3 mb-4">
+                    <div className="card shadow-sm p-3 mb-4 filter-card">
                         <h5>Filters</h5>
                         <div className="mb-3">
                             <label className="form-label">Category</label>
@@ -108,8 +139,9 @@ const Homepage = () => {
                                 name="minPrice"
                                 value={filters.minPrice}
                                 onChange={handleFilterChange}
-                                className="form-control"
+                                className="form-control small-placeholder"
                                 placeholder="Enter min price"
+                                min="0"
                             />
                         </div>
 
@@ -120,8 +152,9 @@ const Homepage = () => {
                                 name="maxPrice"
                                 value={filters.maxPrice}
                                 onChange={handleFilterChange}
-                                className="form-control"
+                                className="form-control small-placeholder"
                                 placeholder="Enter max price"
+                                min="0"
                             />
                         </div>
 
@@ -132,54 +165,100 @@ const Homepage = () => {
                 </div>
 
                 <div className="col-md-10">
-                    <div className="product-grid">
-                        {Array.isArray(products) && products.length > 0 ? (
-                            products.map(product => (
-                                <div key={product.id} className="card mb-4 shadow-sm">
-                                    <div className="card-body">
-                                        <h5 className="card-title">{product.name}</h5>
-                                        <p className="card-text">Price: ${Number(product.price).toFixed(2)}</p>
+                    <div className="mb-4 d-flex align-items-center justify-content-between">
+                        <input
+                            type="text"
+                            placeholder="Search products..."
+                            onChange={handleSearch}
+                            className="form-control me-2"
+                            style={{ width: '550px' }}
+                        />
 
-                                        <div className="d-flex justify-content-end align-items-center">
-                                            {product.stockQuantity > 0 ? (
-                                                <>
-                                                    <input
-                                                        type="number"
-                                                        className="quantity-input"
-                                                        min="1"
-                                                        defaultValue="1"
-                                                        id={`quantity-${product.id}`}
-                                                    />
+                        <div className="d-flex align-items-center">
+
+                            <label className="me-2">Sort By:</label>
+                            <select
+                                value={sortOption}
+                                onChange={(e) => setSortOption(e.target.value)}
+                                className="form-select"
+                                style={{width: '200px'}}
+                            >
+                                <option value="name_asc">Name (A-Z)</option>
+                                <option value="name_desc">Name (Z-A)</option>
+                                <option value="price_asc">Price (Low to High)</option>
+                                <option value="price_desc">Price (High to Low)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                        {loading ? (
+                            <div className="text-center mt-5">Loading...</div>
+                    ) : error ? (
+                        <div className="text-center text-danger mt-5">Error: {error}</div>
+                    ) : (
+                        <div className="product-grid">
+                            {Array.isArray(products) && products.length > 0 ? (
+                                products.map(product => (
+                                    <div key={product.id} className="card mb-4 shadow-sm">
+                                        <div className="card-body">
+                                            <h5 className="card-title">{product.name}</h5>
+                                            <p className="card-text">Price: ${Number(product.price).toFixed(2)}</p>
+
+                                            <div className="d-flex justify-content-end align-items-center">
+                                                {product.stockQuantity > 0 ? (
+                                                    <>
+                                                        <input
+                                                            type="number"
+                                                            className="quantity-input"
+                                                            min="1"
+                                                            defaultValue="1"
+                                                            id={`quantity-${product.id}`}
+                                                        />
+                                                        <button
+                                                            className="btn btn-success ms-2"
+                                                            onClick={() => {
+                                                                const quantity = parseInt(document.getElementById(`quantity-${product.id}`).value, 10);
+                                                                if (quantity > 0) {
+                                                                    handleAddToBasket(product.id, quantity);
+                                                                } else {
+                                                                    alert('Invalid quantity');
+                                                                }
+                                                            }}
+                                                        >
+                                                            <i className="bi bi-cart"></i>
+                                                        </button>
+                                                    </>
+                                                ) : (
                                                     <button
-                                                        className="btn btn-success ms-2"
-                                                        onClick={() => {
-                                                            const quantity = parseInt(document.getElementById(`quantity-${product.id}`).value, 10);
-                                                            if (quantity > 0) {
-                                                                handleAddToBasket(product.id, quantity);
-                                                            } else {
-                                                                alert('Invalid quantity');
-                                                            }
-                                                        }}
+                                                        className="btn btn-secondary ms-2"
+                                                        disabled
                                                     >
-                                                        <i className="bi bi-cart"></i>
+                                                        Out of Stock
                                                     </button>
-                                                </>
-                                            ) : (
-                                                <button
-                                                    className="btn btn-secondary ms-2"
-                                                    disabled
-                                                >
-                                                    Out of Stock
-                                                </button>
-                                            )}
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            ))
-                        ) : (
-                            <div>No products found.</div>
-                        )}
-                    </div>
+                                ))
+                            ) : (
+                                <div>No products found.</div>
+                            )}
+                        </div>
+                    )}
+
+                    <nav className="mt-4">
+                        <ul className="pagination justify-content-center">
+                            {[...Array(totalPages)].map((_, index) => (
+                                <li
+                                    key={index}
+                                    className={`page-item ${index + 1 === currentPage ? 'active' : ''}`}
+                                    onClick={() => setCurrentPage(index + 1)}
+                                >
+                                    <span className="page-link">{index + 1}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    </nav>
                 </div>
             </div>
         </div>
