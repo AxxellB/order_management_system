@@ -51,7 +51,7 @@ const AdminSidebar = () => {
                             </li>
                             <li className={styles.adminSidebarItem} style={{'--i': 5}}>
                                 <Link to="/admin/order-history-logs" className={styles.adminSidebarLink}>
-                                    <i className="fas fa-tv"></i> Logs
+                                    <i className="fas fa-tv"></i> Order Logs
                                 </Link>
                             </li>
                         </ul>

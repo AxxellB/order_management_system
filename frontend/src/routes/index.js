@@ -27,6 +27,7 @@ import SendEmail from "../pages/SendEmail";
 import InventoryManagement from "../pages/InventoryManagement";
 import OrderAuditLogs from "../pages/OrderAuditLogs";
 import ViewOrderLog from "../components/ViewOrderHistoryLog";
+import BulkProductRestock from "../components/BulkProductRestock";
 
 const Routes = () => {
     const { token } = useAuth();
@@ -101,6 +102,10 @@ const Routes = () => {
                         {
                             path: "/admin/products/edit/:id",
                             element: <ProductEdit />,
+                        },
+                        {
+                            path: "/admin/bulk-restock",
+                            element: <BulkProductRestock />,
                         },
                         {
                             path: "/admin/categories",
