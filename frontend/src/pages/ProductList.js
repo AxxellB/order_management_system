@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
-
+import { debounce } from "../components/debounce";
 
 const ProductsList = () => {
     const navigate = useNavigate();
@@ -9,31 +9,39 @@ const ProductsList = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [status, setStatus] = useState('active');
+    const [categories, setCategories] = useState([]);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [sortOption, setSortOption] = useState("name_asc");
+
     const [filters, setFilters] = useState({
         category: '',
         minPrice: '',
-        maxPrice: '',
-        minStock: '',
-        maxStock: ''
+        maxPrice: ''
     });
-    const [categories, setCategories] = useState([]);
 
     useEffect(() => {
         fetchProducts();
         fetchCategories();
-    }, [status]);
+    }, [status, searchTerm, sortOption]);
 
     const fetchProducts = async () => {
         try {
             setLoading(true);
-            const queryParams = new URLSearchParams({ status });
+            const [sortField, sortOrder] = sortOption.split('_');
+            const queryParams = new URLSearchParams({
+                status,
+                search: searchTerm,
+                sort: sortField,
+                order: sortOrder,
+            });
+
             if (filters.category) queryParams.append('category', filters.category);
             if (filters.minPrice) queryParams.append('minPrice', filters.minPrice);
             if (filters.maxPrice) queryParams.append('maxPrice', filters.maxPrice);
-            if (filters.minStock) queryParams.append('minStock', filters.minStock);
-            if (filters.maxStock) queryParams.append('maxStock', filters.maxStock);
+
             const response = await axios.get(`http://localhost/api/products/list?${queryParams.toString()}`);
-            setProducts(Array.isArray(response.data) ? response.data : []);
+
+            setProducts(Array.isArray(response.data.products) ? response.data.products : []);
             setLoading(false);
         } catch (err) {
             setError(err.message);
@@ -76,6 +84,21 @@ const ProductsList = () => {
 
     const applyFilters = () => fetchProducts();
 
+    const debouncedSearch = useCallback(
+        debounce((term) => {
+            setSearchTerm(term);
+        }, 300),
+        []
+    );
+
+    const handleSearch = (e) => {
+        debouncedSearch(e.target.value);
+    };
+
+    const handleSortChange = (e) => {
+        setSortOption(e.target.value);
+    };
+
     if (error) return <div>Error: {error}</div>;
 
     return (
@@ -83,8 +106,9 @@ const ProductsList = () => {
             <h1 className="text-center mb-4">Product Management</h1>
             <div className="row">
                 <div className="col-md-2">
-                    <div className="card shadow-sm p-3 mb-4">
+                    <div className="card shadow-sm p-3 mb-4 filter-card">
                         <h5>Filters</h5>
+
                         <div className="mb-3">
                             <label className="form-label">Category</label>
                             <select
@@ -112,8 +136,9 @@ const ProductsList = () => {
                                 name="minPrice"
                                 value={filters.minPrice}
                                 onChange={handleFilterChange}
-                                className="form-control"
+                                className="form-control small-placeholder"
                                 placeholder="Enter min price"
+                                min="0"
                             />
                         </div>
                         <div className="mb-3">
@@ -123,30 +148,9 @@ const ProductsList = () => {
                                 name="maxPrice"
                                 value={filters.maxPrice}
                                 onChange={handleFilterChange}
-                                className="form-control"
+                                className="form-control small-placeholder"
                                 placeholder="Enter max price"
-                            />
-                        </div>
-                        <div className="mb-3">
-                            <label className="form-label">Min Stock</label>
-                            <input
-                                type="number"
-                                name="minStock"
-                                value={filters.minStock}
-                                onChange={handleFilterChange}
-                                className="form-control"
-                                placeholder="Enter min stock"
-                            />
-                        </div>
-                        <div className="mb-3">
-                            <label className="form-label">Max Stock</label>
-                            <input
-                                type="number"
-                                name="maxStock"
-                                value={filters.maxStock}
-                                onChange={handleFilterChange}
-                                className="form-control"
-                                placeholder="Enter max stock"
+                                min="0"
                             />
                         </div>
                         <button className="btn btn-primary w-100" onClick={applyFilters}>
@@ -165,6 +169,31 @@ const ProductsList = () => {
                         </button>
                     </div>
 
+                    <div className="mb-4 d-flex align-items-center justify-content-between">
+                        <input
+                            type="text"
+                            placeholder="Search products..."
+                            onChange={handleSearch}
+                            className="form-control me-2"
+                            style={{ width: '550px' }}
+                        />
+
+                        <div className="d-flex align-items-center">
+                            <label className="me-2">Sort By:</label>
+                            <select
+                                value={sortOption}
+                                onChange={handleSortChange}
+                                className="form-select"
+                                style={{ width: '200px' }}
+                            >
+                                <option value="name_asc">Name (A-Z)</option>
+                                <option value="name_desc">Name (Z-A)</option>
+                                <option value="price_asc">Price (Low to High)</option>
+                                <option value="price_desc">Price (High to Low)</option>
+                            </select>
+                        </div>
+                    </div>
+
                     {loading && <div className="text-center mb-4">Loading...</div>}
 
                     {!loading && (
@@ -174,14 +203,18 @@ const ProductsList = () => {
                                     <div key={product.id} className="card mb-4 shadow-sm">
                                         <div className="card-body">
                                             <h5 className="card-title">{product.name}</h5>
-                                            <p className="card-text">Price: ${Number.isFinite(Number(product.price)) ? Number(product.price).toFixed(2) : '0.00'}</p>
-                                            <div className="d-flex justify-content-between">
-                                                <Link to={`/admin/products/${product.id}`} className="btn btn-primary btn-sm">View Details</Link>
+                                            <p className="card-text">Price:
+                                                ${Number.isFinite(Number(product.price)) ? Number(product.price).toFixed(2) : '0.00'}</p>
+                                            <div className="card-actions">
+                                                <Link to={`/admin/products/${product.id}`}
+                                                      className="btn btn-primary btn-sm">View Details</Link>
                                                 {status === 'active' && (
-                                                    <Link to={`/admin/products/edit/${product.id}`} className="btn btn-warning btn-sm">Edit</Link>
+                                                    <Link to={`/admin/products/edit/${product.id}`}
+                                                          className="btn btn-warning btn-sm">Edit</Link>
                                                 )}
                                                 {status === 'deleted' && (
-                                                    <button className="btn btn-success btn-sm" onClick={() => restoreProduct(product.id)}>Restore</button>
+                                                    <button className="btn btn-success btn-sm"
+                                                            onClick={() => restoreProduct(product.id)}>Restore</button>
                                                 )}
                                             </div>
                                         </div>

@@ -47,7 +47,6 @@ class ProductType extends AbstractType
                 ]
             ])
             ->add('description')
-            ->add('stockQuantity')
 
             ->add('categories', EntityType::class, [
                 'class' => Category::class,

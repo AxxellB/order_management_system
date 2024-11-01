@@ -7,10 +7,9 @@ const NewProduct = () => {
         name: '',
         price: '',
         description: '',
-        stockQuantity: '',
         categories: []
     });
-    const [categories, setCategories] = useState([]);
+    const [availableCategories, setAvailableCategories] = useState([]);
     const [errors, setErrors] = useState({});
     const navigate = useNavigate();
 
@@ -20,39 +19,55 @@ const NewProduct = () => {
 
     const fetchCategories = async () => {
         try {
-            const response = await axios.get('http://localhost/api/categories/');
-            setCategories(response.data);
+            const response = await axios.get('http://localhost/api/categories/list?filter=true');
+            setAvailableCategories(response.data.categories || []);
         } catch (err) {
             console.error('Error fetching categories:', err);
         }
     };
 
     const handleChange = (e) => {
-        const { name, value, type } = e.target;
-        if (type === 'checkbox') {
-            const categoryId = parseInt(e.target.value, 10);
-            setFormData((prevState) => ({
-                ...prevState,
-                categories: prevState.categories.includes(categoryId)
-                    ? prevState.categories.filter((id) => id !== categoryId)
-                    : [...prevState.categories, categoryId]
-            }));
-        } else {
-            setFormData({
-                ...formData,
-                [name]: value
-            });
-        }
+        setFormData({
+            ...formData,
+            [e.target.name]: e.target.value
+        });
+    };
+
+    const handleCategoryChange = (e) => {
+        const categoryId = parseInt(e.target.value, 10);
+        setFormData((prevFormData) => {
+            const updatedCategories = e.target.checked
+                ? [...prevFormData.categories, categoryId]
+                : prevFormData.categories.filter((id) => id !== categoryId);
+            return {
+                ...prevFormData,
+                categories: updatedCategories
+            };
+        });
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        const { categories, name, price, description } = formData;
+        const preparedData = {
+            categories,
+            name,
+            price,
+            description
+        };
+
         try {
-            await axios.post('http://localhost/api/products/new', formData);
+            const response = await axios.post('http://localhost/api/products/new', preparedData);
             alert('Product created successfully');
             navigate('/admin/products');
         } catch (error) {
-            setErrors(error.response.data.errors || {});
+            if (error.response && error.response.data) {
+                console.error("Server validation errors:", error.response.data.errors);
+                setErrors(error.response.data.errors || {});
+            } else {
+                console.error("Unexpected error:", error);
+            }
         }
     };
 
@@ -62,7 +77,6 @@ const NewProduct = () => {
             <form onSubmit={handleSubmit}>
                 <div className="mb-3">
                     <label className="form-label">Product Name</label>
-
                     <input
                         type="text"
                         name="name"
@@ -70,13 +84,11 @@ const NewProduct = () => {
                         onChange={handleChange}
                         className="form-control"
                     />
-
                     {errors.name && <div className="text-danger">{errors.name}</div>}
                 </div>
 
                 <div className="mb-3">
                     <label className="form-label">Price</label>
-
                     <input
                         type="number"
                         name="price"
@@ -92,46 +104,28 @@ const NewProduct = () => {
 
                 <div className="mb-3">
                     <label className="form-label">Description</label>
-
                     <textarea
                         name="description"
                         value={formData.description}
                         onChange={handleChange}
-                        className="form-control">
-                    </textarea>
-
-                    {errors.description && <div className="text-danger">{errors.description}</div>}
-                </div>
-
-                <div className="mb-3">
-                    <label className="form-label">Stock Quantity</label>
-
-                    <input
-                        type="number"
-                        name="stockQuantity"
-                        value={formData.stockQuantity}
-                        onChange={handleChange}
                         className="form-control"
-                    />
-
-                    {errors.stockQuantity && <div className="text-danger">{errors.stockQuantity}</div>}
+                    ></textarea>
+                    {errors.description && <div className="text-danger">{errors.description}</div>}
                 </div>
 
                 <div className="mb-3">
                     <label className="form-label">Categories</label>
                     <div>
-                        {categories.length > 0 ? (
-                            categories.map((category) => (
+                        {availableCategories.length > 0 ? (
+                            availableCategories.map((category) => (
                                 <div key={category.id} className="form-check form-check-inline">
-
                                     <input
                                         type="checkbox"
                                         id={`category-${category.id}`}
                                         value={category.id}
-                                        onChange={handleChange}
+                                        onChange={handleCategoryChange}
                                         className="form-check-input"
                                     />
-
                                     <label htmlFor={`category-${category.id}`} className="form-check-label">
                                         {category.name}
                                     </label>
