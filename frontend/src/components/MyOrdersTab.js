@@ -2,7 +2,6 @@ import React, {useEffect, useState} from 'react';
 import {Link} from 'react-router-dom';
 import axios from 'axios';
 import '../styles/MyOrdersTab.css';
-import ProfileNavbar from './ProfileNavBar';
 
 const MyOrdersTab = () => {
     const [orders, setOrders] = useState([]);
@@ -25,7 +24,6 @@ const MyOrdersTab = () => {
 
     return (
         <div className="container">
-            <ProfileNavbar/>
 
             <h2 className="mb-4">My Orders</h2>
 

@@ -5,7 +5,6 @@
     padding: 0 1rem;
 }
 
-
 .brand {
     font-size: 1.5rem;
     font-weight: bold;
@@ -26,7 +25,6 @@
     color: #ff6600;
 }
 
-
 .dropdownMenu {
     background-color: #ffffff;
     border: none;
@@ -39,7 +37,6 @@
     transition: color 0.3s ease;
 }
 
-
 .basketIcon {
     margin-right: 0.5rem;
     color: #ffffff;
@@ -50,7 +47,6 @@
     transform: scale(1.1);
     color: #ff6600;
 }
-
 
 .navbarToggler {
     border: none;

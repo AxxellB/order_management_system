@@ -1,17 +1,25 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from "../provider/AuthProvider";
 import styles from '../styles/Navigation.module.css';
 import AdminSidebar from "./AdminSidebar";
+import ProfileIcon from "./ProfileIcon";
 
 const Navigation = () => {
     const { user, isAdmin } = useAuth();
+
+    useEffect(() => {
+        const script = document.createElement("script");
+        script.src = "https://kit.fontawesome.com/71035d1681.js";
+        script.crossOrigin = "anonymous";
+        script.async = true;
+        document.body.appendChild(script);
+    }, []);
 
     return (
         <nav className={`navbar navbar-expand-md ${styles.navbar}`}>
             {isAdmin && <AdminSidebar />}
             <div className="container d-flex align-items-center justify-content-between">
-
                 <Link className={`navbar-brand ${styles.brand}`} to="/">ECommerce</Link>
 
                 <button className={`navbar-toggler ${styles.navbarToggler}`} type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
@@ -20,7 +28,6 @@ const Navigation = () => {
                 </button>
 
                 <div className="collapse navbar-collapse" id="navbarNav">
-
                     <ul className="navbar-nav me-auto d-flex align-items-center">
                         <li className="nav-item">
                             <Link className={`nav-link ${styles.navLink}`} to="/">Home</Link>
@@ -28,21 +35,6 @@ const Navigation = () => {
                         <li className="nav-item">
                             <Link className={`nav-link ${styles.navLink}`} to="/categories">Categories</Link>
                         </li>
-
-                        {/* OLD ADMIN */}
-                        {/*{isAdmin && (*/}
-                        {/*    <li className="nav-item dropdown">*/}
-                        {/*        <a className={`nav-link dropdown-toggle ${styles.navLink}`} href="#" id="adminDropdown" role="button"*/}
-                        {/*           data-bs-toggle="dropdown" aria-expanded="false">*/}
-                        {/*            Admin*/}
-                        {/*        </a>*/}
-                        {/*        <ul className={`dropdown-menu ${styles.dropdownMenu}`} aria-labelledby="adminDropdown">*/}
-                        {/*            <li><Link className={`dropdown-item ${styles.dropdownItem}`} to="/admin/products">Product Edit</Link></li>*/}
-                        {/*            <li><Link className={`dropdown-item ${styles.dropdownItem}`} to="/admin/categories">Category Edit</Link></li>*/}
-                        {/*            <li><Link className={`dropdown-item ${styles.dropdownItem}`} to="/admin/orders">Orders</Link></li>*/}
-                        {/*        </ul>*/}
-                        {/*    </li>*/}
-                        {/*)}*/}
 
                         {user && (
                             <li className="nav-item">
@@ -55,12 +47,12 @@ const Navigation = () => {
                         {user ? (
                             <>
                                 <li className="nav-item">
-                                    <Link className={`nav-link ${styles.navLink}`} to="/basket">
-                                        <i className={`bi bi-basket ${styles.basketIcon}`}></i>
-                                    </Link>
+                                    <ProfileIcon />
                                 </li>
                                 <li className="nav-item">
-                                    <Link className={`nav-link ${styles.navLink}`} to="/logout">Logout</Link>
+                                    <Link className={`nav-link ${styles.navLink}`} to="/basket">
+                                        <i className="fa-solid fa-bag-shopping"></i>
+                                    </Link>
                                 </li>
                             </>
                         ) : (

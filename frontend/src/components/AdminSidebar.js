@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import styles from '../styles/AdminSidebar.module.css';
 
 const AdminSidebar = () => {
+
     useEffect(() => {
         const script = document.createElement("script");
         script.src = "https://kit.fontawesome.com/71035d1681.js";
