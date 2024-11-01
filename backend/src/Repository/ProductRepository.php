@@ -16,7 +16,6 @@ class ProductRepository extends ServiceEntityRepository
         parent::__construct($registry, Product::class);
     }
 
-
     public function findById(int $id): ?Product
     {
         return $this->createQueryBuilder('p')
@@ -27,7 +26,6 @@ class ProductRepository extends ServiceEntityRepository
             ->getQuery()
             ->getOneOrNullResult();
     }
-
 
     public function findByCriteriaAndOrder(array $criteria, array $orderBy, ?string $search = null, int $page = 1, int $itemsPerPage = 10): array
     {

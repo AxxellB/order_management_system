@@ -16,7 +16,6 @@ use Symfony\Component\Serializer\SerializerInterface;
 #[Route('/api/products')]
 class ProductController extends AbstractController
 {
-
     private ProductService $productService;
 
     public function __construct(ProductService $productService)
@@ -28,8 +27,8 @@ class ProductController extends AbstractController
     public function list(Request $request, SerializerInterface $serializer): JsonResponse
     {
         $status = $request->query->get('status', 'active');
-        $page = (int) $request->query->get('page', 1);
-        $itemsPerPage = (int) $request->query->get('itemsPerPage', 10);
+        $page = (int)$request->query->get('page', 1);
+        $itemsPerPage = (int)$request->query->get('itemsPerPage', 10);
         $searchTerm = $request->query->get('search', '');
 
         $sort = $request->query->get('sort', 'name');
@@ -37,10 +36,10 @@ class ProductController extends AbstractController
 
         $criteria = [
             'category' => $request->query->get('category'),
-            'minPrice' => is_numeric($request->query->get('minPrice')) ? (float) $request->query->get('minPrice') : null,
-            'maxPrice' => is_numeric($request->query->get('maxPrice')) ? (float) $request->query->get('maxPrice') : null,
-            'minStock' => is_numeric($request->query->get('minStock')) ? (int) $request->query->get('minStock') : null,
-            'maxStock' => is_numeric($request->query->get('maxStock')) ? (int) $request->query->get('maxStock') : null,
+            'minPrice' => is_numeric($request->query->get('minPrice')) ? (float)$request->query->get('minPrice') : null,
+            'maxPrice' => is_numeric($request->query->get('maxPrice')) ? (float)$request->query->get('maxPrice') : null,
+            'minStock' => is_numeric($request->query->get('minStock')) ? (int)$request->query->get('minStock') : null,
+            'maxStock' => is_numeric($request->query->get('maxStock')) ? (int)$request->query->get('maxStock') : null,
         ];
 
         switch ($status) {
@@ -84,10 +83,10 @@ class ProductController extends AbstractController
 
         $criteria = [
             'category' => $request->query->get('category'),
-            'minPrice' => is_numeric($request->query->get('minPrice')) ? (float) $request->query->get('minPrice') : null,
-            'maxPrice' => is_numeric($request->query->get('maxPrice')) ? (float) $request->query->get('maxPrice') : null,
-            'minStock' => is_numeric($request->query->get('minStock')) ? (int) $request->query->get('minStock') : null,
-            'maxStock' => is_numeric($request->query->get('maxStock')) ? (int) $request->query->get('maxStock') : null,
+            'minPrice' => is_numeric($request->query->get('minPrice')) ? (float)$request->query->get('minPrice') : null,
+            'maxPrice' => is_numeric($request->query->get('maxPrice')) ? (float)$request->query->get('maxPrice') : null,
+            'minStock' => is_numeric($request->query->get('minStock')) ? (int)$request->query->get('minStock') : null,
+            'maxStock' => is_numeric($request->query->get('maxStock')) ? (int)$request->query->get('maxStock') : null,
         ];
 
         switch ($status) {
@@ -181,7 +180,6 @@ class ProductController extends AbstractController
         ], Response::HTTP_OK);
     }
 
-
     #[Route('/{id<\d+>}', name: 'api_product_delete_restore', methods: ['DELETE'])]
     public function deleteOrRestoreApi(Request $request, Product $product, EntityManagerInterface $entityManager): JsonResponse
     {
@@ -206,4 +204,45 @@ class ProductController extends AbstractController
         return new JsonResponse(['error' => 'Invalid action'], Response::HTTP_BAD_REQUEST);
     }
 
+    #[Route('/validate-csv', name: 'api_product_validate_csv', methods: ['POST'])]
+    public function validateCsv(Request $request): JsonResponse
+    {
+        $products = $request->toArray()['products'] ?? [];
+
+        if (empty($products)) {
+            return new JsonResponse(['error' => 'No products data provided.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $validationResult = $this->productService->validateProductData($products);
+
+        if (!empty($validationResult['errors'])) {
+            return new JsonResponse(['errors' => $validationResult['errors']], Response::HTTP_BAD_REQUEST);
+        }
+
+        return new JsonResponse(['validatedProducts' => $validationResult['validatedProducts']], Response::HTTP_OK);
+    }
+
+    #[Route('/bulk-restock', name: 'api_product_bulk_restock', methods: ['POST'])]
+    public function bulkRestock(Request $request): JsonResponse
+    {
+        $products = $request->toArray()['changes'] ?? [];
+
+        if (empty($products)) {
+            return new JsonResponse(['error' => 'No products data provided.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $result = $this->productService->bulkRestock($products);
+
+        if (!empty($result['errors'])) {
+            return new JsonResponse([
+                'message' => 'Bulk restock completed with some errors.',
+                'result' => $result
+            ], Response::HTTP_PARTIAL_CONTENT);
+        }
+
+        return new JsonResponse([
+            'message' => 'Bulk restock completed successfully',
+            'updated' => $result['updated']
+        ], Response::HTTP_OK);
+    }
 }

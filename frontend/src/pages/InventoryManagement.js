@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, {useState, useEffect, useCallback} from "react";
 import {
     Table,
     Badge,
@@ -9,7 +9,9 @@ import {
     Spinner,
 } from "react-bootstrap";
 import axios from "axios";
-import { debounce } from "../components/debounce";
+import {debounce} from "../components/debounce";
+import {Link} from 'react-router-dom';
+
 
 const InventoryManagement = () => {
     const [products, setProducts] = useState([]);
@@ -24,6 +26,14 @@ const InventoryManagement = () => {
     useEffect(() => {
         fetchProducts(currentPage);
     }, [currentPage, searchTerm]);
+
+    useEffect(() => {
+        const script = document.createElement("script");
+        script.src = "https://kit.fontawesome.com/71035d1681.js";
+        script.crossOrigin = "anonymous";
+        script.async = true;
+        document.body.appendChild(script);
+    }, []);
 
     const fetchProducts = async (page = 1) => {
         try {
@@ -90,7 +100,7 @@ const InventoryManagement = () => {
             setProducts((prevProducts) =>
                 prevProducts.map((product) =>
                     product.id === id
-                        ? { ...product, stockQuantity: product.stockQuantity + parseInt(quantity, 10) }
+                        ? {...product, stockQuantity: product.stockQuantity + parseInt(quantity, 10)}
                         : product
                 )
             );
@@ -104,7 +114,14 @@ const InventoryManagement = () => {
 
     return (
         <div className="container mt-5">
-            <h2 className="mb-4">Inventory Management</h2>
+            <div className="d-flex justify-content-between align-items-center mb-4">
+                <h2>Inventory Management</h2>
+                <Link to="/admin/bulk-restock">
+                    <Button variant="primary">
+                        <i className="fa-solid fa-boxes-stacked"></i>
+                    </Button>
+                </Link>
+            </div>
 
             {message && <div className="alert alert-success">{message}</div>}
             {error && <div className="alert alert-danger">{error}</div>}
@@ -120,7 +137,7 @@ const InventoryManagement = () => {
             <div className="product-table">
                 {loading ? (
                     <div className="text-center mt-3 mb-3">
-                        <Spinner animation="border" variant="primary" />
+                        <Spinner animation="border" variant="primary"/>
                     </div>
                 ) : (
                     <>
@@ -155,7 +172,7 @@ const InventoryManagement = () => {
                         </Table>
 
                         <Pagination className="justify-content-center">
-                            {Array.from({ length: totalPages }, (_, index) => (
+                            {Array.from({length: totalPages}, (_, index) => (
                                 <Pagination.Item
                                     key={index + 1}
                                     active={index + 1 === currentPage}
