@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import ProfileNavbar from './ProfileNavBar';
 import styles from '../styles/SecurityCentre.module.css';
 
 const SecurityCentre = () => {
@@ -38,7 +37,6 @@ const SecurityCentre = () => {
 
     return (
         <div className={styles.securityCenterContainer}>
-            <ProfileNavbar/>
 
             {errorMessage && <div className={styles.errorMessage}>{errorMessage}</div>}
             {successMessage && <div className={styles.successMessage}>{successMessage}</div>}

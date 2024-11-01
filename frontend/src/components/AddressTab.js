@@ -1,6 +1,5 @@
 import React, {useEffect, useState} from 'react';
 import {getAddresses, addAddress, editAddress, deleteAddress} from '../services/addressService';
-import ProfileNavbar from './ProfileNavBar';
 
 const AddressTab = () => {
     const [addresses, setAddresses] = useState([]);
@@ -104,7 +103,6 @@ const AddressTab = () => {
 
     return (
         <div className="container mt-4">
-            <ProfileNavbar/>
 
             <h2 className="mb-4">My Addresses</h2>
 

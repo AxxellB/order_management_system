@@ -1,7 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import axios from 'axios';
 import "../styles/ProfileTab.css";
-import ProfileNavbar from './ProfileNavBar';
 
 const ProfileTab = () => {
     const [user, setUser] = useState(null);
@@ -40,7 +39,6 @@ const ProfileTab = () => {
 
     return (
         <div className="profile-container">
-            <ProfileNavbar/>
 
             <div className="profile-info">
                 <h2>Profile Information</h2>
