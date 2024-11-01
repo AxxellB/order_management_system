@@ -29,7 +29,7 @@ class ProductService
         return $product;
     }
 
-    public function getFilteredAndOrderedProducts(array $criteria, array $orderBy, ?string $search = null, int $page = 1, int $itemsPerPage = 10): array
+    public function getFilteredAndOrderedProducts(array $criteria, array $orderBy, ?string $search = null, int $page, int $itemsPerPage): array
     {
         return $this->productRepository->findByCriteriaAndOrder($criteria, $orderBy, $search, $page, $itemsPerPage);
     }

@@ -20,7 +20,9 @@ class ProductRepository extends ServiceEntityRepository
     public function findById(int $id): ?Product
     {
         return $this->createQueryBuilder('p')
-            ->andWhere('p.id = :id')
+            ->leftJoin('p.categories', 'c')
+            ->addSelect('c')
+            ->where('p.id = :id')
             ->setParameter('id', $id)
             ->getQuery()
             ->getOneOrNullResult();
