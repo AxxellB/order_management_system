@@ -4,6 +4,7 @@ import { useAuth } from "../provider/AuthProvider";
 import styles from '../styles/Navigation.module.css';
 import AdminSidebar from "./AdminSidebar";
 import ProfileIcon from "./ProfileIcon";
+import {LogoBG} from "../assets/assets";
 
 const Navigation = () => {
     const { user, isAdmin } = useAuth();
@@ -20,7 +21,7 @@ const Navigation = () => {
         <nav className={`navbar navbar-expand-md ${styles.navbar}`}>
             {isAdmin && <AdminSidebar />}
             <div className="container d-flex align-items-center justify-content-between">
-                <Link className={`navbar-brand ${styles.brand}`} to="/">ECommerce</Link>
+                <Link className={`navbar-brand ${styles.brand}`} to="/"><img src={LogoBG} alt=""></img></Link>
 
                 <button className={`navbar-toggler ${styles.navbarToggler}`} type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
                         aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -35,12 +36,6 @@ const Navigation = () => {
                         <li className="nav-item">
                             <Link className={`nav-link ${styles.navLink}`} to="/categories">Categories</Link>
                         </li>
-
-                        {user && (
-                            <li className="nav-item">
-                                <Link className={`nav-link ${styles.navLink}`} to="/profile">Profile</Link>
-                            </li>
-                        )}
                     </ul>
 
                     <ul className="navbar-nav ms-auto d-flex align-items-center">

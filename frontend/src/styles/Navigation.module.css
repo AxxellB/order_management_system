@@ -6,16 +6,28 @@
 }
 
 .brand {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: #ffffff;
+    border-radius: 50%;
+    max-height: 3rem;
+    margin-bottom: 2rem;
+}
+
+.brand img {
+    width: 3.5rem;
+    height: 3.5rem;
+    color: #fff;
+    margin-bottom: 1rem;
+    margin-top: 0;
+}
+
+.brand img:hover {
+    transform: scale(1.1) rotate(360deg);
 }
 
 .navLink {
     color: #ffffff;
-    font-size: 0.95rem;
     padding: 0.5rem 0.75rem;
     transition: color 0.3s ease;
+    font-weight: 500
 }
 
 .navLink:hover,
