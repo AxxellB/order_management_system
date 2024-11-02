@@ -6,20 +6,18 @@ use App\Entity\Product;
 use App\Repository\ProductRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Form\FormInterface;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use League\Csv\Reader;
-use League\Csv\Exception as CsvException;
 
 class ProductService
 {
     private ProductRepository $productRepository;
+    private ProductStockHistoryService $productStockHistoryService;
     private EntityManagerInterface $entityManager;
 
-    public function __construct(ProductRepository $productRepository, EntityManagerInterface $entityManager)
+    public function __construct(ProductRepository $productRepository, ProductStockHistoryService $productStockHistoryService, EntityManagerInterface $entityManager)
     {
         $this->productRepository = $productRepository;
+        $this->productStockHistoryService = $productStockHistoryService;
         $this->entityManager = $entityManager;
     }
 
@@ -128,8 +126,10 @@ class ProductService
             }
 
             $quantityToAdd = (int)$productData['stockAmount'];
-            $product->setStockQuantity($product->getStockQuantity() + $quantityToAdd);
+            $newStockQuantity = $product->getStockQuantity() + $quantityToAdd;
+            $product->setStockQuantity($newStockQuantity);
             $this->entityManager->persist($product);
+            $this->productStockHistoryService->trackStockChange($product, $newStockQuantity);
             $result['updated']++;
         }
 
