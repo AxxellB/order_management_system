@@ -93,3 +93,37 @@
     font-size: 16px;
     color: #555;
 }
+
+.discount-section {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px 0;
+}
+
+.discount-section span {
+    margin-right: 10px;
+    font-size: 16px;
+    color: #555;
+}
+
+.discount-input {
+    padding: 8px;
+    width: 200px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin-right: 10px;
+}
+
+.discount-button {
+    background-color: rgb(0, 123, 255);
+    color: white;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.discount-button:hover {
+    background-color: rgb(0, 86, 177);
+}

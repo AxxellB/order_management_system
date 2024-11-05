@@ -115,8 +115,12 @@ class OrderController extends AbstractController
         $data = json_decode($request->getContent(), true);
         $addressId = $data["addressId"];
         $user = $this->getUser();
-        $order = $this->orderService->createOrder($user, $addressId, $eventDispatcher);
 
+        if(isset($data['discountCode'], $data['percentOff']) && $data['discountCode'] != "" && $data['percentOff'] != ""){
+            $order = $this->orderService->createOrder($user, $addressId, $eventDispatcher $data['discountCode'], $data['percentOff']);
+        }else{
+            $order = $this->orderService->createOrder($user, $addressId, $eventDispatcher);
+        }
         $data = $this->serializer->serialize($order, 'json', ['groups' => 'order:read']);
 
         return new JsonResponse($data, Response::HTTP_CREATED, [], true);

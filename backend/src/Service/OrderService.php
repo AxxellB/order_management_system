@@ -36,18 +36,21 @@ class OrderService
         }
     }
 
-    public function createOrder($user, $addressId, EventDispatcherInterface $eventDispatcher): Order
+    public function createOrder($user, $addressId, EventDispatcherInterface $eventDispatcher, $discountCode = null, $percentOff = 0): Order
     {
         $order = new Order();
         $order->setUserId($user);
         $order->setOrderDate(new \DateTime());
         $totalAmount = 0;
+
         $basket = $user->getBasket();
         $basketProducts = $basket->getBasketProducts();
+
         foreach ($basketProducts as $basketProduct) {
             $productPrice = $basketProduct->getProduct()->getPrice();
             $totalAmount += $basketProduct->getQuantity() * $productPrice;
         }
+
         $order->setTotalAmount($totalAmount);
         $order->setPaymentMethod('Debit card');
         $order->setStatus(OrderStatus::NEW);
@@ -68,7 +71,7 @@ class OrderService
 
         foreach ($basketProducts as $basketProduct) {
             $currentProduct = $basketProduct->getProduct();
-            if($currentProduct->getStockQuantity() < $basketProduct->getQuantity()) {
+            if ($currentProduct->getStockQuantity() < $basketProduct->getQuantity()) {
                 throw new \Exception('Product out of stock');
             }
             $currentProduct->setStockQuantity($currentProduct->getStockQuantity() - $basketProduct->getQuantity());
@@ -77,9 +80,16 @@ class OrderService
             $orderProduct->setOrderEntity($order);
             $orderProduct->setProductEntity($currentProduct);
             $orderProduct->setQuantity($basketProduct->getQuantity());
-            $orderProduct->setPricePerUnit($basketProduct->getProduct()->getPrice());
-            $orderProduct->setSubtotal($basketProduct->getQuantity() * $basketProduct->getProduct()->getPrice());
+            $orderProduct->setPricePerUnit($productPrice);
+            $orderProduct->setSubtotal($basketProduct->getQuantity() * $productPrice);
             $this->entityManager->persist($orderProduct);
+        }
+
+        if ($discountCode !== null) {
+            $order->setDiscountCode($discountCode);
+        }
+        if ($percentOff > 0) {
+            $order->setDiscountPercentOff($percentOff);
         }
 
         $this->basketService->clearBasket($basket);
@@ -87,9 +97,9 @@ class OrderService
         $this->entityManager->flush();
 
         $eventDispatcher->dispatch(new OrderPlacedEvent($order), OrderPlacedEvent::NAME);
-
         return $order;
     }
+
 
     /**
      * @throws \Exception
