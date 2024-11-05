@@ -62,6 +62,12 @@ class Order
     #[ORM\OneToMany(targetEntity: OrderHistoryLogs::class, mappedBy: 'relatedOrder')]
     private Collection $orderHistoryLogs;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $discountCode = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?float $discountPercentOff = null;
+
     public function __construct()
     {
         $this->orderProducts = new ArrayCollection();
@@ -223,6 +229,30 @@ class Order
                 $orderHistoryLog->setRelatedOrder(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getDiscountCode(): ?string
+    {
+        return $this->discountCode;
+    }
+
+    public function setDiscountCode(?string $discountCode): static
+    {
+        $this->discountCode = $discountCode;
+
+        return $this;
+    }
+
+    public function getDiscountPercentOff(): ?float
+    {
+        return $this->discountPercentOff;
+    }
+
+    public function setDiscountPercentOff(?float $discountPercentOff): static
+    {
+        $this->discountPercentOff = $discountPercentOff;
 
         return $this;
     }

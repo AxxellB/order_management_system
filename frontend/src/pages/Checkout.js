@@ -127,10 +127,20 @@ const Checkout = () => {
         }
 
         try {
-            const checkoutData = {
-                addressId: selectedAddress,
-                cardDetails
-            };
+            let checkoutData = {}
+            if(discountCode && discountCode.percentOff && discountCode.discountCode) {
+                checkoutData = {
+                    addressId: selectedAddress,
+                    cardDetails,
+                    discountCode: discountCode.discountCode,
+                    percentOff: discountCode.percentOff
+                };
+            }else{
+                checkoutData = {
+                    addressId: selectedAddress,
+                    cardDetails
+                }
+            }
 
             await axios.post('/api/orders', checkoutData);
             alert('Checkout successful');
