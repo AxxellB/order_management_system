@@ -11,8 +11,13 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Twig\Environment;
+use Knp\Snappy\Pdf;
+
 
 #[Route(path: '/api')]
 class OrderController extends AbstractController
@@ -21,7 +26,9 @@ class OrderController extends AbstractController
         private readonly OrderService           $orderService,
         private readonly OrderRepository        $orderRepository,
         private readonly EntityManagerInterface $em,
-        private readonly SerializerInterface    $serializer, private readonly ProductRepository $productRepository
+        private readonly SerializerInterface    $serializer, private readonly ProductRepository $productRepository,
+        private readonly Pdf $snappyPdf,
+        private readonly Environment $twig
     )
     {
     }
@@ -78,12 +85,12 @@ class OrderController extends AbstractController
     }
 
     #[Route('/orders', name: 'api_create_order', methods: ['POST'])]
-    public function apiCreateOrder(Request $request): JsonResponse
+    public function apiCreateOrder(Request $request, EventDispatcherInterface $eventDispatcher): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
         $addressId = $data["addressId"];
         $user = $this->getUser();
-        $order = $this->orderService->createOrder($user, $addressId);
+        $order = $this->orderService->createOrder($user, $addressId, $eventDispatcher);
 
         $data = $this->serializer->serialize($order, 'json', ['groups' => 'order:read']);
 
@@ -167,6 +174,33 @@ class OrderController extends AbstractController
         $this->orderService->deleteOrder($id);
 
         return new JsonResponse(['message' => 'Order successfully deleted'], Response::HTTP_NO_CONTENT);
+    }
+
+    #[Route('/invoice/download/{orderId}', name: 'invoice_download', methods: ['GET'])]
+    public function downloadInvoice(int $orderId): Response
+    {
+        $order = $this->orderRepository->find($orderId);
+
+        if (!$order) {
+            throw $this->createNotFoundException('Order not found.');
+        }
+
+        $html = $this->twig->render('invoice/invoice.html.twig', [
+            'order' => $order
+        ]);
+
+        $pdfContent = $this->snappyPdf->getOutputFromHtml($html);
+
+        $response = new Response($pdfContent);
+
+        $disposition = $response->headers->makeDisposition(
+            ResponseHeaderBag::DISPOSITION_INLINE,
+            'invoice_' . $orderId . '.pdf'
+        );
+        $response->headers->set('Content-Type', 'application/pdf');
+        $response->headers->set('Content-Disposition', $disposition);
+
+        return $response;
     }
 
     private function formatOrder(Order $order): array

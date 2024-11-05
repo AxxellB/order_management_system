@@ -28,6 +28,10 @@ services:
         tags:
             - { name: doctrine.event_listener, event: preUpdate, entity: App\Entity\Product  }
 
+    App\EventListener\OrderPlacedListener:
+        tags:
+            - { name: 'kernel.event_listener', event: 'order.placed', method: 'onOrderPlaced' }
+
     App\Security\UserChecker:
         tags:
             - { name: 'security.user_checker' }
