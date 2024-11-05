@@ -1,0 +1,8 @@
+knp_snappy:
+  pdf:
+    enabled: true
+    binary: /usr/bin/wkhtmltopdf
+    options:
+      enable-javascript: true
+      no-stop-slow-scripts: true
+      encoding: 'UTF-8'

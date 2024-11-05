@@ -11,8 +11,13 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Twig\Environment;
+use Knp\Snappy\Pdf;
+
 
 #[Route(path: '/api')]
 class OrderController extends AbstractController
@@ -21,7 +26,10 @@ class OrderController extends AbstractController
         private readonly OrderService           $orderService,
         private readonly OrderRepository        $orderRepository,
         private readonly EntityManagerInterface $em,
-        private readonly SerializerInterface    $serializer, private readonly ProductRepository $productRepository
+        private readonly SerializerInterface    $serializer,
+        private readonly ProductRepository      $productRepository,
+        private readonly Pdf                    $snappyPdf,
+        private readonly Environment            $twig
     )
     {
     }
@@ -30,8 +38,13 @@ class OrderController extends AbstractController
     public function apiViewOrders(Request $request): JsonResponse
     {
         $status = $request->query->get('status', 'active');
+        $page = max(1, (int)$request->query->get('page', 1));
+        $itemsPerPage = max(1, (int)$request->query->get('itemsPerPage', 10));
+        $search = $request->query->get('search', '');
 
-        $orders = $this->orderRepository->findByStatus($status);
+        $totalOrders = $this->orderRepository->countOrdersByStatusAndSearch($status, $search);
+
+        $orders = $this->orderRepository->findOrdersByStatusAndSearch($status, $search, $page, $itemsPerPage);
 
         if (!$orders) {
             return new JsonResponse([], Response::HTTP_OK);
@@ -39,7 +52,12 @@ class OrderController extends AbstractController
 
         $formattedOrders = array_map(fn($order) => $this->formatOrder($order), $orders);
 
-        return new JsonResponse($formattedOrders, Response::HTTP_OK);
+        return new JsonResponse([
+            'orders' => $formattedOrders,
+            'totalItems' => $totalOrders,
+            'currentPage' => $page,
+            'itemsPerPage' => $itemsPerPage
+        ], Response::HTTP_OK);
     }
 
     #[Route('/order/{id}', name: 'api_order', methods: ['GET'])]
@@ -58,7 +76,7 @@ class OrderController extends AbstractController
 
     // User's "My Orders" tab
     #[Route(path: '/user-orders', name: 'api_user_orders', methods: ['GET'])]
-    public function apiUserOrders(): JsonResponse
+    public function apiUserOrders(Request $request): JsonResponse
     {
         $user = $this->getUser();
 
@@ -66,7 +84,18 @@ class OrderController extends AbstractController
             return new JsonResponse(['message' => 'You must be logged in to access this page!'], Response::HTTP_UNAUTHORIZED);
         }
 
-        $orders = $this->orderRepository->findBy(['users' => $user]);
+        $page = max(1, (int)$request->query->get('page', 1));
+        $itemsPerPage = max(1, (int)$request->query->get('itemsPerPage', 10));
+        $offset = ($page - 1) * $itemsPerPage;
+
+        $totalOrders = $this->orderRepository->count(['users' => $user]);
+
+        $orders = $this->orderRepository->findBy(
+            ['users' => $user],
+            ['orderDate' => 'DESC'],
+            $itemsPerPage,
+            $offset
+        );
 
         if (empty($orders)) {
             return new JsonResponse(['message' => 'There are no orders for this user'], Response::HTTP_NOT_FOUND);
@@ -74,22 +103,24 @@ class OrderController extends AbstractController
 
         $formattedOrders = array_map(fn($order) => $this->formatOrder($order), $orders);
 
-        return new JsonResponse($formattedOrders, Response::HTTP_OK);
+        return new JsonResponse([
+            'orders' => $formattedOrders,
+            'totalItems' => $totalOrders
+        ], Response::HTTP_OK);
     }
 
     #[Route('/orders', name: 'api_create_order', methods: ['POST'])]
-    public function apiCreateOrder(Request $request): JsonResponse
+    public function apiCreateOrder(Request $request, EventDispatcherInterface $eventDispatcher): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
         $addressId = $data["addressId"];
         $user = $this->getUser();
 
         if(isset($data['discountCode'], $data['percentOff']) && $data['discountCode'] != "" && $data['percentOff'] != ""){
-            $order = $this->orderService->createOrder($user, $addressId, $data['discountCode'], $data['percentOff']);
+            $order = $this->orderService->createOrder($user, $addressId, $eventDispatcher $data['discountCode'], $data['percentOff']);
         }else{
-            $order = $this->orderService->createOrder($user, $addressId);
+            $order = $this->orderService->createOrder($user, $addressId, $eventDispatcher);
         }
-
         $data = $this->serializer->serialize($order, 'json', ['groups' => 'order:read']);
 
         return new JsonResponse($data, Response::HTTP_CREATED, [], true);
@@ -172,6 +203,33 @@ class OrderController extends AbstractController
         $this->orderService->deleteOrder($id);
 
         return new JsonResponse(['message' => 'Order successfully deleted'], Response::HTTP_NO_CONTENT);
+    }
+
+    #[Route('/invoice/download/{orderId}', name: 'invoice_download', methods: ['GET'])]
+    public function downloadInvoice(int $orderId): Response
+    {
+        $order = $this->orderRepository->find($orderId);
+
+        if (!$order) {
+            throw $this->createNotFoundException('Order not found.');
+        }
+
+        $html = $this->twig->render('invoice/invoice.html.twig', [
+            'order' => $order
+        ]);
+
+        $pdfContent = $this->snappyPdf->getOutputFromHtml($html);
+
+        $response = new Response($pdfContent);
+
+        $disposition = $response->headers->makeDisposition(
+            ResponseHeaderBag::DISPOSITION_INLINE,
+            'invoice_' . $orderId . '.pdf'
+        );
+        $response->headers->set('Content-Type', 'application/pdf');
+        $response->headers->set('Content-Disposition', $disposition);
+
+        return $response;
     }
 
     private function formatOrder(Order $order): array

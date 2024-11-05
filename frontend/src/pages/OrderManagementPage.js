@@ -1,45 +1,52 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import '../styles/OrderManagementPage.module.css';
-import EditOrderForm from '../components/EditOrderForm';
 import {Link} from 'react-router-dom';
 import axios from 'axios';
+import {debounce} from "../components/debounce";
+import {Pagination, Spinner, OverlayTrigger, Tooltip} from 'react-bootstrap';
 
 const OrderList = () => {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [editingOrderId, setEditingOrderId] = useState(null);
     const [status, setStatus] = useState('active');
+    const [page, setPage] = useState(1);
+    const [totalItems, setTotalItems] = useState(0);
+    const itemsPerPage = 10;
+    const [searchTerm, setSearchTerm] = useState("");
 
     useEffect(() => {
-        const fetchOrders = async () => {
-            setLoading(true);
-            setError(null);
-            try {
-                const response = await axios.get(`/api/orders?status=${status}`);
-                setOrders(response.data);
-                setLoading(false);
-            } catch (error) {
-                setError(error.message);
-                setLoading(false);
-            }
-        };
+        fetchOrders(page);
+    }, [page, status, searchTerm]);
 
-        fetchOrders();
-    }, [status]);
+    const fetchOrders = async (currentPage) => {
+        setLoading(true);
+        setError(null);
+        try {
+            const queryParams = new URLSearchParams({
+                status,
+                page: currentPage,
+                itemsPerPage,
+                search: searchTerm,
+            });
+            const response = await axios.get(`/api/orders?${queryParams.toString()}`);
+            setOrders(response.data.orders || []);
+            setTotalItems(response.data.totalItems || 0);
+        } catch (error) {
+            setError("Failed to fetch orders. Please try again.");
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const deleteOrder = async (orderId) => {
         const confirmDelete = window.confirm('Are you sure you want to delete this order?');
         if (!confirmDelete) return;
 
         try {
-            const response = await axios.delete(`/api/order/${orderId}`);
-            if (response.status !== 200) {
-                throw new Error('Failed to delete order.');
-            }
-
+            await axios.delete(`/api/order/${orderId}`);
             setOrders(orders.filter(order => order.id !== orderId));
         } catch (error) {
             console.error('Error deleting order:', error);
@@ -62,46 +69,59 @@ const OrderList = () => {
         }
     };
 
+    const debouncedSearch = useCallback(
+        debounce((term) => {
+            setSearchTerm(term);
+            setPage(1);
+        }, 300),
+        []
+    );
+
+    const handleSearchChange = (e) => {
+        debouncedSearch(e.target.value);
+    };
+
     const handleStatusChange = (newStatus) => {
-        if (status !== newStatus) {
-            setStatus(newStatus);
-        }
+        setStatus(newStatus);
+        setPage(1);
     };
 
-    const startEditing = (orderId) => {
-        setEditingOrderId(orderId);
-    };
-
-    const finishEditing = () => {
-        setEditingOrderId(null);
-    };
-
-    if (loading) return <div className="text-center mt-5">Loading...</div>;
-    if (error) return <div className="text-center text-danger mt-5">Error: {error}</div>;
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
 
     return (
         <div className="container mt-5">
-            {editingOrderId ? (
-                <EditOrderForm orderId={editingOrderId} onFinishEditing={finishEditing}/>
+            <h1>Order Management</h1>
+
+            <input
+                type="text"
+                placeholder="Search by user email"
+                className="form-control mb-3"
+                onChange={handleSearchChange}
+            />
+
+            <div className="text-center mb-4">
+                <button
+                    onClick={() => handleStatusChange('active')}
+                    className={`btn ${status === 'active' ? 'btn-primary' : 'btn-secondary'}`}
+                >
+                    Active Orders
+                </button>
+                <button
+                    onClick={() => handleStatusChange('deleted')}
+                    className={`btn ${status === 'deleted' ? 'btn-primary' : 'btn-secondary'}`}
+                >
+                    Deleted Orders
+                </button>
+            </div>
+
+            {loading ? (
+                <div className="text-center mt-5">
+                    <Spinner animation="border" variant="primary"/>
+                </div>
+            ) : error ? (
+                <div className="text-center text-danger mt-5">{error}</div>
             ) : (
                 <>
-                    <h1>Order Management</h1>
-
-                    <div className="text-center mb-4">
-                        <button
-                            onClick={() => handleStatusChange('active')}
-                            className={`btn ${status === 'active' ? 'btn-primary' : 'btn-secondary'}`}
-                        >
-                            Active Orders
-                        </button>
-                        <button
-                            onClick={() => handleStatusChange('deleted')}
-                            className={`btn ${status === 'deleted' ? 'btn-primary' : 'btn-secondary'}`}
-                        >
-                            Deleted Orders
-                        </button>
-                    </div>
-
                     {orders.length > 0 ? (
                         <table className="table table-striped">
                             <thead>
@@ -127,26 +147,31 @@ const OrderList = () => {
                                     <td>
                                         {status === 'active' ? (
                                             <>
-                                                <button
-                                                    className={`btn ${order.status === 'cancelled' ? 'btn-secondary' : 'btn-primary'}`}
-                                                    disabled={order.status === 'cancelled'}
-                                                >
-                                                    {order.status === 'cancelled' ? (
-                                                        'Edit'
-                                                    ) : (
-                                                        <Link to={`/admin/order/${order.id}`}
-                                                              style={{color: 'white', textDecoration: 'none'}}>
+                                                {order.status === 'cancelled' ? (
+                                                    <OverlayTrigger
+                                                        overlay={<Tooltip>Edit disabled for cancelled orders</Tooltip>}
+                                                    >
+                                                        <button className="btn btn-secondary me-2" disabled>
                                                             Edit
-                                                        </Link>
-                                                    )}
-                                                </button>
-                                                <button className="btn btn-danger"
-                                                        onClick={() => deleteOrder(order.id)}>
+                                                        </button>
+                                                    </OverlayTrigger>
+                                                ) : (
+                                                    <Link to={`/admin/order/${order.id}`} className="btn btn-primary me-2">
+                                                        Edit
+                                                    </Link>
+                                                )}
+                                                <button
+                                                    className="btn btn-danger"
+                                                    onClick={() => deleteOrder(order.id)}
+                                                >
                                                     Delete
                                                 </button>
                                             </>
                                         ) : (
-                                            <button className="btn btn-success" onClick={() => restoreOrder(order.id)}>
+                                            <button
+                                                className="btn btn-success"
+                                                onClick={() => restoreOrder(order.id)}
+                                            >
                                                 Restore
                                             </button>
                                         )}
@@ -160,6 +185,17 @@ const OrderList = () => {
                             {status === 'active' ? "There are no active orders." : "There are no deleted orders."}
                         </div>
                     )}
+                    <Pagination className="justify-content-center mt-4">
+                        {Array.from({length: totalPages}, (_, index) => (
+                            <Pagination.Item
+                                key={index + 1}
+                                active={index + 1 === page}
+                                onClick={() => setPage(index + 1)}
+                            >
+                                {index + 1}
+                            </Pagination.Item>
+                        ))}
+                    </Pagination>
                 </>
             )}
         </div>
