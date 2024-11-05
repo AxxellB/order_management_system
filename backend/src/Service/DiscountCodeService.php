@@ -47,9 +47,9 @@ class DiscountCodeService
         }
     }
 
-    public function validateCode(string $discountCode) : array
+    public function validateCode(string $discountCode)
     {
-        $code = $this->em->getRepository(DiscountCode::class)->findOneBy(['couponCode' => $discountCode]);
+        $code = $this->discountCodeRepository->findOneBy(['couponCode' => $discountCode]);
 
         if(!$code){
             return ['message' => 'Invalid code', 'code' => Response::HTTP_BAD_REQUEST];
@@ -61,7 +61,7 @@ class DiscountCodeService
             return ['message' => 'Expired code', 'code' => Response::HTTP_GONE];
         }
 
-        return ['message' => 'Valid code', 'code' => Response::HTTP_OK];
+        return $code;
     }
 
     public function deleteCode(DiscountCode $code)

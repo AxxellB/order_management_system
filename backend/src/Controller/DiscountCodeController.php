@@ -61,7 +61,15 @@ class DiscountCodeController extends AbstractController
 
         try {
             $discountCodeResponse = $this->discountCodeService->validateCode($data['discountCode']);
-            return new JsonResponse(['message' => $discountCodeResponse['message']], $discountCodeResponse['code']);
+            if (is_array($discountCodeResponse)) {
+                return new JsonResponse(['message' => $discountCodeResponse['message']], $discountCodeResponse['code']);
+            }
+
+            return new JsonResponse([
+                'discountCode' => $discountCodeResponse->getCouponCode(),
+                'percentOff' => $discountCodeResponse->getPercentOff(),
+                'expirationDate' => $discountCodeResponse->getExpirationDate()->format('Y-m-d')
+            ], Response::HTTP_OK);
         } catch (\Exception $e) {
             return new JsonResponse(['message' => 'An error occurred while validating the discount code.'], Response::HTTP_INTERNAL_SERVER_ERROR);
         }

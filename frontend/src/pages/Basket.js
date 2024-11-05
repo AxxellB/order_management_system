@@ -114,7 +114,7 @@ const Basket = () => {
                             <div className="basket-item" key={item.product.id}>
                                 <div className="product-details">
                                     <strong>{item.product.name}</strong>
-                                    <br />
+                                    <br/>
                                     Price: ${item.product.price}
                                 </div>
 

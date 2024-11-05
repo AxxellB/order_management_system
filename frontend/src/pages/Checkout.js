@@ -18,6 +18,9 @@ const Checkout = () => {
     const [totalPrice, setTotalPrice] = useState(0);
     const [preventCheckout, setPreventCheckout] = useState(false);
     const [basketErrors, setBasketErrors] = useState([]);
+    const [discountCode, setDiscountCode] = useState({});
+    const [successMessage, setSuccessMessage] = useState('');
+    const [errorMessage, setErrorMessage] = useState('');
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -38,15 +41,19 @@ const Checkout = () => {
 
     useEffect(() => {
         const getTotalPrice = () => {
-            const total = basket.reduce(
+            let total = basket.reduce(
                 (acc, item) => acc + item.product.price * item.quantity,
                 0
             );
+            if (discountCode && discountCode.percentOff) {
+                total -= (total * discountCode.percentOff) / 100;
+            }
+
             setTotalPrice(parseFloat(total.toFixed(2)));
         };
 
         getTotalPrice();
-    }, [basket]);
+    }, [basket, discountCode]);
 
     useEffect(() => {
         const fetchAddresses = async () => {
@@ -69,6 +76,24 @@ const Checkout = () => {
 
         fetchAddresses();
     }, []);
+
+    const validateCode = async () => {
+        const code = document.getElementById('discount-input').value;
+        setSuccessMessage('');
+        setErrorMessage('');
+        if (code && code.length > 0) {
+            try {
+                const response = await axios.post('/api/validate-discount-code', {
+                    discountCode: code
+                });
+                setDiscountCode(response.data);
+                setSuccessMessage("Code applied successfully!");
+            } catch (error) {
+                setDiscountCode({});
+                setErrorMessage(error.response.data.message || "Failed to apply code.");
+            }
+        }
+    };
 
     const handleCardChange = (e) => {
         const { name, value } = e.target;
@@ -140,13 +165,34 @@ const Checkout = () => {
                                 Quantity: {item.quantity} | Price: ${item.product.price}
                             </p>
                             {error && (
-                                <p className="stock-error" style={{ color: 'red' }}>
-                                    Only {error.availableQuantity} units available. You've requested {error.userQuantity}.
+                                <p className="stock-error" style={{color: 'red'}}>
+                                    Only {error.availableQuantity} units available. You've
+                                    requested {error.userQuantity}.
                                 </p>
                             )}
                         </div>
                     );
                 })}
+
+                <div className="discount-section"
+                     style={{display: 'flex', flexDirection: 'column', alignItems: 'end'}}>
+                    <span>Have a discount code?</span>
+                    <div style={{display: 'flex', gap: '10px', marginTop: '5px'}}>
+                        <input
+                            type="text"
+                            className="discount-input"
+                            id="discount-input"
+                            placeholder="Enter code"
+                        />
+                        <button className="discount-button" onClick={validateCode}>Apply Code</button>
+                    </div>
+                    <div id="messageContainer" style={{marginTop: '10px'}}>
+                        {successMessage && <p className="success-message" style={{color: 'green'}}>{successMessage}</p>}
+                        {errorMessage && <p className="error-message" style={{color: 'red'}}>{errorMessage}</p>}
+                    </div>
+                </div>
+
+
                 <h3 className="total-price">Total Price: ${totalPrice.toFixed(2)}</h3>
             </div>
 
