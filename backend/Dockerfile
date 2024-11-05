@@ -13,6 +13,7 @@ RUN apt-get update && apt-get install -y \
 
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg
 RUN docker-php-ext-install pdo pdo_mysql gd zip
+RUN apt-get update && apt-get install -y wkhtmltopdf
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 

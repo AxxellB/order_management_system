@@ -2,7 +2,6 @@
 
 namespace App\Service;
 
-use App\Controller\OrderController;
 use App\Entity\Address;
 use App\Entity\Order;
 use App\Entity\OrderProduct;
@@ -13,6 +12,8 @@ use App\Repository\ProductRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use App\Event\OrderPlacedEvent;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 class OrderService
 {
@@ -22,7 +23,8 @@ class OrderService
         private readonly OrderRepository        $orderRepository,
         private readonly BasketRepository       $basketRepository,
         private readonly BasketService          $basketService,
-        private readonly ProductRepository      $productRepository
+        private readonly ProductRepository      $productRepository,
+        private readonly EventDispatcherInterface $eventDispatcher
     )
     {
     }
@@ -34,7 +36,7 @@ class OrderService
         }
     }
 
-    public function createOrder($user, $addressId): Order
+    public function createOrder($user, $addressId, EventDispatcherInterface $eventDispatcher): Order
     {
         $order = new Order();
         $order->setUserId($user);
@@ -83,6 +85,9 @@ class OrderService
         $this->basketService->clearBasket($basket);
         $this->entityManager->persist($basket);
         $this->entityManager->flush();
+
+        $eventDispatcher->dispatch(new OrderPlacedEvent($order), OrderPlacedEvent::NAME);
+
         return $order;
     }
 

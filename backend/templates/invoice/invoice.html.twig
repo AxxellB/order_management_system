@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Invoice #{{ order.id }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; color: #333; }
+        h1 { text-align: center; color: #4CAF50; }
+        h2 { text-align: center; }
+        p { text-align: center; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 10px; border: 1px solid #ddd; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .total { font-weight: bold; text-align: right; }
+    </style>
+</head>
+<body>
+<h1>Invoice for Order #{{ order.id }}</h1>
+<p>Order Date: {{ order.orderDate|date("Y-m-d") }}</p>
+<p>Payment Method: {{ order.paymentMethod }}</p>
+
+<div class="order-details">
+    <h2>Order Details</h2>
+    <p><strong>Order ID:</strong> {{ order.id }}</p>
+    <p><strong>Status:</strong> New</p>
+</div>
+
+<div class="products">
+    <h2>Products</h2>
+    <table>
+        <thead>
+        <tr>
+            <th>Name</th>
+            <th>Quantity</th>
+            <th>Price Per Unit</th>
+            <th>Subtotal</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for product in order.orderProducts %}
+            <tr>
+                <td>{{ product.productEntity.name }}</td>
+                <td>{{ product.quantity }}</td>
+                <td>{{ product.pricePerUnit|number_format(2) }}</td>
+                <td>{{ product.subtotal|number_format(2) }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <p>Total Amount: {{ order.totalAmount|number_format(2) }} USD</p>
+</div>
+
+<h2>Shipping Address</h2>
+<p>{{ order.address.line }}, {{ order.address.line2 }}, {{ order.address.city }}, {{ order.address.country }}, {{ order.address.postcode }}</p>
+<br/>
+<p>Thank you for your order!</p>
+</body>
+</html>
