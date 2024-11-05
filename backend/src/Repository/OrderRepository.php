@@ -37,29 +37,47 @@ class OrderRepository extends ServiceEntityRepository
         return $queryBuilder->getQuery()->getResult();
     }
 
+    public function countOrdersByStatusAndSearch($status, $search)
+    {
+        $queryBuilder = $this->createQueryBuilder('o')
+            ->select('COUNT(o.id)');
 
-//    /**
-//     * @return Order[] Returns an array of Order objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('o')
-//            ->andWhere('o.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('o.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
+        if ($status === 'active') {
+            $queryBuilder->where('o.deletedAt IS NULL');
+        } elseif ($status === 'deleted') {
+            $queryBuilder->where('o.deletedAt IS NOT NULL');
+        }
 
-//    public function findOneBySomeField($value): ?Order
-//    {
-//        return $this->createQueryBuilder('o')
-//            ->andWhere('o.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+        if ($search) {
+            $queryBuilder
+                ->leftJoin('o.users', 'u')
+                ->andWhere('u.email LIKE :search')
+                ->setParameter('search', '%' . $search . '%');
+        }
+
+        return $queryBuilder->getQuery()->getSingleScalarResult();
+    }
+
+    public function findOrdersByStatusAndSearch($status, $search, $page, $itemsPerPage)
+    {
+        $queryBuilder = $this->createQueryBuilder('o')
+            ->setFirstResult(($page - 1) * $itemsPerPage)
+            ->setMaxResults($itemsPerPage)
+            ->orderBy('o.orderDate', 'DESC');
+
+        if ($status === 'active') {
+            $queryBuilder->where('o.deletedAt IS NULL');
+        } elseif ($status === 'deleted') {
+            $queryBuilder->where('o.deletedAt IS NOT NULL');
+        }
+
+        if ($search) {
+            $queryBuilder
+                ->leftJoin('o.users', 'u')
+                ->andWhere('u.email LIKE :search')
+                ->setParameter('search', '%' . $search . '%');
+        }
+
+        return $queryBuilder->getQuery()->getResult();
+    }
 }
