@@ -26,9 +26,10 @@ class OrderController extends AbstractController
         private readonly OrderService           $orderService,
         private readonly OrderRepository        $orderRepository,
         private readonly EntityManagerInterface $em,
-        private readonly SerializerInterface    $serializer, private readonly ProductRepository $productRepository,
-        private readonly Pdf $snappyPdf,
-        private readonly Environment $twig
+        private readonly SerializerInterface    $serializer,
+        private readonly ProductRepository      $productRepository,
+        private readonly Pdf                    $snappyPdf,
+        private readonly Environment            $twig
     )
     {
     }
@@ -37,8 +38,13 @@ class OrderController extends AbstractController
     public function apiViewOrders(Request $request): JsonResponse
     {
         $status = $request->query->get('status', 'active');
+        $page = max(1, (int)$request->query->get('page', 1));
+        $itemsPerPage = max(1, (int)$request->query->get('itemsPerPage', 10));
+        $search = $request->query->get('search', '');
 
-        $orders = $this->orderRepository->findByStatus($status);
+        $totalOrders = $this->orderRepository->countOrdersByStatusAndSearch($status, $search);
+
+        $orders = $this->orderRepository->findOrdersByStatusAndSearch($status, $search, $page, $itemsPerPage);
 
         if (!$orders) {
             return new JsonResponse([], Response::HTTP_OK);
@@ -46,7 +52,12 @@ class OrderController extends AbstractController
 
         $formattedOrders = array_map(fn($order) => $this->formatOrder($order), $orders);
 
-        return new JsonResponse($formattedOrders, Response::HTTP_OK);
+        return new JsonResponse([
+            'orders' => $formattedOrders,
+            'totalItems' => $totalOrders,
+            'currentPage' => $page,
+            'itemsPerPage' => $itemsPerPage
+        ], Response::HTTP_OK);
     }
 
     #[Route('/order/{id}', name: 'api_order', methods: ['GET'])]
@@ -65,7 +76,7 @@ class OrderController extends AbstractController
 
     // User's "My Orders" tab
     #[Route(path: '/user-orders', name: 'api_user_orders', methods: ['GET'])]
-    public function apiUserOrders(): JsonResponse
+    public function apiUserOrders(Request $request): JsonResponse
     {
         $user = $this->getUser();
 
@@ -73,7 +84,18 @@ class OrderController extends AbstractController
             return new JsonResponse(['message' => 'You must be logged in to access this page!'], Response::HTTP_UNAUTHORIZED);
         }
 
-        $orders = $this->orderRepository->findBy(['users' => $user]);
+        $page = max(1, (int)$request->query->get('page', 1));
+        $itemsPerPage = max(1, (int)$request->query->get('itemsPerPage', 10));
+        $offset = ($page - 1) * $itemsPerPage;
+
+        $totalOrders = $this->orderRepository->count(['users' => $user]);
+
+        $orders = $this->orderRepository->findBy(
+            ['users' => $user],
+            ['orderDate' => 'DESC'],
+            $itemsPerPage,
+            $offset
+        );
 
         if (empty($orders)) {
             return new JsonResponse(['message' => 'There are no orders for this user'], Response::HTTP_NOT_FOUND);
@@ -81,7 +103,10 @@ class OrderController extends AbstractController
 
         $formattedOrders = array_map(fn($order) => $this->formatOrder($order), $orders);
 
-        return new JsonResponse($formattedOrders, Response::HTTP_OK);
+        return new JsonResponse([
+            'orders' => $formattedOrders,
+            'totalItems' => $totalOrders
+        ], Response::HTTP_OK);
     }
 
     #[Route('/orders', name: 'api_create_order', methods: ['POST'])]
