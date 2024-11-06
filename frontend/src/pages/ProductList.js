@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 import { debounce } from "../components/debounce";
+import PlaceholderImage from "../assets/imgs/placeholder.jpg";
 
 const ProductsList = () => {
     const navigate = useNavigate();
@@ -12,6 +13,8 @@ const ProductsList = () => {
     const [categories, setCategories] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [sortOption, setSortOption] = useState("name_asc");
+    const [hoveredProductId, setHoveredProductId] = useState(null);
+    const fileInputRefs = useRef({});
 
     const [filters, setFilters] = useState({
         category: '',
@@ -19,10 +22,14 @@ const ProductsList = () => {
         maxPrice: ''
     });
 
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalItems, setTotalItems] = useState(0);
+    const itemsPerPage = 10;
+
     useEffect(() => {
         fetchProducts();
         fetchCategories();
-    }, [status, searchTerm, sortOption]);
+    }, [status, searchTerm, sortOption, currentPage]);
 
     const fetchProducts = async () => {
         try {
@@ -30,6 +37,8 @@ const ProductsList = () => {
             const [sortField, sortOrder] = sortOption.split('_');
             const queryParams = new URLSearchParams({
                 status,
+                page: currentPage.toString(),
+                itemsPerPage: itemsPerPage.toString(),
                 search: searchTerm,
                 sort: sortField,
                 order: sortOrder,
@@ -40,8 +49,8 @@ const ProductsList = () => {
             if (filters.maxPrice) queryParams.append('maxPrice', filters.maxPrice);
 
             const response = await axios.get(`http://localhost/api/products/list?${queryParams.toString()}`);
-
             setProducts(Array.isArray(response.data.products) ? response.data.products : []);
+            setTotalItems(response.data.totalItems || 0);
             setLoading(false);
         } catch (err) {
             setError(err.message);
@@ -56,6 +65,28 @@ const ProductsList = () => {
         } catch (error) {
             console.error('Error fetching categories:', error);
         }
+    };
+
+    const debouncedSearch = useCallback(
+        debounce((term) => {
+            setSearchTerm(term);
+            setCurrentPage(1);
+        }, 300),
+        []
+    );
+
+    const handleSearch = (e) => {
+        debouncedSearch(e.target.value);
+    };
+
+    const handleFilterChange = (e) => {
+        const { name, value } = e.target;
+        setFilters({ ...filters, [name]: value });
+    };
+
+    const applyFilters = () => {
+        setCurrentPage(1);
+        fetchProducts();
     };
 
     const restoreProduct = async (id) => {
@@ -77,27 +108,50 @@ const ProductsList = () => {
         if (status !== newStatus) setStatus(newStatus);
     };
 
-    const handleFilterChange = (e) => {
-        const { name, value } = e.target;
-        setFilters({ ...filters, [name]: value });
-    };
-
-    const applyFilters = () => fetchProducts();
-
-    const debouncedSearch = useCallback(
-        debounce((term) => {
-            setSearchTerm(term);
-        }, 300),
-        []
-    );
-
-    const handleSearch = (e) => {
-        debouncedSearch(e.target.value);
-    };
-
     const handleSortChange = (e) => {
         setSortOption(e.target.value);
     };
+
+    const handleFileChange = (productId, event) => {
+        const file = event.target.files[0];
+        if (file) {
+            handleImageUpload(productId, file);
+        }
+    };
+
+    const handleImageUpload = async (productId, file) => {
+        if (!file) {
+            console.error("No file selected");
+            return;
+        }
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const response = await axios.post(`http://localhost/api/products/${productId}/upload-image`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+
+            if (response.status === 201 || response.status === 200) {
+                alert('Image uploaded successfully');
+                fetchProducts();
+            } else {
+                console.error('Failed to upload image:', response.data.message);
+                alert('Failed to upload image. Please try again.');
+            }
+        } catch (error) {
+            console.error('Error uploading image:', error.response ? error.response.data : error.message);
+            alert('An error occurred while uploading the image.');
+        }
+    };
+
+    const getImageUrl = (imageName) => {
+        return imageName ? `http://localhost/api/file/${imageName}` : PlaceholderImage;
+    };
+
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
 
     if (error) return <div>Error: {error}</div>;
 
@@ -108,7 +162,6 @@ const ProductsList = () => {
                 <div className="col-md-2">
                     <div className="card shadow-sm p-3 mb-4 filter-card">
                         <h5>Filters</h5>
-
                         <div className="mb-3">
                             <label className="form-label">Category</label>
                             <select
@@ -118,15 +171,11 @@ const ProductsList = () => {
                                 className="form-control"
                             >
                                 <option value="">Select category</option>
-                                {categories.length > 0 ? (
-                                    categories.map((category) => (
-                                        <option key={category.id} value={category.id}>
-                                            {category.name}
-                                        </option>
-                                    ))
-                                ) : (
-                                    <option value="">No categories available</option>
-                                )}
+                                {categories.map((category) => (
+                                    <option key={category.id} value={category.id}>
+                                        {category.name}
+                                    </option>
+                                ))}
                             </select>
                         </div>
                         <div className="mb-3">
@@ -136,7 +185,7 @@ const ProductsList = () => {
                                 name="minPrice"
                                 value={filters.minPrice}
                                 onChange={handleFilterChange}
-                                className="form-control small-placeholder"
+                                className="form-control"
                                 placeholder="Enter min price"
                                 min="0"
                             />
@@ -148,7 +197,7 @@ const ProductsList = () => {
                                 name="maxPrice"
                                 value={filters.maxPrice}
                                 onChange={handleFilterChange}
-                                className="form-control small-placeholder"
+                                className="form-control"
                                 placeholder="Enter max price"
                                 min="0"
                             />
@@ -177,7 +226,6 @@ const ProductsList = () => {
                             className="form-control me-2"
                             style={{ width: '550px' }}
                         />
-
                         <div className="d-flex align-items-center">
                             <label className="me-2">Sort By:</label>
                             <select
@@ -199,12 +247,29 @@ const ProductsList = () => {
                     {!loading && (
                         <div className="product-grid">
                             {products.length > 0 ? (
-                                products.map(product => (
+                                products.map((product) => (
                                     <div key={product.id} className="card mb-4 shadow-sm">
+                                        <div className="image-container">
+                                            <img
+                                                src={getImageUrl(product.image)}
+                                                alt={product.name}
+                                                className="product-image"
+                                            />
+                                            <div className="edit-overlay">
+                                                <label className="edit-button">
+                                                    Edit
+                                                    <input
+                                                        type="file"
+                                                        ref={(el) => (fileInputRefs.current[product.id] = el)}
+                                                        onChange={(e) => handleFileChange(product.id, e)}
+                                                        style={{ display: 'none' }}
+                                                    />
+                                                </label>
+                                            </div>
+                                        </div>
                                         <div className="card-body">
                                             <h5 className="card-title">{product.name}</h5>
-                                            <p className="card-text">Price:
-                                                ${Number.isFinite(Number(product.price)) ? Number(product.price).toFixed(2) : '0.00'}</p>
+                                            <p className="card-text">Price: ${Number(product.price).toFixed(2)}</p>
                                             <div className="card-actions">
                                                 <Link to={`/admin/products/${product.id}`}
                                                       className="btn btn-primary btn-sm">View Details</Link>
@@ -221,10 +286,24 @@ const ProductsList = () => {
                                     </div>
                                 ))
                             ) : (
-                                <p>No products found.</p>
+                                <div>No products found.</div>
                             )}
                         </div>
                     )}
+
+                    <nav className="mt-4">
+                        <ul className="pagination justify-content-center">
+                            {[...Array(totalPages)].map((_, index) => (
+                                <li
+                                    key={index}
+                                    className={`page-item ${index + 1 === currentPage ? 'active' : ''}`}
+                                    onClick={() => setCurrentPage(index + 1)}
+                                >
+                                    <span className="page-link">{index + 1}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    </nav>
 
                     {!loading && status === 'active' && (
                         <div className="text-center mt-4">

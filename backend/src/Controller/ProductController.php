@@ -12,15 +12,18 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Serializer\SerializerInterface;
+use App\Service\FileStorageService;
 
 #[Route('/api/products')]
 class ProductController extends AbstractController
 {
     private ProductService $productService;
+    private FileStorageService $fileStorageService;
 
-    public function __construct(ProductService $productService)
+    public function __construct(ProductService $productService, FileStorageService $fileStorageService)
     {
         $this->productService = $productService;
+        $this->fileStorageService = $fileStorageService;
     }
 
     #[Route('/list', name: 'api_product_list', methods: ['GET'])]
@@ -54,10 +57,19 @@ class ProductController extends AbstractController
 
         $result = $this->productService->getFilteredAndOrderedProducts($criteria, ['sort' => $sort, 'order' => $order], $searchTerm, $page, $itemsPerPage);
 
-        $jsonProducts = $serializer->serialize($result['products'], 'json', ['groups' => ['product:read']]);
+        $products = array_map(function ($product) use ($request) {
+            return [
+                'id' => $product->getId(),
+                'name' => $product->getName(),
+                'price' => $product->getPrice(),
+                'description' => $product->getDescription(),
+                'stockQuantity' => $product->getStockQuantity(),
+                'image' => $product->getImage(),
+            ];
+        }, $result['products']);
 
         return new JsonResponse([
-            'products' => json_decode($jsonProducts, true),
+            'products' => $products,
             'totalItems' => $result['totalItems'],
         ], Response::HTTP_OK);
     }
@@ -108,6 +120,31 @@ class ProductController extends AbstractController
         $jsonProducts = $serializer->serialize($products, 'json', ['groups' => ['product:read']]);
 
         return new JsonResponse($jsonProducts, Response::HTTP_OK, [], true);
+    }
+
+    #[Route('/{id<\d+>}/upload-image', name: 'api_product_upload_image', methods: ['POST'])]
+    public function uploadImage(Request $request, Product $product, FileStorageService $fileStorageService, EntityManagerInterface $entityManager): JsonResponse
+    {
+        $file = $request->files->get('file');
+
+        if (!$file) {
+            return new JsonResponse(['message' => 'No file uploaded'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $serviceResponse = $fileStorageService->store($file);
+
+        if (isset($serviceResponse['message'])) {
+            return new JsonResponse(['message' => $serviceResponse['message']], $serviceResponse['code']);
+        }
+
+        $product->setImage($serviceResponse['fileName']);
+        $entityManager->persist($product);
+        $entityManager->flush();
+
+        return new JsonResponse([
+            'fileName' => $serviceResponse['fileName'],
+            'message' => 'Image uploaded successfully'
+        ], Response::HTTP_CREATED);
     }
 
     #[Route('/new', name: 'api_product_new', methods: ['POST'])]

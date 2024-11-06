@@ -6,6 +6,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 import { addToBasket } from '../services/basketService';
 import { canAddToBasket } from "../services/productService";
 import { debounce } from "../components/debounce";
+import PlaceholderImage from "../assets/imgs/placeholder.jpg";
 
 const Homepage = () => {
     const [products, setProducts] = useState([]);
@@ -93,14 +94,29 @@ const Homepage = () => {
     };
 
     const handleAddToBasket = async (productId, quantity) => {
-        const result = await canAddToBasket(productId, quantity);
+        try {
+            const result = await canAddToBasket(productId, quantity);
 
-        if (result === null) {
-            await addToBasket(productId, quantity);
-        } else {
-            alert(`Insufficient stock quantity. Only ${result} items are available.`);
+            if (result === null) {
+                await addToBasket(productId, quantity);
+                alert('Product added to basket successfully.');
+            } else {
+                alert(`Insufficient stock quantity. Only ${result} items are available.`);
+            }
+        } catch (error) {
+            if (error.response && error.response.status === 401) {
+                alert('You must be logged in to add products to the basket.');
+            } else {
+                console.error('Error adding to basket:', error);
+                alert('An error occurred while adding the product to the basket. Please try again.');
+            }
         }
     };
+
+    const getImageUrl = (imageName) => {
+        return imageName ? `http://localhost/api/file/${imageName}` : PlaceholderImage;
+    };
+
 
     const totalPages = Math.ceil(totalItems / itemsPerPage);
 
@@ -200,9 +216,16 @@ const Homepage = () => {
                             {Array.isArray(products) && products.length > 0 ? (
                                 products.map(product => (
                                     <div key={product.id} className="card mb-4 shadow-sm">
+                                        <div className="image-container">
+                                            <img
+                                                src={getImageUrl(product.image)}
+                                                alt={product.name}
+                                                className="product-image"
+                                            />
+                                        </div>
                                         <div className="card-body">
                                             <h5 className="card-title">{product.name}</h5>
-                                            <p className="card-text">Price: ${Number(product.price).toFixed(2)}</p>
+                                            <p className="card-price">Price: ${Number(product.price).toFixed(2)}</p>
 
                                             <div className="d-flex justify-content-end align-items-center">
                                                 {product.stockQuantity > 0 ? (
@@ -229,10 +252,7 @@ const Homepage = () => {
                                                         </button>
                                                     </>
                                                 ) : (
-                                                    <button
-                                                        className="btn btn-secondary ms-2"
-                                                        disabled
-                                                    >
+                                                    <button className="btn btn-secondary ms-2" disabled>
                                                         Out of Stock
                                                     </button>
                                                 )}
@@ -244,7 +264,7 @@ const Homepage = () => {
                                 <div>No products found.</div>
                             )}
                         </div>
-                    )}
+                        )}
 
                     <nav className="mt-4">
                         <ul className="pagination justify-content-center">
