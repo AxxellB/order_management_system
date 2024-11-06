@@ -8,51 +8,48 @@ use League\Flysystem\Filesystem;
 use League\Flysystem\UnableToCheckExistence;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\String\Slugger\SluggerInterface;
 
 class FileStorageService
 {
     private LocalFilesystemAdapter $adapter;
     private Filesystem $filesystem;
-
     private string $root;
+    private SluggerInterface $slugger;
 
-    public function __construct()
+    public function __construct(SluggerInterface $slugger)
     {
         $this->root = dirname(__DIR__, 2) . '/public/uploads';
         $this->adapter = new LocalFilesystemAdapter($this->root);
         $this->filesystem = new Filesystem($this->adapter);
+        $this->slugger = $slugger;
     }
 
     public function store(UploadedFile $file): array
     {
-        $fileName = $file->getClientOriginalName();
-        $fileExists = $this->filesystem->fileExists($fileName);
-        if($fileExists){
+        $allowedMimeTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+
+        if (!in_array($file->getMimeType(), $allowedMimeTypes)) {
+            return ['message' => 'Invalid file type', 'code' => Response::HTTP_UNSUPPORTED_MEDIA_TYPE];
+        }
+
+        $fileName = uniqid('file_', true) . '.' . $file->guessExtension();
+
+        if ($this->filesystem->fileExists($fileName)) {
             return ['message' => 'File already exists', 'code' => Response::HTTP_CONFLICT];
         }
 
-        try{
+        try {
             $stream = fopen($file->getPathname(), 'r');
             $this->filesystem->writeStream($fileName, $stream);
             fclose($stream);
-            return ['filePath' => $this->root . '/' . $fileName, 'code' => Response::HTTP_CREATED];
-        }catch (FilesystemException $e){
+
+            return ['fileName' => $fileName, 'code' => Response::HTTP_CREATED];
+        } catch (FilesystemException $e) {
             return ['message' => $e->getMessage(), 'code' => Response::HTTP_INTERNAL_SERVER_ERROR];
         }
     }
 
-    public function delete(string $filePath)
-    {
-        $fileExists = $this->filesystem->fileExists($filePath);
-        if(!$fileExists){
-            return ['message' => 'File does not exist', 'code' => Response::HTTP_NOT_FOUND];
-        }
 
-        try{
-            $this->filesystem->delete($filePath);
-            return ['message' => 'File has been deleted', 'code' => Response::HTTP_NO_CONTENT];
-        }catch (FilesystemException | UnableToCheckExistence $exception){
-            return ['message' => $exception->getMessage(), 'code' => Response::HTTP_INTERNAL_SERVER_ERROR];
-        }
-    }
 }
+
