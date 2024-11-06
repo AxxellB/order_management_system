@@ -143,8 +143,7 @@ const Checkout = () => {
             }
 
             await axios.post('/api/orders', checkoutData);
-            alert('Checkout successful');
-            navigate('/');
+            navigate('/order-confirmation');
         } catch (error) {
             console.error('Error during checkout', error);
             alert('Checkout failed');

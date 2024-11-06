@@ -1,0 +1,82 @@
+.orderSuccessPage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 50vh;
+    text-align: center;
+    border: 0px solid black;
+    border-radius: 10px;
+    box-shadow: 5px 4px 8px rgba(0, 0, 0, 0.2);
+    max-width: 36rem;
+    margin: auto;
+    margin-top: 5rem;
+    animation: fadeIn 1.5s ease-in-out;
+    background: linear-gradient(47deg, rgba(23, 61, 173, 1) 33%, rgba(189, 17, 58, 1) 100%);
+}
+
+.orderSuccessTick {
+    font-size: 3.3rem;
+    color: #fff;
+    animation: slideIn 1.5s ease-in-out;
+
+}
+
+.orderSuccessTitle {
+    color: #fff;
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    animation: fadeIn 2s ease-in-out;
+}
+
+.orderSuccessMessage {
+    font-size: 1.2rem;
+    margin: 0.5rem 0;
+    animation: fadeInText 2s ease-in;
+    color: #fff;
+}
+
+.backToHome {
+    font-size: 1rem;
+    color: #fff;
+    text-decoration: none;
+    margin-top: 20px;
+    transition: 1s ease-in-out;
+    animation: fadeInText 2s ease-in;
+
+}
+
+.backToHome:hover {
+    color: #ff6600;
+    text-decoration: underline;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideIn {
+    0% {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    100% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeInText {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}

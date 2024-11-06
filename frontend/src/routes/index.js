@@ -30,6 +30,7 @@ import ViewOrderLog from "../components/ViewOrderHistoryLog";
 import BulkProductRestock from "../components/BulkProductRestock";
 import {AdminRoute} from "./AdminRoute";
 import NotFound from "../pages/NotFound";
+import OrderSuccessPage from "../pages/OrderSuccessPage";
 
 const Routes = () => {
     const { token } = useAuth();
@@ -179,6 +180,10 @@ const Routes = () => {
                         {
                             path: "/checkout",
                             element: <Checkout />
+                        },
+                        {
+                            path: "/order-confirmation",
+                            element: <OrderSuccessPage />
                         },
                         {
                             path: "/logout",
