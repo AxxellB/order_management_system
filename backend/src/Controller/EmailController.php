@@ -14,6 +14,8 @@ class EmailController extends AbstractController
     #[Route('/api/send-email', name: 'send_email', methods: ['POST'])]
     public function sendEmail(MailerInterface $mailer, LoggerInterface $logger): Response
     {
+        $this->denyAccessUnlessGranted('ADMIN_ACCESS');
+
         try {
             $email = (new Email())
                 ->from('example@example.com')

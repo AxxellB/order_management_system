@@ -21,6 +21,8 @@ class OrderHistoryLogsController extends AbstractController
     #[Route('/api/order-history-logs', name: 'api_order_history_logs', methods: ['GET'])]
     public function getOrderHistoryLogs(Request $request): JsonResponse
     {
+        $this->denyAccessUnlessGranted('ADMIN_ACCESS');
+
         $page = max(1, (int)$request->query->get('page', 1));
         $limit = min(1000, max(1, (int)$request->query->get('limit', 15)));
 
@@ -53,6 +55,8 @@ class OrderHistoryLogsController extends AbstractController
     #[Route('/api/order-history-logs/{id}', name: 'api_order_history_log', methods: ['GET'])]
     public function getOrderHistoryLogById(int $id): JsonResponse
     {
+        $this->denyAccessUnlessGranted('ADMIN_ACCESS');
+
         $log = $this->orderHistoryLogsRepository->find($id);
 
         if (!$log) {

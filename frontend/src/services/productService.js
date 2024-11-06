@@ -8,19 +8,24 @@ const hasAvailableQuantity = async (productId, requestedQuantity) => {
 };
 
 const canAddToBasket = async (productId, quantity) => {
-    const response = await axios.get('api/basket');
-    const basket = response.data.basket;
-    const productInBasket = basket.find(basketItem => basketItem.product.id === productId);
+    try{
+        const response = await axios.get('api/basket');
+        const basket = response.data.basket;
+        const productInBasket = basket.find(basketItem => basketItem.product.id === productId);
 
-    if (!productInBasket) {
-        return hasAvailableQuantity(productId, quantity);
+        if (!productInBasket) {
+            return hasAvailableQuantity(productId, quantity);
+        }
+
+        const totalRequestedQuantity = productInBasket.quantity + quantity;
+        const productResponse = await axios.get(`api/products/${productId}`);
+        const productStockQuantity = productResponse.data.stockQuantity;
+
+        return totalRequestedQuantity <= productStockQuantity ? null : productStockQuantity;
+    }catch (error){
+        console.log(error);
     }
 
-    const totalRequestedQuantity = productInBasket.quantity + quantity;
-    const productResponse = await axios.get(`api/products/${productId}`);
-    const productStockQuantity = productResponse.data.stockQuantity;
-
-    return totalRequestedQuantity <= productStockQuantity ? null : productStockQuantity;
 };
 
 export { hasAvailableQuantity, canAddToBasket };

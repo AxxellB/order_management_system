@@ -75,6 +75,8 @@ class CategoryController extends AbstractController
     #[Route('/new', name: 'api_category_new', methods: ['POST'])]
     public function newApi(Request $request, EntityManagerInterface $entityManager, ValidatorInterface $validator): JsonResponse
     {
+        $this->denyAccessUnlessGranted('ADMIN_ACCESS');
+
         $data = json_decode($request->getContent(), true);
         $category = $this->categoryService->createCategory($data, $validator);
 
@@ -102,6 +104,8 @@ class CategoryController extends AbstractController
     #[Route('/{id<\d+>}', name: 'api_category_edit', methods: ['PUT'])]
     public function editApi(Request $request, ?Category $category, EntityManagerInterface $entityManager): JsonResponse
     {
+        $this->denyAccessUnlessGranted('ADMIN_ACCESS');
+
         if (!$category) {
             return new JsonResponse(['error' => 'Category not found'], Response::HTTP_NOT_FOUND);
         }
@@ -131,6 +135,8 @@ class CategoryController extends AbstractController
     #[Route('/{id}', name: 'api_category_delete', methods: ['DELETE'])]
     public function deleteApi(Category $category, EntityManagerInterface $entityManager): JsonResponse
     {
+        $this->denyAccessUnlessGranted('ADMIN_ACCESS');
+
         if (!$category) {
             return new JsonResponse(['error' => 'Category not found'], Response::HTTP_NOT_FOUND);
         }

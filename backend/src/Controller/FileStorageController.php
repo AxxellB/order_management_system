@@ -25,6 +25,7 @@ class FileStorageController extends AbstractController
     #[Route("/file", name: "api_file_upload", methods: ["POST"])]
     public function upload(Request $request): JsonResponse
     {
+        $this->denyAccessUnlessGranted('ADMIN_ACCESS');
 
         $file = $request->files->get('file');
 
@@ -63,6 +64,8 @@ class FileStorageController extends AbstractController
     #[Route("/file/{filename}", name: "api_file_delete", methods: ["DELETE"])]
     public function delete(string $filename): JsonResponse
     {
+        $this->denyAccessUnlessGranted('ADMIN_ACCESS');
+
         $serviceResponse = $this->fileStorageService->delete($filename);
 
         return new JsonResponse(['message' => $serviceResponse['message']], $serviceResponse['code']);
