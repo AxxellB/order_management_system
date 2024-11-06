@@ -22,49 +22,46 @@ class FileStorageController extends AbstractController
     }
 
 
-    #[Route("/file", name: "api_file_upload", methods: ["POST"])]
-    public function upload(Request $request): JsonResponse
+    #[Route('/{id<\d+>}/upload-image', name: 'api_product_upload_image', methods: ['POST'])]
+    public function uploadImage(Request $request, Product $product, FileStorageService $fileStorageService, EntityManagerInterface $entityManager): JsonResponse
     {
-
         $file = $request->files->get('file');
 
-        if(!$file){
+        if (!$file) {
             return new JsonResponse(['message' => 'No file uploaded'], Response::HTTP_BAD_REQUEST);
         }
 
-        $serviceResponse = $this->fileStorageService->store($file);
+        $responceFromService = $fileStorageService->store($file);
 
-        if(isset($serviceResponse['message'])) {
+        if (isset($serviceResponse['message'])) {
             return new JsonResponse(['message' => $serviceResponse['message']], $serviceResponse['code']);
         }
 
-        return new JsonResponse(['filePath' => $serviceResponse['filePath'], $serviceResponse['code']]);
+        $product->setImage($responceFromService['fileName']);
+        $entityManager->persist($product);
+        $entityManager->flush();
+
+        return new JsonResponse([
+            'fileName' => $responceFromService['fileName'],
+            'message' => 'Image uploaded successfully'
+        ], Response::HTTP_CREATED);
     }
+
 
     #[Route("/file/{filename}", name: "api_file_download", methods: ["GET"])]
     public function download(string $filename): Response
     {
         $filePath = $this->getParameter('kernel.project_dir') . '/public/uploads/' . $filename;
 
-        if(!file_exists($filePath)) {
+        if (!file_exists($filePath)) {
             return new JsonResponse(['message' => 'File not found'], Response::HTTP_NOT_FOUND);
         }
 
         $response = new BinaryFileResponse($filePath);
-
-        $response->setContentDisposition(
-            ResponseHeaderBag::DISPOSITION_ATTACHMENT,
-            $filename
-        );
+        $response->headers->set('Content-Type', mime_content_type($filePath));
+        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_INLINE, $filename);
 
         return $response;
     }
 
-    #[Route("/file/{filename}", name: "api_file_delete", methods: ["DELETE"])]
-    public function delete(string $filename): JsonResponse
-    {
-        $serviceResponse = $this->fileStorageService->delete($filename);
-
-        return new JsonResponse(['message' => $serviceResponse['message']], $serviceResponse['code']);
-    }
 }
