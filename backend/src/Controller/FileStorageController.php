@@ -25,6 +25,8 @@ class FileStorageController extends AbstractController
     #[Route('/{id<\d+>}/upload-image', name: 'api_product_upload_image', methods: ['POST'])]
     public function uploadImage(Request $request, Product $product, FileStorageService $fileStorageService, EntityManagerInterface $entityManager): JsonResponse
     {
+        $this->denyAccessUnlessGranted('ADMIN_ACCESS');
+
         $file = $request->files->get('file');
 
         if (!$file) {
@@ -63,5 +65,4 @@ class FileStorageController extends AbstractController
 
         return $response;
     }
-
 }

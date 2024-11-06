@@ -1,7 +1,7 @@
 import React from "react";
 import axios from "axios";
 
-const SendEmailPage = () => {
+const SendEmail = () => {
     const handleSendEmail = async () => {
         try {
             const response = await axios.post("http://localhost/api/send-email");
@@ -26,4 +26,4 @@ const SendEmailPage = () => {
     );
 };
 
-export default SendEmailPage;
+export default SendEmail;

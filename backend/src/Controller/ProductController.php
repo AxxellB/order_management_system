@@ -150,6 +150,8 @@ class ProductController extends AbstractController
     #[Route('/new', name: 'api_product_new', methods: ['POST'])]
     public function newApi(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
+        $this->denyAccessUnlessGranted('ADMIN_ACCESS');
+
         $data = json_decode($request->getContent(), true);
         $product = new Product();
 
@@ -171,6 +173,8 @@ class ProductController extends AbstractController
     #[Route('/{id<\d+>}', name: 'api_product_edit', methods: ['PUT'])]
     public function editApi(Request $request, Product $product, EntityManagerInterface $entityManager): JsonResponse
     {
+        $this->denyAccessUnlessGranted('ADMIN_ACCESS');
+
         if (!$product) {
             return new JsonResponse(['error' => 'Product not found'], Response::HTTP_NOT_FOUND);
         }
@@ -194,6 +198,8 @@ class ProductController extends AbstractController
     #[Route('/{id<\d+>}', name: 'api_product_patch', methods: ['PATCH'])]
     public function patchQuantity(Request $request, Product $product, EntityManagerInterface $entityManager): JsonResponse
     {
+        $this->denyAccessUnlessGranted('ADMIN_ACCESS');
+
         if (!$product) {
             return new JsonResponse(['error' => 'Product not found'], Response::HTTP_NOT_FOUND);
         }
@@ -220,6 +226,8 @@ class ProductController extends AbstractController
     #[Route('/{id<\d+>}', name: 'api_product_delete_restore', methods: ['DELETE'])]
     public function deleteOrRestoreApi(Request $request, Product $product, EntityManagerInterface $entityManager): JsonResponse
     {
+        $this->denyAccessUnlessGranted('ADMIN_ACCESS');
+
         if (!$product) {
             return new JsonResponse(['error' => 'Product not found'], Response::HTTP_NOT_FOUND);
         }
@@ -244,6 +252,8 @@ class ProductController extends AbstractController
     #[Route('/validate-csv', name: 'api_product_validate_csv', methods: ['POST'])]
     public function validateCsv(Request $request): JsonResponse
     {
+        $this->denyAccessUnlessGranted('ADMIN_ACCESS');
+
         $products = $request->toArray()['products'] ?? [];
 
         if (empty($products)) {
@@ -262,6 +272,8 @@ class ProductController extends AbstractController
     #[Route('/bulk-restock', name: 'api_product_bulk_restock', methods: ['POST'])]
     public function bulkRestock(Request $request): JsonResponse
     {
+        $this->denyAccessUnlessGranted('ADMIN_ACCESS');
+
         $products = $request->toArray()['changes'] ?? [];
 
         if (empty($products)) {

@@ -30,6 +30,8 @@ class DiscountCodeController extends AbstractController
             return new JsonResponse(['message' => 'You must be logged in to access this page.'], Response::HTTP_UNAUTHORIZED);
         }
 
+        $this->denyAccessUnlessGranted('ADMIN_ACCESS');
+
         $data = json_decode($request->getContent(), true);
 
         if (!$data) {
@@ -84,6 +86,8 @@ class DiscountCodeController extends AbstractController
             return new JsonResponse(['message' => 'You must be logged in to access this page.'], Response::HTTP_UNAUTHORIZED);
         }
 
+        $this->denyAccessUnlessGranted('ADMIN_ACCESS');
+
         $discountCode = $this->discountCodeRepository->find($id);
 
         if (!$discountCode) {
@@ -108,6 +112,8 @@ class DiscountCodeController extends AbstractController
         }
 
         $discountCode = $this->discountCodeRepository->find($id);
+
+        $this->denyAccessUnlessGranted('ADMIN_ACCESS');
 
         if (!$discountCode) {
             return new JsonResponse(['message' => 'Discount code not found'], Response::HTTP_NOT_FOUND);

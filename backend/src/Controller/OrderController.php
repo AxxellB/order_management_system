@@ -129,6 +129,8 @@ class OrderController extends AbstractController
     #[Route('/order/{id}', name: 'api_edit_order', methods: ['PUT'])]
     public function apiEditOrder(Request $request, int $id): JsonResponse
     {
+        $this->denyAccessUnlessGranted('ADMIN_ACCESS');
+
         $order = $this->orderRepository->find($id);
 
         if (!$order) {
@@ -184,6 +186,8 @@ class OrderController extends AbstractController
     #[Route('/order/{id}', name: 'api_delete_or_restore_order', methods: ['DELETE'])]
     public function apiDeleteOrRestoreOrder(int $id): JsonResponse
     {
+        $this->denyAccessUnlessGranted('ADMIN_ACCESS');
+
         $order = $this->orderRepository->find($id);
 
         if (!$order) {
