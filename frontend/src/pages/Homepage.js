@@ -1,12 +1,13 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import axios from 'axios';
 import '../styles/Homepage.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
-import { addToBasket } from '../services/basketService';
-import { canAddToBasket } from "../services/productService";
-import { debounce } from "../components/debounce";
+import {addToBasket} from '../services/basketService';
+import {canAddToBasket} from "../services/productService";
+import {debounce} from "../components/debounce";
 import PlaceholderImage from "../assets/imgs/placeholder.jpg";
+import {useAlert} from "../provider/AlertProvider";
 
 const Homepage = () => {
     const [products, setProducts] = useState([]);
@@ -26,6 +27,8 @@ const Homepage = () => {
 
     const [searchTerm, setSearchTerm] = useState("");
     const [sortOption, setSortOption] = useState("name_asc");
+
+    const {showAlert} = useAlert();
 
     useEffect(() => {
         fetchCategories();
@@ -81,7 +84,7 @@ const Homepage = () => {
     };
 
     const handleFilterChange = (e) => {
-        const { name, value } = e.target;
+        const {name, value} = e.target;
         setFilters({
             ...filters,
             [name]: value
@@ -93,15 +96,14 @@ const Homepage = () => {
         fetchProducts();
     };
 
-    const handleAddToBasket = async (productId, quantity) => {
+    const handleAddToBasket = async (productId, productName, quantity) => {
         try {
             const result = await canAddToBasket(productId, quantity);
 
             if (result === null) {
-                await addToBasket(productId, quantity);
-                alert('Product added to basket successfully.');
+                await addToBasket(productId, productName, quantity, showAlert);
             } else {
-                alert(`Insufficient stock quantity. Only ${result} items are available.`);
+                showAlert(`Insufficient stock quantity. Only ${result} items are available.`, "error");
             }
         } catch (error) {
             if (error.response && error.response.status === 401) {
@@ -187,7 +189,7 @@ const Homepage = () => {
                             placeholder="Search products..."
                             onChange={handleSearch}
                             className="form-control me-2"
-                            style={{ width: '550px' }}
+                            style={{width: '550px'}}
                         />
 
                         <div className="d-flex align-items-center">
@@ -207,8 +209,8 @@ const Homepage = () => {
                         </div>
                     </div>
 
-                        {loading ? (
-                            <div className="text-center mt-5">Loading...</div>
+                    {loading ? (
+                        <div className="text-center mt-5">Loading...</div>
                     ) : error ? (
                         <div className="text-center text-danger mt-5">Error: {error}</div>
                     ) : (
@@ -224,7 +226,8 @@ const Homepage = () => {
                                             />
                                         </div>
                                         <div className="card-body">
-                                            <h5 className="card-title">{product.name}</h5>
+                                            <h5 className="card-title"
+                                                id={`product-name-${product.id}`}>{product.name}</h5>
                                             <p className="card-price">Price: ${Number(product.price).toFixed(2)}</p>
 
                                             <div className="d-flex justify-content-end align-items-center">
@@ -240,9 +243,10 @@ const Homepage = () => {
                                                         <button
                                                             className="btn btn-success ms-2"
                                                             onClick={() => {
+                                                                const productName = document.getElementById(`product-name-${product.id}`).value;
                                                                 const quantity = parseInt(document.getElementById(`quantity-${product.id}`).value, 10);
                                                                 if (quantity > 0) {
-                                                                    handleAddToBasket(product.id, quantity);
+                                                                    handleAddToBasket(product.id, productName, quantity);
                                                                 } else {
                                                                     alert('Invalid quantity');
                                                                 }
@@ -264,7 +268,7 @@ const Homepage = () => {
                                 <div>No products found.</div>
                             )}
                         </div>
-                        )}
+                    )}
 
                     <nav className="mt-4">
                         <ul className="pagination justify-content-center">
