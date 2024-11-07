@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, {useState} from "react";
 import axios from "axios";
 import {useNavigate} from "react-router-dom";
 import {useAuth} from "../provider/AuthProvider";
+import {useAlert} from "../provider/AlertProvider";
 
 const LoginForm = () => {
     const [formData, setFormData] = useState({
@@ -10,45 +11,47 @@ const LoginForm = () => {
     });
 
     const [errors, setErrors] = useState({});
-    const { setToken } = useAuth();
+    const {setToken} = useAuth();
+    const {showAlert} = useAlert();
     const navigate = useNavigate();
 
     const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData({ ...formData, [name]: value });
+        const {name, value} = e.target;
+        setFormData({...formData, [name]: value});
+        setErrors((prevErrors) => ({...prevErrors, [name]: ""}));
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         let formErrors = {};
-        let email = formData.email;
-        let password = formData.password
-        if (!email) formErrors.email = "Email is can not be empty";
-        if (!password) formErrors.password = "Password can not be empty";
+        const {email, password} = formData;
+        
+        if (!email) formErrors.email = "Email cannot be empty";
+        if (!password) formErrors.password = "Password cannot be empty";
 
         setErrors(formErrors);
 
-        axios.post('/api/login',{
-                email,
-                password,
-            }
-        ).then(function (response) {
-            if(response.status === 200){
-                setToken(response.data.token);
-                navigate('/');
-            } else {
-                alert(response.data.message);
-            }
-        }).catch(function (error) {
-            if (error.response) {
-                alert(error.response.data.message || "An error occurred. Please try again.");
-            } else {
-                alert("Network error: " + error.message);
-            }
-        });
-
         if (Object.keys(formErrors).length === 0) {
-            console.log("Form data submitted: ", formData);
+            try {
+                const response = await axios.post('/api/login', {email, password});
+                if (response.status === 200) {
+                    setToken(response.data.token);
+                    navigate('/');
+                }
+            } catch (error) {
+                if (error.response) {
+                    if (error.response.status === 401) {
+                        setErrors({
+                            email: "",
+                            password: "Wrong email or password"
+                        });
+                    } else {
+                        showAlert("An error occurred. Please try again.", "error");
+                    }
+                } else {
+                    showAlert("A network error occurred. Please check your connection.", "error");
+                }
+            }
         }
     };
 
@@ -60,7 +63,7 @@ const LoginForm = () => {
                     <input
                         type="email"
                         name="email"
-                        className={`form-control ${errors.email ? 'is-invalid' : ''}`}
+                        className={`form-control ${errors.email || errors.password ? 'is-invalid' : ''}`}
                         value={formData.email}
                         onChange={handleChange}
                     />

@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import axios from 'axios';
-import { useNavigate } from "react-router-dom";
+import {useNavigate} from "react-router-dom";
 import '../styles/Checkout.css';
-import { hasAvailableQuantity } from "../services/productService";
+import {hasAvailableQuantity} from "../services/productService";
+import {useAlert} from "../provider/AlertProvider";
 
 const Checkout = () => {
     const [basket, setBasket] = useState([]);
@@ -22,18 +23,21 @@ const Checkout = () => {
     const [successMessage, setSuccessMessage] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
     const navigate = useNavigate();
+    const {showAlert} = useAlert();
 
     useEffect(() => {
         const fetchBasketItems = async () => {
-            setBasketLoading(true);
             try {
+                setBasketLoading(true);
                 const response = await axios.get('/api/basket');
                 if (response.data.basket) {
                     setBasket(response.data.basket);
                 }
-                setBasketLoading(false);
             } catch (error) {
                 console.error('Error fetching basket items', error);
+                showAlert("An error occurred! Please try again!", "error");
+            } finally {
+                setBasketLoading(false);
             }
         };
         fetchBasketItems();
@@ -62,12 +66,10 @@ const Checkout = () => {
                 const response = await axios.get('/api/addresses');
                 if (response.data.addresses && typeof response.data.addresses === 'object') {
                     setAddresses(Object.values(response.data.addresses));
-                } else {
-                    console.error('Unexpected response structure:', response.data);
-                    setAddresses([]);
                 }
             } catch (error) {
                 console.error('Error fetching addresses', error);
+                showAlert("An error occurred! Please try again!", "error");
                 setAddresses([]);
             } finally {
                 setAddressLoading(false);
@@ -96,7 +98,7 @@ const Checkout = () => {
     };
 
     const handleCardChange = (e) => {
-        const { name, value } = e.target;
+        const {name, value} = e.target;
         setCardDetails(prevDetails => ({
             ...prevDetails,
             [name]: value
@@ -121,21 +123,21 @@ const Checkout = () => {
 
         if (errors.length > 0) {
             setBasketErrors(errors);
-            alert('Some products exceed available stock. Please adjust the quantities.');
+            showAlert('Some products exceed available stock. Please adjust the quantities.', 'error');
             setPreventCheckout(true);
             return;
         }
 
         try {
             let checkoutData = {}
-            if(discountCode && discountCode.percentOff && discountCode.discountCode) {
+            if (discountCode && discountCode.percentOff && discountCode.discountCode) {
                 checkoutData = {
                     addressId: selectedAddress,
                     cardDetails,
                     discountCode: discountCode.discountCode,
                     percentOff: discountCode.percentOff
                 };
-            }else{
+            } else {
                 checkoutData = {
                     addressId: selectedAddress,
                     cardDetails
@@ -143,11 +145,11 @@ const Checkout = () => {
             }
 
             await axios.post('/api/orders', checkoutData);
-            alert('Checkout successful');
+            showAlert('Order placed successfully!', "success");
             navigate('/');
         } catch (error) {
             console.error('Error during checkout', error);
-            alert('Checkout failed');
+            showAlert('An error occurred! Please try again', "error");
         }
     };
 
@@ -156,7 +158,7 @@ const Checkout = () => {
     }
 
     if (basket.length === 0) {
-        return <div className="empty-basket">Your basket is empty</div>;
+        return <div className="empty-basket">Your basket is empty. Add some products and come back!</div>;
     }
 
     return (
