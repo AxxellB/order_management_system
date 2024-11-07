@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import axios from 'axios';
 import '../styles/Homepage.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -7,6 +8,7 @@ import { addToBasket } from '../services/basketService';
 import { canAddToBasket } from "../services/productService";
 import { debounce } from "../components/debounce";
 import PlaceholderImage from "../assets/imgs/placeholder.jpg";
+import styles from "../styles/ProductPage.module.css";
 
 const Homepage = () => {
     const [products, setProducts] = useState([]);
@@ -217,14 +219,18 @@ const Homepage = () => {
                                 products.map(product => (
                                     <div key={product.id} className="card mb-4 shadow-sm">
                                         <div className="image-container">
-                                            <img
-                                                src={getImageUrl(product.image)}
-                                                alt={product.name}
-                                                className="product-image"
-                                            />
+                                            <Link to={`/product/${product.id}`}>
+                                                <img
+                                                    src={getImageUrl(product.image)}
+                                                    alt={product.name}
+                                                    className="product-image"
+                                                />
+                                            </Link>
                                         </div>
                                         <div className="card-body">
-                                            <h5 className="card-title">{product.name}</h5>
+                                            <Link to={`/product/${product.id}`} className="homepage-title-link">
+                                                <h5 className="card-title">{product.name}</h5>
+                                            </Link>
                                             <p className="card-price">Price: ${Number(product.price).toFixed(2)}</p>
 
                                             <div className="d-flex justify-content-end align-items-center">

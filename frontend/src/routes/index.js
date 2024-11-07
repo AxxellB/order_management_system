@@ -31,6 +31,7 @@ import BulkProductRestock from "../components/BulkProductRestock";
 import {AdminRoute} from "./AdminRoute";
 import NotFound from "../pages/NotFound";
 import OrderSuccessPage from "../pages/OrderSuccessPage";
+import ProductPage from "../pages/ProductPage";
 
 const Routes = () => {
     const { token } = useAuth();
@@ -137,6 +138,86 @@ const Routes = () => {
                     path: "/",
                     element: <Layout />,
                     children: [
+                        {
+                            path: "/product/:id",
+                            element: <ProductPage/>
+                        },
+                        {
+                            path: "/profile",
+                            element: <UserProfile />
+                        },
+                        {
+                            path: "/profile/security-centre",
+                            element: <SecurityCentre />
+                        },
+                        {
+                            path: "/profile/addresses",
+                            element: <AddressTab />
+                        },
+                        {
+                            path: "/profile/orders",
+                            element: <MyOrdersTab />
+                        },
+                        {
+                            path: `/profile/orders/:id`,
+                            element: <MyOrdersDetailsTab />
+                        },
+                        {
+                            path: "/admin/products",
+                            element: <ProductsList />,
+                        },
+                        {
+                            path: "/admin/products/new",
+                            element: <ProductNew />,
+                        },
+                        {
+                            path: "/admin/products/:id",
+                            element: <ProductDetails />,
+                        },
+                        {
+                            path: "/admin/products/edit/:id",
+                            element: <ProductEdit />,
+                        },
+                        {
+                            path: "/admin/bulk-restock",
+                            element: <BulkProductRestock />,
+                        },
+                        {
+                            path: "/admin/categories",
+                            element: <CategoriesList />,
+                        },
+                        {
+                            path: "/admin/categories/new",
+                            element: <CategoryNew />,
+                        },
+                        {
+                            path: "/admin/categories/:id",
+                            element: <CategoryNew />,
+                        },
+                        {
+                            path: "/admin/categories/edit/:id",
+                            element: <CategoryEdit />,
+                        },
+                        {
+                            path:  "admin/inventory",
+                            element: <InventoryManagement />
+                        },
+                        {
+                            path: "/admin/orders",
+                            element: <OrderManagementPage />
+                        },
+                        {
+                            path: "/admin/order/:id",
+                            element: <EditOrderForm />
+                        },
+                        {
+                            path: "/admin/order-history-logs",
+                            element: <OrderAuditLogs />,
+                        },
+                        {
+                            path: "/admin/order-history-logs/:id",
+                            element: <ViewOrderLog />
+                        },
                         {
                             path: "/profile",
                             element: <UserProfile />
