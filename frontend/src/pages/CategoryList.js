@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import axios from 'axios';
-import { Link } from 'react-router-dom';
+import {Link} from 'react-router-dom';
+import {useAlert} from "../provider/AlertProvider";
 
 const CategoriesList = () => {
     const [categories, setCategories] = useState([]);
@@ -9,6 +10,7 @@ const CategoriesList = () => {
     const [message, setMessage] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
+    const {showAlert} = useAlert();
     const limit = 3;
 
     useEffect(() => {
@@ -29,7 +31,7 @@ const CategoriesList = () => {
         try {
             setLoading(true);
             const response = await axios.get(`http://localhost/api/categories/list?page=${currentPage}&limit=${limit}`);
-            const { data, totalPages: total, currentPage: page } = response.data;
+            const {data, totalPages: total, currentPage: page} = response.data;
 
             setCategories(data);
             setTotalPages(total);
@@ -47,14 +49,13 @@ const CategoriesList = () => {
         if (confirmDelete) {
             try {
                 const response = await axios.delete(`http://localhost/api/categories/${id}`);
-                setMessage({ text: response.data.message, type: 'success' });
+                showAlert("Category deleted successfully", "success");
                 fetchCategories();
             } catch (error) {
                 if (error.response && error.response.data.error) {
-                    setMessage({ text: error.response.data.error, type: 'error' });
+                    showAlert(error.response.data.error, "success");
                 } else {
-                    console.error('Error deleting category:', error);
-                    setMessage({ text: 'An unexpected error occurred.', type: 'error' });
+                    showAlert("Error deleting category", "error");
                 }
             }
         }

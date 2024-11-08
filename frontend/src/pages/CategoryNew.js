@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import {useNavigate} from 'react-router-dom';
+import {useAlert} from "../provider/AlertProvider";
 
 const NewCategory = () => {
     const [formData, setFormData] = useState({
@@ -8,9 +9,10 @@ const NewCategory = () => {
     });
     const [errors, setErrors] = useState({});
     const navigate = useNavigate();
+    const {showAlert} = useAlert();
 
     const handleChange = (e) => {
-        const { name, value } = e.target;
+        const {name, value} = e.target;
         setFormData({
             ...formData,
             [name]: value
@@ -21,10 +23,14 @@ const NewCategory = () => {
         e.preventDefault();
         try {
             await axios.post('http://localhost/api/categories/new', formData);
-            alert('Category created successfully');
+            showAlert('Category created successfully', "success");
             navigate('/admin/categories');
         } catch (error) {
-            setErrors(error.response.data.errors || {});
+            if (error.response && error.response.data.errors) {
+                setErrors(error.response.data.errors);
+            } else {
+                showAlert(`Error updating category:, ${error}`, "error");
+            }
         }
     };
 
