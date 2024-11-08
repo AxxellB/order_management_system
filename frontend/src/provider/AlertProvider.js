@@ -9,7 +9,7 @@ export const AlertProvider = ({children}) => {
 
     const showAlert = (message, type = 'info') => {
         setAlert({message, type, visible: true});
-        setTimeout(() => setAlert({...alert, visible: false}), 3000); // Auto-hide after 3 seconds
+        setTimeout(() => setAlert({...alert, visible: false}), 3000);
     };
 
     const hideAlert = () => setAlert({...alert, visible: false});

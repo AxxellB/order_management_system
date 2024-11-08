@@ -110,6 +110,12 @@ class UserService
         ];
     }
 
+    public function getUserById(int $userId): ?User
+    {
+        return $this->userRepository->find($userId);
+    }
+
+
     public function changePassword(User $user, string $oldPassword, string $newPassword, string $confirmPassword, UserPasswordHasherInterface $passwordHasher): array
     {
         if (empty($oldPassword) || empty($newPassword) || empty($confirmPassword)) {

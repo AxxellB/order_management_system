@@ -19,6 +19,7 @@
         "nelmio/cors-bundle": "^2.5",
         "phpdocumentor/reflection-docblock": "^5.4",
         "phpstan/phpdoc-parser": "^1.32",
+        "scheb/2fa-bundle": "^7.6",
         "symfony/asset": "6.4.*",
         "symfony/asset-mapper": "6.4.*",
         "symfony/console": "6.4.*",

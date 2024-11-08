@@ -7,6 +7,7 @@ use App\Entity\User;
 use App\Form\EditUserFormType;
 use App\Form\SecurityCentreType;
 use App\Repository\UserRepository;
+use App\Service\TwoFactorAuthenticatorService;
 use App\Service\UserService;
 use App\Form\RegisterFormType;
 use Doctrine\ORM\EntityManagerInterface;
@@ -26,14 +27,15 @@ class UserController extends AbstractController
     private UserService $userService;
     private EntityManagerInterface $em;
     private UserRepository $userRepository;
+    private TwoFactorAuthenticatorService $twoFactorAuthenticatorService;
 
-    public function __construct(UserService $userService, EntityManagerInterface $em, UserRepository $userRepository)
+    public function __construct(UserService $userService, EntityManagerInterface $em, UserRepository $userRepository, TwoFactorAuthenticatorService  $twoFactorAuthenticatorService)
     {
         $this->userService = $userService;
         $this->em = $em;
         $this->userRepository = $userRepository;
+        $this->twoFactorAuthenticatorService = $twoFactorAuthenticatorService;
     }
-
     #[Route(path: '/api/login', name: 'user_api_login')]
     public function apiLogin(Request $request, JWTTokenManagerInterface $jwtManager): JsonResponse
     {
@@ -45,16 +47,86 @@ class UserController extends AbstractController
             /** @var UserInterface $user */
             $user = $loginResult['user'];
             $token = $jwtManager->create($user);
+            $isAdmin = $user->isAdmin();
+
+            if ($isAdmin) {
+                $this->twoFactorAuthenticatorService->generateAndSend2FACode($user->getId(), $user->getEmail());
+
+                return new JsonResponse([
+                    'message' => 'Login successful! 2FA code sent.',
+                    'userId' => $user->getId(),
+                    'token' => $token,
+                    'isAdmin' => $isAdmin,
+                    'requires2FA' => true
+                ], Response::HTTP_OK);
+            }
 
             return new JsonResponse([
                 'message' => 'Login successful!',
-                'token' => $token
+                'token' => $token,
+                'isAdmin' => $isAdmin,
+                'requires2FA' => false
             ], Response::HTTP_OK);
         }
 
         return new JsonResponse(['message' => $loginResult['message']], $loginResult['status_code']);
     }
 
+
+    #[Route(path: '/api/verify-2fa', name: 'user_api_verify_2fa', methods: ['POST'])]
+    public function verify2FA(Request $request, JWTTokenManagerInterface $jwtManager): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+
+        if (!isset($data['user_id']) || !isset($data['code'])) {
+            return new JsonResponse(['message' => 'Missing required parameters.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $userId = $data['user_id'];
+        $submittedCode = $data['code'];
+
+        $storedCode = $this->twoFactorAuthenticatorService->get2FACode($userId);
+
+        if ($storedCode !== null && $storedCode === (int)$submittedCode) {
+            $this->twoFactorAuthenticatorService->invalidate2FACode($userId);
+
+            $user = $this->userService->getUserById($userId);
+            if (!$user) {
+                return new JsonResponse(['message' => 'Ooops, something went wrong.'], JsonResponse::HTTP_NOT_FOUND);
+            }
+
+            $token = $jwtManager->create($user);
+
+            return new JsonResponse(['message' => '2FA verification successful!', 'token' => $token], Response::HTTP_OK);
+        }
+
+        return new JsonResponse(['message' => 'Invalid or expired 2FA code.'], Response::HTTP_FORBIDDEN);
+    }
+
+    #[Route(path: '/api/resend-2fa', name: 'user_api_resend_2fa', methods: ['POST'])]
+    public function resend2FA(Request $request): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+
+        if (!isset($data['user_id'])) {
+            return new JsonResponse(['message' => 'Missing required parameters.'], JsonResponse::HTTP_BAD_REQUEST);
+        }
+
+        $userId = $data['user_id'];
+
+
+        $user = $this->userService->getUserById($userId);
+        if (!$user) {
+            return new JsonResponse(['message' => 'User not found.'], JsonResponse::HTTP_NOT_FOUND);
+        }
+
+        try {
+            $this->twoFactorAuthenticatorService->regenerateAndSend2FACode($userId, $user->getEmail());
+            return new JsonResponse(['message' => 'A new 2FA code has been sent to your email.'], JsonResponse::HTTP_OK);
+        } catch (\Exception $e) {
+            return new JsonResponse(['message' => 'Failed to resend 2FA code.'], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
 
     #[Route(path: '/api/register', name: 'user_api_register', methods: ['POST'])]
     public function apiRegister(Request $request, UserService $userService): JsonResponse
