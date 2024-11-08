@@ -88,7 +88,7 @@ const Homepage = () => {
     };
 
     const handleFilterChange = (e) => {
-        const {name, value} = e.target;
+        const { name, value } = e.target;
         setFilters({
             ...filters,
             [name]: value
@@ -193,7 +193,7 @@ const Homepage = () => {
                             placeholder="Search products..."
                             onChange={handleSearch}
                             className="form-control me-2"
-                            style={{width: '550px'}}
+                            style={{ width: '550px' }}
                         />
 
                         <div className="d-flex align-items-center">
