@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, {useState, useEffect, useCallback, useRef} from 'react';
 import axios from 'axios';
-import { Link, useNavigate } from 'react-router-dom';
-import { debounce } from "../components/debounce";
+import {Link, useNavigate} from 'react-router-dom';
+import {debounce} from "../components/debounce";
 import PlaceholderImage from "../assets/imgs/placeholder.jpg";
+import {useAlert} from "../provider/AlertProvider";
 
 const ProductsList = () => {
     const navigate = useNavigate();
@@ -25,6 +26,7 @@ const ProductsList = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [totalItems, setTotalItems] = useState(0);
     const itemsPerPage = 10;
+    const {showAlert} = useAlert();
 
     useEffect(() => {
         fetchProducts();
@@ -80,8 +82,8 @@ const ProductsList = () => {
     };
 
     const handleFilterChange = (e) => {
-        const { name, value } = e.target;
-        setFilters({ ...filters, [name]: value });
+        const {name, value} = e.target;
+        setFilters({...filters, [name]: value});
     };
 
     const applyFilters = () => {
@@ -94,12 +96,12 @@ const ProductsList = () => {
         if (confirmRestore) {
             try {
                 await axios.delete(`http://localhost/api/products/${id}`, {
-                    data: { action: 'restore' },
+                    data: {action: 'restore'},
                 });
-                alert('Product restored');
+                showAlert('Product restored successfully', "success");
                 fetchProducts();
             } catch (error) {
-                console.error('Error restoring product', error);
+                showAlert(`Error restoring product ${error}`, "error");
             }
         }
     };
@@ -121,7 +123,7 @@ const ProductsList = () => {
 
     const handleImageUpload = async (productId, file) => {
         if (!file) {
-            console.error("No file selected");
+            showAlert("No file selected", "error");
             return;
         }
         const formData = new FormData();
@@ -135,15 +137,13 @@ const ProductsList = () => {
             });
 
             if (response.status === 201 || response.status === 200) {
-                alert('Image uploaded successfully');
+                showAlert('Image uploaded successfully', "success");
                 fetchProducts();
             } else {
-                console.error('Failed to upload image:', response.data.message);
-                alert('Failed to upload image. Please try again.');
+                showAlert('Failed to upload image', "error");
             }
         } catch (error) {
-            console.error('Error uploading image:', error.response ? error.response.data : error.message);
-            alert('An error occurred while uploading the image.');
+            showAlert('An error occurred while uploading the image', "success");
         }
     };
 
@@ -210,10 +210,12 @@ const ProductsList = () => {
 
                 <div className="col-md-10">
                     <div className="text-center mb-4">
-                        <button onClick={() => handleStatusChange('active')} className={`btn ${status === 'active' ? 'btn-primary' : 'btn-secondary'}`}>
+                        <button onClick={() => handleStatusChange('active')}
+                                className={`btn ${status === 'active' ? 'btn-primary' : 'btn-secondary'}`}>
                             Active Products
                         </button>
-                        <button onClick={() => handleStatusChange('deleted')} className={`btn ${status === 'deleted' ? 'btn-primary' : 'btn-secondary'}`}>
+                        <button onClick={() => handleStatusChange('deleted')}
+                                className={`btn ${status === 'deleted' ? 'btn-primary' : 'btn-secondary'}`}>
                             Deleted Products
                         </button>
                     </div>
@@ -224,7 +226,7 @@ const ProductsList = () => {
                             placeholder="Search products..."
                             onChange={handleSearch}
                             className="form-control me-2"
-                            style={{ width: '550px' }}
+                            style={{width: '550px'}}
                         />
                         <div className="d-flex align-items-center">
                             <label className="me-2">Sort By:</label>
@@ -232,7 +234,7 @@ const ProductsList = () => {
                                 value={sortOption}
                                 onChange={handleSortChange}
                                 className="form-select"
-                                style={{ width: '200px' }}
+                                style={{width: '200px'}}
                             >
                                 <option value="name_asc">Name (A-Z)</option>
                                 <option value="name_desc">Name (Z-A)</option>
@@ -262,7 +264,7 @@ const ProductsList = () => {
                                                         type="file"
                                                         ref={(el) => (fileInputRefs.current[product.id] = el)}
                                                         onChange={(e) => handleFileChange(product.id, e)}
-                                                        style={{ display: 'none' }}
+                                                        style={{display: 'none'}}
                                                     />
                                                 </label>
                                             </div>

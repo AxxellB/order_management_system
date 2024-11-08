@@ -11,6 +11,7 @@ import {
 import axios from "axios";
 import {debounce} from "../components/debounce";
 import {Link} from 'react-router-dom';
+import {useAlert} from "../provider/AlertProvider";
 
 
 const InventoryManagement = () => {
@@ -22,6 +23,7 @@ const InventoryManagement = () => {
     const [searchTerm, setSearchTerm] = useState("");
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
+    const {showAlert} = useAlert();
 
     useEffect(() => {
         fetchProducts(currentPage);
@@ -53,8 +55,7 @@ const InventoryManagement = () => {
             setTotalItems(response.data.totalItems);
             setLoading(false);
         } catch (error) {
-            console.error("Error fetching products:", error);
-            setError("Failed to fetch products. Please try again.");
+            showAlert("Failed to fetch products. Please try again.", 'error');
             setLoading(false);
         }
     };
@@ -85,7 +86,7 @@ const InventoryManagement = () => {
         const quantity = prompt("Enter the quantity to restock:");
 
         if (!quantity || isNaN(quantity) || quantity <= 0) {
-            setError("Invalid quantity entered.");
+            showAlert("Invalid quantity entered.", "error");
             return;
         }
 
@@ -94,8 +95,7 @@ const InventoryManagement = () => {
                 quantity: parseInt(quantity, 10),
             });
 
-            setMessage(`Stock updated successfully for product ID ${id}`);
-            setError("");
+            showAlert(`Stock updated successfully for product ID ${id}`, "success");
 
             setProducts((prevProducts) =>
                 prevProducts.map((product) =>
@@ -105,8 +105,7 @@ const InventoryManagement = () => {
                 )
             );
         } catch (error) {
-            console.error("Error updating stock:", error);
-            setError("Failed to update stock. Please try again.");
+            showAlert("Failed to update stock", 'error');
         }
     };
 

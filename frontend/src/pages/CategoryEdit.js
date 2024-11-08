@@ -1,23 +1,25 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import axios from 'axios';
-import { useParams, useNavigate } from 'react-router-dom';
+import {useParams, useNavigate} from 'react-router-dom';
+import {useAlert} from "../provider/AlertProvider";
 
 const EditCategory = () => {
-    const { id } = useParams();
+    const {id} = useParams();
     const [formData, setFormData] = useState({
         name: ''
     });
     const [errors, setErrors] = useState({});
     const navigate = useNavigate();
+    const {showAlert} = useAlert();
 
     useEffect(() => {
         const fetchCategory = async () => {
             try {
                 const response = await axios.get(`http://localhost/api/categories/${id}`);
 
-                setFormData({ name: response.data.name });
+                setFormData({name: response.data.name});
             } catch (err) {
-                console.error('Error fetching category:', err);
+                showAlert(`Error fetching category: ${err}`, "error");
             }
         };
 
@@ -37,15 +39,15 @@ const EditCategory = () => {
         e.preventDefault();
         try {
             await axios.put(`http://localhost/api/categories/${id}`, formData, {
-                headers: { 'Content-Type': 'application/json' }
+                headers: {'Content-Type': 'application/json'}
             });
-            alert('Category updated successfully');
+            showAlert('Category updated successfully', "success");
             navigate('/admin/categories');
         } catch (error) {
             if (error.response && error.response.data.errors) {
                 setErrors(error.response.data.errors);
             } else {
-                console.error('Error updating category:', error);
+                showAlert(`Error updating category:, ${error}`, "error");
             }
         }
     };

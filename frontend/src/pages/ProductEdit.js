@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import axios from 'axios';
-import { useParams, useNavigate } from 'react-router-dom';
+import {useParams, useNavigate} from 'react-router-dom';
+import {useAlert} from "../provider/AlertProvider";
 
 const EditProduct = () => {
-    const { id } = useParams();
+    const {id} = useParams();
     const [formData, setFormData] = useState({
         name: '',
         price: '',
@@ -13,6 +14,7 @@ const EditProduct = () => {
     const [availableCategories, setAvailableCategories] = useState([]);
     const [errors, setErrors] = useState({});
     const navigate = useNavigate();
+    const {showAlert} = useAlert();
 
     useEffect(() => {
         fetchProduct();
@@ -27,7 +29,7 @@ const EditProduct = () => {
                 categories: response.data.categories.map(category => category.id)
             });
         } catch (err) {
-            console.error(err);
+            showAlert("Error fetching product data", "error");
         }
     };
 
@@ -35,8 +37,8 @@ const EditProduct = () => {
         try {
             const response = await axios.get('http://localhost/api/categories/list?filter=true');
             setAvailableCategories(response.data.categories || []);
-        } catch (err) {
-            console.error('Error fetching categories:', err);
+        } catch {
+            showAlert('Error fetching categories', "error");
         }
     };
 
@@ -63,7 +65,7 @@ const EditProduct = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        const { categories, name, price, description } = formData;
+        const {categories, name, price, description} = formData;
         const preparedData = {
             categories,
             name,
@@ -71,18 +73,16 @@ const EditProduct = () => {
             description
         };
 
-        console.log("Prepared Data to Send:", preparedData);
-
         try {
             const response = await axios.put(`http://localhost/api/products/${id}`, preparedData);
-            alert('Product updated successfully');
+            showAlert('Product updated successfully', "success");
             navigate('/admin/products');
         } catch (error) {
             if (error.response && error.response.data) {
-                console.error("Server validation errors:", error.response.data.errors);
+                showAlert(`Server validation errors:", ${error.response.data.errors}`, "error");
                 setErrors(error.response.data.errors || {});
             } else {
-                console.error("Unexpected error:", error);
+                showAlert(`Unexpected error:, ${error}`, "error");
             }
         }
     };
