@@ -1,0 +1,28 @@
+.alert {
+    position: fixed;
+    top: 70px;
+    right: -6%;
+    transform: translateX(-50%);
+    padding: 1em;
+    color: white;
+    border-radius: 5px;
+    z-index: 1000;
+    max-width: 80%;
+    text-align: center;
+}
+
+.alert-info {
+    background-color: #2196F3;
+}
+
+.alert-success {
+    background-color: #4CAF50;
+}
+
+.alert-warning {
+    background-color: #FF9800;
+}
+
+.alert-error {
+    background-color: #F44336;
+}

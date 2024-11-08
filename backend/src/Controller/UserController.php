@@ -63,11 +63,11 @@ class UserController extends AbstractController
 
         $registrationResult = $userService->register($data);
 
-        if ($registrationResult['success']) {
-            return new JsonResponse(['message' => 'User created!'], Response::HTTP_CREATED);
+        if ($registrationResult['status_code'] == Response::HTTP_CREATED) {
+            return new JsonResponse(['user' => $registrationResult['user_id']], $registrationResult['status_code']);
         }
 
-        return new JsonResponse(['message' => $registrationResult['message']], $registrationResult['status_code']);
+        return new JsonResponse(['errors' => $registrationResult['errors']], $registrationResult['status_code']);
     }
 
     #[Route(path: '/api/user-profile', name: 'api_user_profile', methods: ['GET'])]
