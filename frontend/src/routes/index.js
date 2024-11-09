@@ -31,6 +31,7 @@ import BulkProductRestock from "../components/BulkProductRestock";
 import {AdminRoute} from "./AdminRoute";
 import NotFound from "../pages/NotFound";
 import OrderSuccessPage from "../pages/OrderSuccessPage";
+import AdminDashboard from "../pages/AdminDashboard";
 
 const Routes = () => {
     const { token } = useAuth();
@@ -62,6 +63,10 @@ const Routes = () => {
                 path: "/",
                 element: <Layout />,
                 children: [
+                    {
+                        path: "/admin/dashboard",
+                        element: <AdminDashboard />,
+                    },
                     {
                         path: "/admin/categories",
                         element: <CategoriesList />,
