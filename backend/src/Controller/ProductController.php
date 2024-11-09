@@ -6,6 +6,7 @@ use App\Entity\Product;
 use App\Form\ProductType;
 use App\Service\ProductService;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -87,6 +88,32 @@ class ProductController extends AbstractController
         $jsonProduct = $serializer->serialize($product, 'json', ['groups' => 'product:read']);
         return new JsonResponse($jsonProduct, Response::HTTP_OK, [], true);
     }
+
+    #[Route('/randomised', name: 'api_product_randomised', methods: ['GET'])]
+    public function fetchRandomProducts(Request $request): JsonResponse
+    {
+        $limit = $request->query->getInt('limit', 5);
+
+        try {
+            $products = $this->productService->getRandomProducts($limit);
+
+            $productData = array_map(function ($product) {
+                return [
+                    'id' => $product->getId(),
+                    'name' => $product->getName(),
+                    'price' => $product->getPrice(),
+                    'description' => $product->getDescription(),
+                    'stockQuantity' => $product->getStockQuantity(),
+                    'image' => $product->getImage(),
+                ];
+            }, $products);
+
+            return new JsonResponse(['products' => $productData], Response::HTTP_OK);
+        } catch (\Exception $e) {
+            return new JsonResponse(['error' => 'Could not fetch random products'], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
 
     #[Route('/available/list', name: 'api_available_products', methods: ['GET'])]
     public function availableProducts(Request $request, SerializerInterface $serializer): JsonResponse

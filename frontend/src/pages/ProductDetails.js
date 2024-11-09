@@ -1,14 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import axios from 'axios';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import {useParams, Link, useNavigate} from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import {useAlert} from "../provider/AlertProvider";
 
 const ProductDetails = () => {
-    const { id } = useParams();
+    const {id} = useParams();
     const navigate = useNavigate();
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const {showAlert} = useAlert();
 
     useEffect(() => {
         fetchProduct();
@@ -28,15 +30,15 @@ const ProductDetails = () => {
     const handleSoftDelete = async () => {
         const confirmDelete = window.confirm('Are you sure you want to delete this product?');
 
-        if (confirmDelete){
+        if (confirmDelete) {
             try {
                 await axios.delete(`http://localhost/api/products/${id}`, {
-                    data: { action: 'delete' },
+                    data: {action: 'delete'},
                 });
-                alert('Product successfully soft deleted');
+                showAlert('Product successfully soft deleted', "success");
                 navigate('/admin/products');
             } catch (err) {
-                alert('Error deleting product');
+                showAlert('Error deleting product', "error");
             }
         }
 
@@ -45,13 +47,13 @@ const ProductDetails = () => {
     const handleRestore = async () => {
         const confirmRestore = window.confirm('Are you sure you want to restore this product?');
 
-        if(confirmRestore){
+        if (confirmRestore) {
             try {
-                await axios.delete(`http://localhost/api/products/${id}`, {data: { action: 'restore' },});
-                alert('Product successfully restored');
+                await axios.delete(`http://localhost/api/products/${id}`, {data: {action: 'restore'},});
+                showAlert('Product successfully restored', "success");
                 navigate('/admin/products')
             } catch (err) {
-                alert('Error restoring product');
+                showAlert('Error restoring product', "error");
             }
         }
 

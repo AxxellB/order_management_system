@@ -27,6 +27,32 @@ class ProductRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
     }
 
+    public function findRandomProducts(int $limit = 5): array
+    {
+        // Step 1: Get an array of product IDs, excluding deleted products
+        $ids = $this->createQueryBuilder('p')
+            ->select('p.id')
+            ->where('p.deletedAt IS NULL')
+            ->getQuery()
+            ->getArrayResult();
+
+        // Step 2: Extract IDs and shuffle them
+        $idList = array_column($ids, 'id');
+        shuffle($idList);
+
+        // Step 3: Select a subset of random IDs based on the limit
+        $randomIds = array_slice($idList, 0, $limit);
+
+        // Step 4: Fetch the products with the random IDs
+        return $this->createQueryBuilder('p')
+            ->leftJoin('p.categories', 'c')
+            ->addSelect('c')
+            ->where('p.id IN (:randomIds)')
+            ->setParameter('randomIds', $randomIds)
+            ->getQuery()
+            ->getResult();
+    }
+
     public function findByCriteriaAndOrder(array $criteria, array $orderBy, ?string $search = null, int $page = 1, int $itemsPerPage = 10): array
     {
         $qb = $this->createQueryBuilder('p');

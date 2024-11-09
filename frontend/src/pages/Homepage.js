@@ -1,12 +1,16 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import axios from 'axios';
 import '../styles/Homepage.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
-import { addToBasket } from '../services/basketService';
-import { canAddToBasket } from "../services/productService";
-import { debounce } from "../components/debounce";
+import {addToBasket} from '../services/basketService';
+import {canAddToBasket} from "../services/productService";
+import {debounce} from "../components/debounce";
 import PlaceholderImage from "../assets/imgs/placeholder.jpg";
+import {useAlert} from "../provider/AlertProvider";
+import {useAuth} from "../provider/AuthProvider";
+import styles from "../styles/ProductPage.module.css";
 
 const Homepage = () => {
     const [products, setProducts] = useState([]);
@@ -26,6 +30,9 @@ const Homepage = () => {
 
     const [searchTerm, setSearchTerm] = useState("");
     const [sortOption, setSortOption] = useState("name_asc");
+
+    const {showAlert} = useAlert();
+    const {token} = useAuth();
 
     useEffect(() => {
         fetchCategories();
@@ -93,26 +100,25 @@ const Homepage = () => {
         fetchProducts();
     };
 
-    const handleAddToBasket = async (productId, quantity) => {
-        try {
-            const result = await canAddToBasket(productId, quantity);
+    const handleAddToBasket = async (productId, productName, quantity) => {
+        if (!token) {
+            showAlert("You must be logged in to add products to the basket.", "error");
+            return;
+        }
 
-            if (result === null) {
-                await addToBasket(productId, quantity);
-                alert('Product added to basket successfully.');
-            } else {
-                alert(`Insufficient stock quantity. Only ${result} items are available.`);
+        try {
+            const stockResult = await canAddToBasket(productId, quantity);
+            if (stockResult !== null) {
+                showAlert(`Insufficient stock quantity. Only ${stockResult} ${productName} available.`, "error");
+                return;
             }
+
+            await addToBasket(productId, productName, quantity, showAlert);
         } catch (error) {
-            if (error.response && error.response.status === 401) {
-                alert('You must be logged in to add products to the basket.');
-            } else {
-                console.error('Error adding to basket:', error);
-                alert('An error occurred while adding the product to the basket. Please try again.');
-            }
+            console.error('Error adding to basket:', error);
+            showAlert("An error occurred while adding the product to the basket. Please try again.", "error");
         }
     };
-
     const getImageUrl = (imageName) => {
         return imageName ? `http://localhost/api/file/${imageName}` : PlaceholderImage;
     };
@@ -207,8 +213,8 @@ const Homepage = () => {
                         </div>
                     </div>
 
-                        {loading ? (
-                            <div className="text-center mt-5">Loading...</div>
+                    {loading ? (
+                        <div className="text-center mt-5">Loading...</div>
                     ) : error ? (
                         <div className="text-center text-danger mt-5">Error: {error}</div>
                     ) : (
@@ -217,14 +223,18 @@ const Homepage = () => {
                                 products.map(product => (
                                     <div key={product.id} className="card mb-4 shadow-sm">
                                         <div className="image-container">
-                                            <img
-                                                src={getImageUrl(product.image)}
-                                                alt={product.name}
-                                                className="product-image"
-                                            />
+                                            <Link to={`/product/${product.id}`}>
+                                                <img
+                                                    src={getImageUrl(product.image)}
+                                                    alt={product.name}
+                                                    className="product-image"
+                                                />
+                                            </Link>
                                         </div>
                                         <div className="card-body">
-                                            <h5 className="card-title">{product.name}</h5>
+                                            <Link to={`/product/${product.id}`} className="homepage-title-link">
+                                                <h5 className="card-title" id={product.name}>{product.name}</h5>
+                                            </Link>
                                             <p className="card-price">Price: ${Number(product.price).toFixed(2)}</p>
 
                                             <div className="d-flex justify-content-end align-items-center">
@@ -242,7 +252,7 @@ const Homepage = () => {
                                                             onClick={() => {
                                                                 const quantity = parseInt(document.getElementById(`quantity-${product.id}`).value, 10);
                                                                 if (quantity > 0) {
-                                                                    handleAddToBasket(product.id, quantity);
+                                                                    handleAddToBasket(product.id, product.name, quantity);
                                                                 } else {
                                                                     alert('Invalid quantity');
                                                                 }
@@ -264,7 +274,7 @@ const Homepage = () => {
                                 <div>No products found.</div>
                             )}
                         </div>
-                        )}
+                    )}
 
                     <nav className="mt-4">
                         <ul className="pagination justify-content-center">

@@ -1,14 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, {useState, useEffect} from 'react';
+import {useNavigate} from 'react-router-dom';
 import axios from "axios";
-import { clearBasket, removeProduct, updateQuantity } from "../services/basketService";
-import { hasAvailableQuantity } from '../services/productService';
+import {clearBasket, removeProduct, updateQuantity} from "../services/basketService";
+import {hasAvailableQuantity} from '../services/productService';
 import '../styles/Basket.css';
+import {useAlert} from "../provider/AlertProvider";
 
 const Basket = () => {
     const [basket, setBasket] = useState([]);
     const [totalPrice, setTotalPrice] = useState(0);
     const [loading, setLoading] = useState(true);
+    const {showAlert} = useAlert();
 
     const navigate = useNavigate();
 
@@ -20,9 +22,9 @@ const Basket = () => {
                     const stockQuantity = await hasAvailableQuantity(item.product.id, item.quantity);
                     if (stockQuantity !== null) {
                         await updateQuantity(item.product.id, stockQuantity);
-                        return { ...item, quantity: stockQuantity, stockWarning: true };
+                        return {...item, quantity: stockQuantity, stockWarning: true};
                     }
-                    return { ...item, stockWarning: false };
+                    return {...item, stockWarning: false};
                 }));
                 setBasket(basketItems);
             } catch (error) {
@@ -59,17 +61,18 @@ const Basket = () => {
             setBasket((prevBasket) => {
                 return prevBasket.map((item) => {
                     if (item.product.id === productId) {
-                        return { ...item, quantity: stockQuantity, stockWarning: true };
+                        return {...item, quantity: stockQuantity, stockWarning: true};
                     }
                     return item;
                 });
             });
+            showAlert("New quantity exceeds stock quantity", "error");
         } else {
             await updateQuantity(productId, newQuantity);
             setBasket((prevBasket) => {
                 return prevBasket.map((item) => {
                     if (item.product.id === productId) {
-                        return { ...item, quantity: newQuantity, stockWarning: false };
+                        return {...item, quantity: newQuantity, stockWarning: false};
                     }
                     return item;
                 });
@@ -78,23 +81,36 @@ const Basket = () => {
     };
 
     const handleRemoveProduct = async (productId) => {
-        await removeProduct(productId);
+        try {
+            await removeProduct(productId);
 
-        setBasket((prevBasket) => {
-            const updatedBasket = prevBasket.filter(item => item.product.id !== productId);
-            const newTotalPrice = updatedBasket.reduce(
-                (acc, item) => acc + item.product.price * item.quantity,
-                0
-            );
-            setTotalPrice(newTotalPrice);
-            return updatedBasket;
-        });
+            setBasket((prevBasket) => {
+                const updatedBasket = prevBasket.filter(item => item.product.id !== productId);
+                const newTotalPrice = updatedBasket.reduce(
+                    (acc, item) => acc + item.product.price * item.quantity,
+                    0
+                );
+                setTotalPrice(newTotalPrice);
+                return updatedBasket;
+            });
+            showAlert("Product removed successfully!", "success");
+        } catch (error) {
+            console.error(error);
+            showAlert("An error occurred while removing a product! Please try again", error);
+        }
+
     };
 
     const handleClearBasket = async () => {
-        await clearBasket();
-        setBasket([]);
-        setTotalPrice(0);
+        try {
+            await clearBasket();
+            setBasket([]);
+            setTotalPrice(0);
+            showAlert("Basket cleared successfully!", "success");
+        } catch (error) {
+            console.error(error);
+            showAlert("An error occurred while clearing basket! Please try again", error);
+        }
     };
 
     const handleCheckout = () => {

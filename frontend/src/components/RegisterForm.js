@@ -1,6 +1,8 @@
-import React, { useState } from "react";
+import React, {useState} from "react";
 import axios from "axios";
 import {useNavigate} from "react-router-dom";
+import {useAlert} from "../provider/AlertProvider";
+import {forEach} from "react-bootstrap/ElementChildren";
 
 const RegisterForm = () => {
     const [formData, setFormData] = useState({
@@ -13,10 +15,11 @@ const RegisterForm = () => {
 
     const navigate = useNavigate();
     const [errors, setErrors] = useState({});
+    const {showAlert} = useAlert();
 
     const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData({ ...formData, [name]: value });
+        const {name, value} = e.target;
+        setFormData({...formData, [name]: value});
     };
 
     const handleSubmit = (e) => {
@@ -33,8 +36,6 @@ const RegisterForm = () => {
         if (!email) formErrors.email = "Email is required";
         if (!password) formErrors.password = "Password is required";
         if (!confirmPassword) formErrors.confirmPassword = "Confirm Password is required";
-        if (password !== confirmPassword)
-            formErrors.confirmPassword = "Passwords do not match";
 
         setErrors(formErrors);
 
@@ -47,18 +48,22 @@ const RegisterForm = () => {
                 confirmPassword
             })
                 .then(function (response) {
-                    console.log(response);
                     if (response.status === 201) {
                         navigate('/login');
-                    } else {
-                        alert(response.data.message);
                     }
                 })
                 .catch(function (error) {
-                    if (error.response) {
-                        alert(error.response.data.message || "An error occurred. Please try again.");
+                    if (error.response && error.response.data.errors) {
+                        const apiErrors = error.response.data.errors;
+                        const formErrors = {};
+
+                        Object.entries(apiErrors).forEach(([field, messages]) => {
+                            formErrors[field] = messages.join(' ');
+                        });
+
+                        setErrors(formErrors);
                     } else {
-                        alert("Network error: " + error.message);
+                        showAlert("An error occurred. Please try again.");
                     }
                 });
         }

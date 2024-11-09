@@ -1,5 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {getAddresses, addAddress, editAddress, deleteAddress} from '../services/addressService';
+import {useAlert} from "../provider/AlertProvider";
+import {useAuth} from "../provider/AuthProvider";
 
 const AddressTab = () => {
     const [addresses, setAddresses] = useState([]);
@@ -16,22 +18,26 @@ const AddressTab = () => {
     const [showForm, setShowForm] = useState(false);
     const [showEditForm, setShowEditForm] = useState(false);
     const [loading, setLoading] = useState(false);
+    const {showAlert} = useAlert();
+    const {token} = useAuth();
 
     useEffect(() => {
+        setLoading(true);
         const fetchAddresses = async () => {
-            setLoading(true);
             try {
                 const fetchedAddresses = await getAddresses();
                 setAddresses(fetchedAddresses);
-                setLoading(false);
             } catch (error) {
-                console.log('Failed to load addresses: ', error);
+                showAlert('Failed to load addresses', "error");
+            } finally {
                 setLoading(false);
             }
         };
 
-        fetchAddresses();
-    }, []);
+        if (token) {
+            fetchAddresses();
+        }
+    }, [token]);
 
     const handleAddAddress = async (e) => {
         e.preventDefault();
@@ -40,11 +46,11 @@ const AddressTab = () => {
             await addAddress(newAddress);
             setAddresses([...addresses, newAddress]);
             setNewAddress({line: '', line2: '', city: '', country: '', postcode: ''});
-            setSuccess('Address added successfully');
+            showAlert('Address added successfully', "success");
             setError(null);
             setShowForm(false);
         } catch {
-            setError('Failed to add address');
+            showAlert('Failed to add address', "error");
         } finally {
             setLoading(false);
         }
@@ -53,17 +59,18 @@ const AddressTab = () => {
     const handleEditAddress = async (e) => {
         e.preventDefault();
         setLoading(true);
+        const {id, ...addressData} = editAddressData;
         try {
-            await editAddress(editAddressData.id, editAddressData);
+            await editAddress(id, addressData);
             setAddresses(addresses.map(address =>
                 address.id === editAddressData.id ? editAddressData : address
             ));
             setEditAddressData(null);
-            setSuccess('Address updated successfully');
+            showAlert('Address updated successfully', "success");
             setError(null);
             setShowEditForm(false);
         } catch {
-            setError('Failed to update address');
+            showAlert('Failed to update address', "error");
         } finally {
             setLoading(false);
         }
@@ -74,9 +81,9 @@ const AddressTab = () => {
         try {
             await deleteAddress(id);
             setAddresses(addresses.filter(address => address.id !== id));
-            setSuccess('Address deleted successfully');
+            showAlert('Address deleted successfully', "success");
         } catch {
-            setError('Failed to delete address');
+            showAlert('Failed to delete address', "error");
         } finally {
             setLoading(false);
         }
@@ -104,16 +111,16 @@ const AddressTab = () => {
     return (
         <div className="container mt-4">
 
-            <h2 className="mb-4">My Addresses</h2>
-
-            {success && <p className="text-success">{success}</p>}
-
             {loading && (
                 <div className="d-flex justify-content-center">
                     <div className="spinner-border text-primary" role="status">
                         <span className="visually-hidden">Loading...</span>
                     </div>
                 </div>
+            )}
+
+            {addresses && addresses.length > 0 && (
+                <h2 className="mb-4">My Addresses</h2>
             )}
 
             <div className="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-4">
@@ -143,12 +150,14 @@ const AddressTab = () => {
                             </div>
                         </div>
                     ))
-                ) : (
-                    <p>You don't have any addresses.</p>
-                )}
+                ) : <></>}
             </div>
 
-            {!showForm && (
+            {!loading && !addresses && (
+                <p>You don't have any addresses.</p>
+            )}
+
+            {!showForm && !loading && (
                 <button
                     onClick={() => setShowForm(true)}
                     className="btn btn-success"

@@ -2,6 +2,7 @@ import React, {useState, useEffect} from 'react';
 import {useNavigate, useParams} from 'react-router-dom';
 import axios from 'axios';
 import '../styles/EditOrderForm.css';
+import {useAlert} from "../provider/AlertProvider";
 
 const EditOrderForm = ({
                            onFinishEditing = () => {
@@ -21,6 +22,7 @@ const EditOrderForm = ({
     const [showProductForm, setShowProductForm] = useState(false);
     const [selectedProductId, setSelectedProductId] = useState('');
     const [selectedQuantity, setSelectedQuantity] = useState(1);
+    const {showAlert} = useAlert();
 
     useEffect(() => {
         const fetchAvailableProducts = async () => {
@@ -28,7 +30,7 @@ const EditOrderForm = ({
                 const response = await axios.get('http://localhost/api/products/available/list');
                 setAvailableProducts(response.data);
             } catch (error) {
-                console.error('Error fetching available products:', error);
+                showAlert('Error fetching available products:', 'error');
             }
         };
 
@@ -55,7 +57,7 @@ const EditOrderForm = ({
                 setStatus(response.data.status || '');
                 setLoading(false);
             } catch (error) {
-                setError(error.message);
+                showAlert("Error loading order", "error");
                 setLoading(false);
             }
         };
@@ -88,12 +90,12 @@ const EditOrderForm = ({
         );
 
         if (!selectedProduct) {
-            alert('Please select a valid product.');
+            showAlert('Please select a valid product.', 'error');
             return;
         }
 
         if (selectedQuantity <= 0 || selectedQuantity > selectedProduct.stockQuantity) {
-            alert(`Please enter a quantity between 1 and ${selectedProduct.stockQuantity}.`);
+            showAlert(`Please enter a quantity between 1 and ${selectedProduct.stockQuantity}.`);
             return;
         }
 
@@ -148,7 +150,8 @@ const EditOrderForm = ({
             });
 
             if (response.status !== 200) {
-                throw new Error('Failed to update order.');
+                showAlert('Failed to update order.', "error");
+                return
             }
 
             setProductError(null);
@@ -156,7 +159,7 @@ const EditOrderForm = ({
             navigate('/admin/orders');
 
         } catch (error) {
-            console.error('Error updating order:', error);
+            showAlert('Error updating order:', "error");
             setError('You cannot modify this order because the status is completed');
         }
     };

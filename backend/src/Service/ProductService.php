@@ -32,6 +32,11 @@ class ProductService
         return $product;
     }
 
+    public function getRandomProducts(int $limit): array
+    {
+        return $this->productRepository->findRandomProducts($limit);
+    }
+
     public function getFilteredAndOrderedProducts(array $criteria, array $orderBy, ?string $search = null, int $page, int $itemsPerPage): array
     {
         return $this->productRepository->findByCriteriaAndOrder($criteria, $orderBy, $search, $page, $itemsPerPage);

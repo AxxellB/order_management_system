@@ -6,6 +6,7 @@ import {Link} from 'react-router-dom';
 import axios from 'axios';
 import {debounce} from "../components/debounce";
 import {Pagination, Spinner, OverlayTrigger, Tooltip} from 'react-bootstrap';
+import {useAlert} from "../provider/AlertProvider";
 
 const OrderList = () => {
     const [orders, setOrders] = useState([]);
@@ -16,6 +17,7 @@ const OrderList = () => {
     const [totalItems, setTotalItems] = useState(0);
     const itemsPerPage = 10;
     const [searchTerm, setSearchTerm] = useState("");
+    const {showAlert} = useAlert();
 
     useEffect(() => {
         fetchOrders(page);
@@ -35,7 +37,7 @@ const OrderList = () => {
             setOrders(response.data.orders || []);
             setTotalItems(response.data.totalItems || 0);
         } catch (error) {
-            setError("Failed to fetch orders. Please try again.");
+            showAlert("Failed to fetch orders. Please try again.", "error");
         } finally {
             setLoading(false);
         }
@@ -48,8 +50,9 @@ const OrderList = () => {
         try {
             await axios.delete(`/api/order/${orderId}`);
             setOrders(orders.filter(order => order.id !== orderId));
+            showAlert("Order deleted successfully", 'success');
         } catch (error) {
-            console.error('Error deleting order:', error);
+            showAlert("Error occurred while deleting order. Please try again", 'error');
         }
     };
 
@@ -60,12 +63,13 @@ const OrderList = () => {
         try {
             const response = await axios.delete(`/api/order/${orderId}`);
             if (response.status !== 200) {
-                throw new Error('Failed to restore order.');
+                showAlert("An error occurred. Please try again", 'error');
+                return;
             }
 
             setOrders(orders.filter(order => order.id !== orderId));
         } catch (error) {
-            console.error('Error restoring order:', error);
+            showAlert("Error occurred while restoring order. Please try again", 'error');
         }
     };
 
@@ -156,7 +160,8 @@ const OrderList = () => {
                                                         </button>
                                                     </OverlayTrigger>
                                                 ) : (
-                                                    <Link to={`/admin/order/${order.id}`} className="btn btn-primary me-2">
+                                                    <Link to={`/admin/order/${order.id}`}
+                                                          className="btn btn-primary me-2">
                                                         Edit
                                                     </Link>
                                                 )}

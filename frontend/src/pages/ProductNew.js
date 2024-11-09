@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import {useNavigate} from 'react-router-dom';
+import {useAlert} from "../provider/AlertProvider";
 
 const NewProduct = () => {
     const [formData, setFormData] = useState({
@@ -12,7 +13,7 @@ const NewProduct = () => {
     const [availableCategories, setAvailableCategories] = useState([]);
     const [errors, setErrors] = useState({});
     const navigate = useNavigate();
-
+    const {showAlert} = useAlert();
     useEffect(() => {
         fetchCategories();
     }, []);
@@ -22,7 +23,7 @@ const NewProduct = () => {
             const response = await axios.get('http://localhost/api/categories/list?filter=true');
             setAvailableCategories(response.data.categories || []);
         } catch (err) {
-            console.error('Error fetching categories:', err);
+            showAlert(`Error fetching categories: ${err}`, "error");
         }
     };
 
@@ -49,7 +50,7 @@ const NewProduct = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        const { categories, name, price, description } = formData;
+        const {categories, name, price, description} = formData;
         const preparedData = {
             categories,
             name,
@@ -59,14 +60,14 @@ const NewProduct = () => {
 
         try {
             const response = await axios.post('http://localhost/api/products/new', preparedData);
-            alert('Product created successfully');
+            showAlert('Product created successfully', "success");
             navigate('/admin/products');
         } catch (error) {
             if (error.response && error.response.data) {
-                console.error("Server validation errors:", error.response.data.errors);
+                showAlert("Product could not be created! Please try again", "error")
                 setErrors(error.response.data.errors || {});
             } else {
-                console.error("Unexpected error:", error);
+                showAlert("Unexpected error:", "error");
             }
         }
     };
