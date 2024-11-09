@@ -16,27 +16,6 @@ class OrderRepository extends ServiceEntityRepository
         parent::__construct($registry, Order::class);
     }
 
-    public function findActiveOrders(): array
-    {
-        return $this->createQueryBuilder('o')
-            ->where('o.deletedAt IS NULL')
-            ->getQuery()
-            ->getResult();
-    }
-
-    public function findByStatus(string $status)
-    {
-        $queryBuilder = $this->createQueryBuilder('o');
-
-        if ($status === 'active') {
-            $queryBuilder->where('o.deletedAt IS NULL');
-        } elseif ($status === 'deleted') {
-            $queryBuilder->where('o.deletedAt IS NOT NULL');
-        }
-
-        return $queryBuilder->getQuery()->getResult();
-    }
-
     public function countOrdersByStatusAndSearch($status, $search)
     {
         $queryBuilder = $this->createQueryBuilder('o')
@@ -79,5 +58,19 @@ class OrderRepository extends ServiceEntityRepository
         }
 
         return $queryBuilder->getQuery()->getResult();
+    }
+
+    public function totalRevenue(\DateTimeInterface $startDate, \DateTimeInterface $endDate): array
+    {
+        $qb = $this->createQueryBuilder('o')
+            ->select('o.orderDate AS orderDate', 'SUM(o.totalAmount) AS revenue')
+            ->where('o.orderDate BETWEEN :startDate AND :endDate')
+            ->setParameter('startDate', $startDate)
+            ->setParameter('endDate', $endDate)
+            ->groupBy('orderDate')
+            ->orderBy('orderDate', 'ASC')
+            ->getQuery();
+
+        return $qb->getResult();
     }
 }

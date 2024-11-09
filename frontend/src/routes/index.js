@@ -31,6 +31,7 @@ import BulkProductRestock from "../components/BulkProductRestock";
 import {AdminRoute} from "./AdminRoute";
 import NotFound from "../pages/NotFound";
 import OrderSuccessPage from "../pages/OrderSuccessPage";
+import AdminDashboard from "../pages/AdminDashboard";
 import ProductPage from "../pages/ProductPage";
 
 const Routes = () => {
@@ -63,6 +64,10 @@ const Routes = () => {
                 path: "/",
                 element: <Layout />,
                 children: [
+                    {
+                        path: "/admin/dashboard",
+                        element: <AdminDashboard />,
+                    },
                     {
                         path: "/admin/categories",
                         element: <CategoriesList />,

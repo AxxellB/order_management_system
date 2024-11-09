@@ -31,6 +31,11 @@ const AdminSidebar = () => {
                         <h1>Admin</h1>
                         <ul className={styles.adminSidebarList}>
                             <li className={styles.adminSidebarItem} style={{'--i': 1}}>
+                                <Link to="/admin/dashboard" className={styles.adminSidebarLink}>
+                                    <i className="fa-solid fa-chart-simple"></i> Dashboard
+                                </Link>
+                            </li>
+                            <li className={styles.adminSidebarItem} style={{'--i': 1}}>
                                 <Link to="/admin/products" className={styles.adminSidebarLink}>
                                     <i className="fa-solid fa-cube"></i> Products
                                 </Link>
