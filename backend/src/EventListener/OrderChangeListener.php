@@ -35,7 +35,7 @@ class OrderChangeListener implements EventSubscriberInterface
     {
         $entity = $event->getObject();
 
-        if ($entity instanceof Order || $entity instanceof OrderProduct || $entity instanceof Address) {
+        if ($entity instanceof Order || $entity instanceof OrderProduct || ($entity instanceof Address && $this->isAddressLinkedToOrder($entity))) {
             $action = 'update';
 
             $unitOfWork = $event->getObjectManager()->getUnitOfWork();
@@ -58,7 +58,11 @@ class OrderChangeListener implements EventSubscriberInterface
 
     public function postPersist(LifecycleEventArgs $event): void
     {
-        $this->logOrderChanges($event, 'add');
+        $entity = $event->getObject();
+
+        if ($entity instanceof Order || $entity instanceof OrderProduct || ($entity instanceof Address && $this->isAddressLinkedToOrder($entity))) {
+            $this->logOrderChanges($event, 'add');
+        }
     }
 
     private function logOrderChanges(LifecycleEventArgs $event, string $action): void
@@ -106,7 +110,7 @@ class OrderChangeListener implements EventSubscriberInterface
             }
         }
 
-        if ($entity instanceof Address) {
+        if ($entity instanceof Address && $this->isAddressLinkedToOrder($entity)) {
             $addressChanges = $unitOfWork->getEntityChangeSet($entity);
 
             foreach ($addressChanges as $field => [$old, $new]) {
@@ -119,5 +123,16 @@ class OrderChangeListener implements EventSubscriberInterface
                 );
             }
         }
+    }
+
+    /**
+     *
+     *
+     * @param Address $address
+     * @return bool
+     */
+    private function isAddressLinkedToOrder(Address $address): bool
+    {
+        return $address->getOrderEntity() !== null;
     }
 }

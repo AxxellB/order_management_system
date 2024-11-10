@@ -34,6 +34,8 @@ import OrderSuccessPage from "../pages/OrderSuccessPage";
 import AdminDashboard from "../pages/AdminDashboard";
 import ProductPage from "../pages/ProductPage";
 import ProductStockHistory from "../components/ProductStockHistory";
+import AddAddress from "../components/AddAddress";
+import EditAddress from "../components/EditAddress";
 
 const Routes = () => {
     const { token } = useAuth();
@@ -163,6 +165,14 @@ const Routes = () => {
                         {
                             path: "/profile/addresses",
                             element: <AddressTab />
+                        },
+                        {
+                            path: "/profile/addresses/new",
+                            element: <AddAddress />
+                        },
+                        {
+                            path: "/profile/addresses/edit/:id",
+                            element: <EditAddress />
                         },
                         {
                             path: "/profile/orders",
