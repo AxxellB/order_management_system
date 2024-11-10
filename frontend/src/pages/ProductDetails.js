@@ -1,16 +1,17 @@
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import {useParams, Link, useNavigate} from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import {useAlert} from "../provider/AlertProvider";
+import { useAlert } from "../provider/AlertProvider";
+import styles from '../styles/ProductDetails.module.css';
 
 const ProductDetails = () => {
-    const {id} = useParams();
+    const { id } = useParams();
     const navigate = useNavigate();
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const {showAlert} = useAlert();
+    const { showAlert } = useAlert();
 
     useEffect(() => {
         fetchProduct();
@@ -29,46 +30,49 @@ const ProductDetails = () => {
 
     const handleSoftDelete = async () => {
         const confirmDelete = window.confirm('Are you sure you want to delete this product?');
-
         if (confirmDelete) {
             try {
-                await axios.delete(`http://localhost/api/products/${id}`, {
-                    data: {action: 'delete'},
-                });
+                await axios.delete(`http://localhost/api/products/${id}`, { data: { action: 'delete' } });
                 showAlert('Product successfully soft deleted', "success");
                 navigate('/admin/products');
             } catch (err) {
                 showAlert('Error deleting product', "error");
             }
         }
-
     };
 
     const handleRestore = async () => {
         const confirmRestore = window.confirm('Are you sure you want to restore this product?');
-
         if (confirmRestore) {
             try {
-                await axios.delete(`http://localhost/api/products/${id}`, {data: {action: 'restore'},});
+                await axios.delete(`http://localhost/api/products/${id}`, { data: { action: 'restore' } });
                 showAlert('Product successfully restored', "success");
-                navigate('/admin/products')
+                navigate('/admin/products');
             } catch (err) {
                 showAlert('Error restoring product', "error");
             }
         }
-
     };
 
-    if (loading) return <div>Loading...</div>;
-    if (error) return <div>Error: {error}</div>;
+    if (loading) {
+        return (
+            <div className={`${styles.message}`}>
+                <div className="spinner-border text-primary" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        );
+    }
+
+    if (error) return <div className={`${styles.message} ${styles.error}`}>Error: {error}</div>;
 
     const productPrice = product.price ? parseFloat(product.price).toFixed(2) : 'N/A';
 
     return (
-        <div className="container mt-5">
-            <h1 className="text-center mb-4">Product Details</h1>
+        <div className={styles.container}>
+            <h1 className={styles.title}>Product Details</h1>
 
-            <table className="table table-bordered">
+            <table className={`table ${styles.table} table-bordered`}>
                 <tbody>
                 <tr>
                     <th>Name</th>
@@ -89,29 +93,24 @@ const ProductDetails = () => {
                 </tbody>
             </table>
 
-            <div className="d-flex justify-content-between mt-4">
-                <div className="d-flex justify-content-start">
+            <div className={styles.buttonContainer}>
+                <div className={styles.buttonGroup}>
                     {product.deletedAt ? (
-                        <button className="btn btn-success me-2" onClick={handleRestore}>
+                        <button className={`btn btn-success ${styles.button}`} onClick={handleRestore}>
                             Restore
                         </button>
                     ) : (
-                        <>
-                            <button className="btn btn-danger me-2" onClick={handleSoftDelete}>
-                                Delete
-                            </button>
-
-                        </>
+                        <button className={`btn btn-danger ${styles.button}`} onClick={handleSoftDelete}>
+                            Delete
+                        </button>
                     )}
-                    <Link to={`/admin/products/edit/${product.id}`} className="btn btn-warning ">
+                    <Link to={`/admin/products/edit/${product.id}`} className={`btn btn-warning ${styles.button}`}>
                         Edit
                     </Link>
                 </div>
-                <div>
-                    <button className="btn btn-secondary" onClick={() => navigate('/admin/products')}>
-                        Back
-                    </button>
-                </div>
+                <button className={`btn ${styles.backButton}`} onClick={() => navigate('/admin/products')}>
+                    Back
+                </button>
             </div>
         </div>
     );

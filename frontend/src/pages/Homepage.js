@@ -1,38 +1,30 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-import '../styles/Homepage.css';
+import styles from '../styles/Homepage.module.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
-import {addToBasket} from '../services/basketService';
-import {canAddToBasket} from "../services/productService";
-import {debounce} from "../components/debounce";
+import { addToBasket } from '../services/basketService';
+import { canAddToBasket } from "../services/productService";
+import { debounce } from "../components/debounce";
 import PlaceholderImage from "../assets/imgs/placeholder.jpg";
-import {useAlert} from "../provider/AlertProvider";
-import {useAuth} from "../provider/AuthProvider";
-import styles from "../styles/ProductPage.module.css";
+import { useAlert } from "../provider/AlertProvider";
+import { useAuth } from "../provider/AuthProvider";
 
 const Homepage = () => {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [categories, setCategories] = useState([]);
-
-    const [filters, setFilters] = useState({
-        category: '',
-        minPrice: '',
-        maxPrice: ''
-    });
-
+    const [filters, setFilters] = useState({ category: '', minPrice: '', maxPrice: '' });
     const [currentPage, setCurrentPage] = useState(1);
     const [totalItems, setTotalItems] = useState(0);
     const itemsPerPage = 10;
-
     const [searchTerm, setSearchTerm] = useState("");
     const [sortOption, setSortOption] = useState("name_asc");
 
-    const {showAlert} = useAlert();
-    const {token} = useAuth();
+    const { showAlert } = useAlert();
+    const { token } = useAuth();
 
     useEffect(() => {
         fetchCategories();
@@ -74,7 +66,6 @@ const Homepage = () => {
         }
     };
 
-
     const debouncedSearch = useCallback(
         debounce((term) => {
             setSearchTerm(term);
@@ -89,10 +80,7 @@ const Homepage = () => {
 
     const handleFilterChange = (e) => {
         const { name, value } = e.target;
-        setFilters({
-            ...filters,
-            [name]: value
-        });
+        setFilters({ ...filters, [name]: value });
     };
 
     const applyFilters = () => {
@@ -112,26 +100,25 @@ const Homepage = () => {
                 showAlert(`Insufficient stock quantity. Only ${stockResult} ${productName} available.`, "error");
                 return;
             }
-
             await addToBasket(productId, productName, quantity, showAlert);
         } catch (error) {
             console.error('Error adding to basket:', error);
             showAlert("An error occurred while adding the product to the basket. Please try again.", "error");
         }
     };
+
     const getImageUrl = (imageName) => {
         return imageName ? `http://localhost/api/file/${imageName}` : PlaceholderImage;
     };
 
-
     const totalPages = Math.ceil(totalItems / itemsPerPage);
 
     return (
-        <div className="container mt-5">
-            <h1 className="text-center mb-5">Our Selection of Products</h1>
+        <div className={`${styles.container} mt-5`}>
+            <h1 className={`${styles.textCenter} mb-5`}>Our Selection of Products</h1>
             <div className="row">
                 <div className="col-md-2">
-                    <div className="card shadow-sm p-3 mb-4 filter-card">
+                    <div className={`${styles.card} shadow-sm p-3 mb-4 ${styles.filterCard}`}>
                         <h5>Filters</h5>
                         <div className="mb-3">
                             <label className="form-label">Category</label>
@@ -142,15 +129,11 @@ const Homepage = () => {
                                 className="form-control"
                             >
                                 <option value="">All Categories</option>
-                                {categories.length > 0 ? (
-                                    categories.map((category) => (
-                                        <option key={category.id} value={category.id}>
-                                            {category.name}
-                                        </option>
-                                    ))
-                                ) : (
-                                    <option disabled>No categories available</option>
-                                )}
+                                {categories.map((category) => (
+                                    <option key={category.id} value={category.id}>
+                                        {category.name}
+                                    </option>
+                                ))}
                             </select>
                         </div>
 
@@ -161,7 +144,7 @@ const Homepage = () => {
                                 name="minPrice"
                                 value={filters.minPrice}
                                 onChange={handleFilterChange}
-                                className="form-control small-placeholder"
+                                className={`form-control ${styles.smallPlaceholder}`}
                                 placeholder="Enter min price"
                                 min="0"
                             />
@@ -174,13 +157,13 @@ const Homepage = () => {
                                 name="maxPrice"
                                 value={filters.maxPrice}
                                 onChange={handleFilterChange}
-                                className="form-control small-placeholder"
+                                className={`form-control ${styles.smallPlaceholder}`}
                                 placeholder="Enter max price"
                                 min="0"
                             />
                         </div>
 
-                        <button className="btn btn-primary w-100" onClick={applyFilters}>
+                        <button className={`btn btn-primary w-100 ${styles.gradientButton}`} onClick={applyFilters}>
                             Apply Filters
                         </button>
                     </div>
@@ -197,13 +180,12 @@ const Homepage = () => {
                         />
 
                         <div className="d-flex align-items-center">
-
                             <label className="me-2">Sort By:</label>
                             <select
                                 value={sortOption}
                                 onChange={(e) => setSortOption(e.target.value)}
                                 className="form-select"
-                                style={{width: '200px'}}
+                                style={{ width: '200px' }}
                             >
                                 <option value="name_asc">Name (A-Z)</option>
                                 <option value="name_desc">Name (Z-A)</option>
@@ -214,67 +196,54 @@ const Homepage = () => {
                     </div>
 
                     {loading ? (
-                        <div className="text-center mt-5">Loading...</div>
+                        <div className={`${styles.message} ${styles.loadingMessage}`}>Loading...</div>
                     ) : error ? (
-                        <div className="text-center text-danger mt-5">Error: {error}</div>
+                        <div className={`${styles.message} ${styles.errorMessage}`}>Error: {error}</div>
+                    ) : products.length === 0 ? (
+                        <div className={`${styles.message} ${styles.noProductsMessage}`}>
+                            No products matched your search criteria.
+                        </div>
                     ) : (
-                        <div className="product-grid">
-                            {Array.isArray(products) && products.length > 0 ? (
-                                products.map(product => (
-                                    <div key={product.id} className="card mb-4 shadow-sm">
-                                        <div className="image-container">
-                                            <Link to={`/product/${product.id}`}>
-                                                <img
-                                                    src={getImageUrl(product.image)}
-                                                    alt={product.name}
-                                                    className="product-image"
-                                                />
-                                            </Link>
-                                        </div>
-                                        <div className="card-body">
-                                            <Link to={`/product/${product.id}`} className="homepage-title-link">
-                                                <h5 className="card-title" id={product.name}>{product.name}</h5>
-                                            </Link>
-                                            <p className="card-price">Price: ${Number(product.price).toFixed(2)}</p>
 
-                                            <div className="d-flex justify-content-end align-items-center">
-                                                {product.stockQuantity > 0 ? (
-                                                    <>
-                                                        <input
-                                                            type="number"
-                                                            className="quantity-input"
-                                                            min="1"
-                                                            defaultValue="1"
-                                                            id={`quantity-${product.id}`}
-                                                        />
-                                                        <button
-                                                            className="btn btn-success ms-2"
-                                                            onClick={() => {
-                                                                const quantity = parseInt(document.getElementById(`quantity-${product.id}`).value, 10);
-                                                                if (quantity > 0) {
-                                                                    handleAddToBasket(product.id, product.name, quantity);
-                                                                } else {
-                                                                    alert('Invalid quantity');
-                                                                }
-                                                            }}
-                                                        >
-                                                            <i className="bi bi-cart"></i>
-                                                        </button>
-                                                    </>
-                                                ) : (
-                                                    <button className="btn btn-secondary ms-2" disabled>
-                                                        Out of Stock
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </div>
+                        <div className={styles.productGrid}>
+                            {products.map((product) => (
+                                <div key={product.id} className={`${styles.card} mb-4 shadow-sm`}>
+                                    <div className={styles.imageContainer}>
+                                        <Link to={`/product/${product.id}`}>
+                                            <img
+                                                src={getImageUrl(product.image)}
+                                                alt={product.name}
+                                                className={styles.productImage}
+                                            />
+                                        </Link>
                                     </div>
-                                ))
-                            ) : (
-                                <div>No products found.</div>
-                            )}
+                                    <div className={styles.cardBody}>
+                                        <Link to={`/product/${product.id}`} className={styles.homepageTitleLink}>
+                                            <h5 className={styles.cardTitle} id={product.name}>{product.name}</h5>
+                                        </Link>
+                                        <p className={styles.cardPrice}>Price: ${Number(product.price).toFixed(2)}</p>
+
+                                        <div className="d-flex justify-content-end align-items-center">
+                                            {product.stockQuantity > 0 ? (
+                                                <button
+                                                    className="btn btn-success"
+                                                    onClick={() => handleAddToBasket(product.id, product.name, 1)}
+                                                >
+                                                    <i className="bi bi-cart"></i>
+                                                </button>
+                                            ) : (
+                                                <button className="btn btn-danger" disabled>
+                                                    Out of Stock
+                                                </button>
+                                            )}
+                                        </div>
+
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     )}
+
 
                     <nav className="mt-4">
                         <ul className="pagination justify-content-center">

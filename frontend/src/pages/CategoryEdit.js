@@ -1,23 +1,21 @@
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import {useParams, useNavigate} from 'react-router-dom';
-import {useAlert} from "../provider/AlertProvider";
+import { useParams, useNavigate } from 'react-router-dom';
+import { useAlert } from "../provider/AlertProvider";
+import styles from '../styles/NewCategory.module.css';
 
 const EditCategory = () => {
-    const {id} = useParams();
-    const [formData, setFormData] = useState({
-        name: ''
-    });
+    const { id } = useParams();
+    const [formData, setFormData] = useState({ name: '' });
     const [errors, setErrors] = useState({});
     const navigate = useNavigate();
-    const {showAlert} = useAlert();
+    const { showAlert } = useAlert();
 
     useEffect(() => {
         const fetchCategory = async () => {
             try {
                 const response = await axios.get(`http://localhost/api/categories/${id}`);
-
-                setFormData({name: response.data.name});
+                setFormData({ name: response.data.name });
             } catch (err) {
                 showAlert(`Error fetching category: ${err}`, "error");
             }
@@ -26,20 +24,17 @@ const EditCategory = () => {
         if (id) {
             fetchCategory();
         }
-    }, [id]);
+    }, [id, showAlert]);
 
     const handleChange = (e) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value
-        });
+        setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
             await axios.put(`http://localhost/api/categories/${id}`, formData, {
-                headers: {'Content-Type': 'application/json'}
+                headers: { 'Content-Type': 'application/json' }
             });
             showAlert('Category updated successfully', "success");
             navigate('/admin/categories');
@@ -47,27 +42,42 @@ const EditCategory = () => {
             if (error.response && error.response.data.errors) {
                 setErrors(error.response.data.errors);
             } else {
-                showAlert(`Error updating category:, ${error}`, "error");
+                showAlert(`Error updating category: ${error}`, "error");
             }
         }
     };
 
     return (
-        <div className="container mt-5">
-            <h1>Edit Category</h1>
-            <form onSubmit={handleSubmit}>
-                <div className="mb-3">
-                    <label className="form-label">Category Name</label>
+        <div className={styles.container}>
+            <h1 className={styles.title}>Edit Category</h1>
+            <form onSubmit={handleSubmit} className={styles.form}>
+                <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>Category Name</label>
                     <input
                         type="text"
                         name="name"
                         value={formData.name}
                         onChange={handleChange}
-                        className={`form-control ${errors.name ? 'is-invalid' : ''}`}
+                        className={`${styles.formInput} ${errors.name ? styles.isInvalid : ''}`}
+                        placeholder="Enter category name"
                     />
-                    {errors.name && <div className="invalid-feedback">{errors.name}</div>}
+                    {errors.name && <div className={styles.errorMessage}>{errors.name}</div>}
                 </div>
-                <button type="submit" className="btn btn-primary">Save Changes</button>
+                <div className={styles.buttonGroup}>
+                    <button
+                        type="button"
+                        className={`btn ${styles.button} ${styles.backButton}`}
+                        onClick={() => navigate('/admin/categories')}
+                    >
+                        Back
+                    </button>
+                    <button
+                        type="submit"
+                        className={`btn ${styles.button} ${styles.createButton}`}
+                    >
+                        Save Changes
+                    </button>
+                </div>
             </form>
         </div>
     );

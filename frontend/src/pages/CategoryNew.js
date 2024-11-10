@@ -1,22 +1,18 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
-import {useNavigate} from 'react-router-dom';
-import {useAlert} from "../provider/AlertProvider";
+import { useNavigate } from 'react-router-dom';
+import { useAlert } from "../provider/AlertProvider";
+import styles from '../styles/NewCategory.module.css';
 
 const NewCategory = () => {
-    const [formData, setFormData] = useState({
-        name: ''
-    });
+    const [formData, setFormData] = useState({ name: '' });
     const [errors, setErrors] = useState({});
     const navigate = useNavigate();
-    const {showAlert} = useAlert();
+    const { showAlert } = useAlert();
 
     const handleChange = (e) => {
-        const {name, value} = e.target;
-        setFormData({
-            ...formData,
-            [name]: value
-        });
+        const { name, value } = e.target;
+        setFormData({ ...formData, [name]: value });
     };
 
     const handleSubmit = async (e) => {
@@ -29,27 +25,33 @@ const NewCategory = () => {
             if (error.response && error.response.data.errors) {
                 setErrors(error.response.data.errors);
             } else {
-                showAlert(`Error updating category:, ${error}`, "error");
+                showAlert(`Error updating category: ${error}`, "error");
             }
         }
     };
 
     return (
-        <div className="container mt-5">
-            <h1>Create New Category</h1>
-            <form onSubmit={handleSubmit}>
-                <div className="mb-3">
-                    <label className="form-label">Category Name</label>
+        <div className={styles.container}>
+            <h1 className={styles.title}>Create New Category</h1>
+            <form onSubmit={handleSubmit} className={styles.form}>
+                <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>Category Name</label>
                     <input
                         type="text"
                         name="name"
                         value={formData.name}
                         onChange={handleChange}
-                        className="form-control"
+                        className={styles.formInput}
+                        placeholder="Enter category name"
                     />
-                    {errors.name && <div className="text-danger">{errors.name}</div>}
+                    {errors.name && <div className={styles.errorMessage}>{errors.name}</div>}
                 </div>
-                <button type="submit" className="btn btn-primary">Create Category</button>
+                <div className={styles.buttonGroup}>
+                    <button type="button" className={`btn ${styles.button} ${styles.backButton}`} onClick={() => navigate('/admin/categories')}>
+                        Back
+                    </button>
+                    <button type="submit" className={`btn ${styles.button} ${styles.createButton}`}>Create Category</button>
+                </div>
             </form>
         </div>
     );

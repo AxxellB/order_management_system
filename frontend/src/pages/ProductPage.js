@@ -5,6 +5,8 @@ import styles from '../styles/ProductPage.module.css';
 import PlaceholderImage from '../assets/imgs/placeholder.jpg';
 import { addToBasket } from '../services/basketService';
 import { canAddToBasket } from '../services/productService';
+import {useAlert} from "../provider/AlertProvider";
+import {useAuth} from "../provider/AuthProvider";
 
 const ProductPage = () => {
     const { id } = useParams();
@@ -12,6 +14,9 @@ const ProductPage = () => {
     const [recommendations, setRecommendations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+
+    const { showAlert } = useAlert();
+    const { token } = useAuth();
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -39,22 +44,22 @@ const ProductPage = () => {
         fetchRecommendations();
     }, [id]);
 
-    const handleAddToBasket = async (productId, quantity) => {
+    const handleAddToBasket = async (productId, productName, quantity) => {
+        if (!token) {
+            showAlert("You must be logged in to add products to the basket.", "error");
+            return;
+        }
+
         try {
-            const result = await canAddToBasket(productId, quantity);
-            if (result === null) {
-                await addToBasket(productId, quantity);
-                alert('Product added to basket successfully.');
-            } else {
-                alert(`Insufficient stock quantity. Only ${result} items are available.`);
+            const stockResult = await canAddToBasket(productId, quantity);
+            if (stockResult !== null) {
+                showAlert(`Insufficient stock quantity. Only ${stockResult} ${productName} available.`, "error");
+                return;
             }
+            await addToBasket(productId, productName, quantity, showAlert);
         } catch (error) {
-            if (error.response && error.response.status === 401) {
-                alert('You must be logged in to add products to the basket.');
-            } else {
-                console.error('Error adding to basket:', error);
-                alert('An error occurred while adding the product to the basket. Please try again.');
-            }
+            console.error('Error adding to basket:', error);
+            showAlert("An error occurred while adding the product to the basket. Please try again.", "error");
         }
     };
 
@@ -102,7 +107,7 @@ const ProductPage = () => {
                             className={styles.addToBasketButton}
                             onClick={() => {
                                 const quantity = parseInt(document.getElementById("mainQuantity").value, 10);
-                                handleAddToBasket(product.id, quantity);
+                                handleAddToBasket(product.id, product.name, quantity);
                             }}
                         >
                             Add to Basket
@@ -132,26 +137,18 @@ const ProductPage = () => {
                                 <p className="card-price">Price: ${Number(recProduct.price).toFixed(2)}</p>
 
                                 <div className="d-flex justify-content-end align-items-center">
-                                    <input
-                                        type="number"
-                                        className="quantity-input"
-                                        min="1"
-                                        defaultValue="1"
-                                        id={`quantity-${recProduct.id}`}
-                                    />
-                                    <button
-                                        className="btn btn-success ms-2"
-                                        onClick={() => {
-                                            const quantity = parseInt(document.getElementById(`quantity-${recProduct.id}`).value, 10);
-                                            if (quantity > 0) {
-                                                handleAddToBasket(product.id, quantity);
-                                            } else {
-                                                alert('Invalid quantity');
-                                            }
-                                        }}
-                                    >
-                                        <i className="bi bi-cart"></i>
-                                    </button>
+                                    {product.stockQuantity > 0 ? (
+                                        <button
+                                            className="btn btn-success"
+                                            onClick={() => handleAddToBasket(product.id, product.name, 1)}
+                                        >
+                                            <i className="bi bi-cart"></i>
+                                        </button>
+                                    ) : (
+                                        <button className="btn btn-danger" disabled>
+                                            Out of Stock
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         </div>
