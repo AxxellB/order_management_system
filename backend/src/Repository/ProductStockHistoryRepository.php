@@ -23,4 +23,14 @@ class ProductStockHistoryRepository extends ServiceEntityRepository
             $this->getEntityManager()->flush();
         }
     }
+
+    public function findByProductId(int $productId): array
+    {
+        return $this->createQueryBuilder('psh')
+            ->andWhere('psh.productId = :productId')
+            ->setParameter('productId', $productId)
+            ->orderBy('psh.timestamp', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 }

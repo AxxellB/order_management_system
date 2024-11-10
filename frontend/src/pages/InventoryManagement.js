@@ -148,6 +148,7 @@ const InventoryManagement = () => {
                                 <th>Current Stock</th>
                                 <th>Status</th>
                                 <th>Actions</th>
+                                <th>Stock History</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -164,6 +165,11 @@ const InventoryManagement = () => {
                                         >
                                             Restock
                                         </Button>
+                                    </td>
+                                    <td>
+                                        <Link to={`/admin/product/${product.id}/stock-history`}>
+                                            <Button><i className="fa-solid fa-chart-line"></i></Button>
+                                        </Link>
                                     </td>
                                 </tr>
                             ))}
