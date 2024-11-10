@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Controller;
+use App\Entity\Address;
 use App\Repository\AddressRepository;
 use App\Service\AddressService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -59,9 +60,7 @@ class AddressController extends AbstractController
             return new JsonResponse(['message' => 'Address not found'], Response::HTTP_NOT_FOUND);
         }
 
-        $addressData = array_map([$this, 'formatAddress'], $address);
-
-        $addressData = array_values($addressData);
+        $addressData = $this->formatAddress($address);
 
         return new JsonResponse(['address' => $addressData]);
     }
@@ -143,7 +142,7 @@ class AddressController extends AbstractController
         return new JsonResponse(['message' => 'Address deleted successfully!'], Response::HTTP_NO_CONTENT);
     }
 
-    public function formatAddress($address): array
+    public function formatAddress(Address $address): array
     {
         return [
             'id' => $address->getId(),

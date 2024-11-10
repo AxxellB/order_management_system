@@ -17,4 +17,9 @@ const deleteAddress = async (addressId) => {
     await axios.delete(`/api/address/${addressId}`);
 };
 
-export {getAddresses, addAddress, editAddress, deleteAddress};
+const getSingleAddress = async (addressId) => {
+    const response = await axios.get(`/api/address/${addressId}`);
+    return response.data.address;
+};
+
+export {getAddresses, addAddress, editAddress, deleteAddress, getSingleAddress};
