@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import PropTypes from 'prop-types';
-import { getRevenueTrend } from '../services/adminDashboardService';
-import { Spinner } from "react-bootstrap";
-import { BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
+import {getRevenueTrend} from '../services/adminDashboardService';
+import {Spinner} from "react-bootstrap";
+import {BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, ResponsiveContainer} from 'recharts';
 
-const colors = ['#0088FE', '#BD113AFF', '#FFBB28',];
+const colors = ['#0088FE', '#BD113AFF', '#FFBB28'];
 
 const getPath = (x, y, width, height) => {
     return `M${x},${y + height}C${x + width / 3},${y + height} ${x + width / 2},${y + height / 3}
@@ -14,11 +14,11 @@ const getPath = (x, y, width, height) => {
 };
 
 const TriangleBar = (props) => {
-    const { fill, x, y, width, height } = props;
-    return <path d={getPath(x, y, width, height)} stroke="none" fill={fill} />;
+    const {fill, x, y, width, height} = props;
+    return <path d={getPath(x, y, width, height)} stroke="none" fill={fill}/>;
 };
 
-const RevenueTrend = ({ startDate, endDate }) => {
+const RevenueTrend = ({startDate, endDate}) => {
     const [revenueTrend, setRevenueTrend] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -48,12 +48,23 @@ const RevenueTrend = ({ startDate, endDate }) => {
         value: parseInt(item.totalSold, 10)
     }));
 
+    const revenueValues = formattedData.map(item => item.value);
+    const minRevenue = revenueValues.length ? Math.min(...revenueValues) : 0;
+    const maxRevenue = revenueValues.length ? Math.max(...revenueValues) : 1;
+
+    const yAxisDomain = [
+        Math.floor(minRevenue * 0.8),
+        maxRevenue > minRevenue * 10
+            ? Math.ceil(maxRevenue * 1.1)
+            : Math.ceil(maxRevenue * 1.2)
+    ];
+
     return (
         <div>
             <h2>Top Sold Products</h2>
             {loading ? (
                 <div className="text-center mt-5">
-                    <Spinner animation="border" variant="primary" />
+                    <Spinner animation="border" variant="primary"/>
                 </div>
             ) : error ? (
                 <p className="text-danger">{error}</p>
@@ -68,12 +79,16 @@ const RevenueTrend = ({ startDate, endDate }) => {
                             bottom: 5,
                         }}
                     >
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="name" />
-                        <YAxis />
-                        <Bar dataKey="value" shape={<TriangleBar />} label={{ position: 'top' }}>
+                        <CartesianGrid strokeDasharray="3 3"/>
+                        <XAxis dataKey="name"/>
+                        <YAxis
+                            domain={yAxisDomain}
+                            tickFormatter={(value) => value.toLocaleString()}
+                            allowDataOverflow
+                        />
+                        <Bar dataKey="value" shape={<TriangleBar/>} label={{position: 'top'}}>
                             {formattedData.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
+                                <Cell key={`cell-${index}`} fill={colors[index % colors.length]}/>
                             ))}
                         </Bar>
                     </BarChart>

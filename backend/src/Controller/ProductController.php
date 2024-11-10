@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Product;
 use App\Form\ProductType;
+use App\Repository\ProductStockHistoryRepository;
 use App\Service\ProductService;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
@@ -20,11 +21,13 @@ class ProductController extends AbstractController
 {
     private ProductService $productService;
     private FileStorageService $fileStorageService;
+    private ProductStockHistoryRepository $productStockHistoryRepository;
 
-    public function __construct(ProductService $productService, FileStorageService $fileStorageService)
+    public function __construct(ProductService $productService, FileStorageService $fileStorageService, ProductStockHistoryRepository $productStockHistoryRepository)
     {
         $this->productService = $productService;
         $this->fileStorageService = $fileStorageService;
+        $this->productStockHistoryRepository = $productStockHistoryRepository;
     }
 
     #[Route('/list', name: 'api_product_list', methods: ['GET'])]
@@ -320,5 +323,26 @@ class ProductController extends AbstractController
             'message' => 'Bulk restock completed successfully',
             'updated' => $result['updated']
         ], Response::HTTP_OK);
+    }
+
+    #[Route('/{id<\d+>}/stock-history', name: 'api_product_stock_history', methods: ['GET'])]
+    public function getProductStockHistory(int $id): JsonResponse
+    {
+        $stockHistory = $this->productStockHistoryRepository->findByProductId($id);
+
+        if (!$stockHistory) {
+            return new JsonResponse(['message' => 'No stock history found for this product.'], Response::HTTP_NOT_FOUND);
+        }
+
+        $historyData = array_map(function ($history) {
+            return [
+                'id' => $history->getId(),
+                'product' => $history->getProductId()->getName(),
+                'timestamp' => $history->getTimestamp()->format('Y-m-d H:i:s'),
+                'stock' => $history->getStock(),
+            ];
+        }, $stockHistory);
+
+        return new JsonResponse(['stockHistory' => $historyData], Response::HTTP_OK);
     }
 }

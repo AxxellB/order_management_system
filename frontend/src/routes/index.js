@@ -33,6 +33,7 @@ import NotFound from "../pages/NotFound";
 import OrderSuccessPage from "../pages/OrderSuccessPage";
 import AdminDashboard from "../pages/AdminDashboard";
 import ProductPage from "../pages/ProductPage";
+import ProductStockHistory from "../components/ProductStockHistory";
 
 const Routes = () => {
     const { token } = useAuth();
@@ -107,6 +108,10 @@ const Routes = () => {
                     {
                         path:  "/admin/inventory",
                         element: <InventoryManagement />
+                    },
+                    {
+                        path:  "/admin/product/:id/stock-history",
+                        element: <ProductStockHistory />
                     },
                     {
                         path: "/admin/orders",
