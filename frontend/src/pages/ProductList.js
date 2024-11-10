@@ -1,9 +1,10 @@
-import React, {useState, useEffect, useCallback, useRef} from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
-import {Link, useNavigate} from 'react-router-dom';
-import {debounce} from "../components/debounce";
+import { Link, useNavigate } from 'react-router-dom';
+import { debounce } from "../components/debounce";
 import PlaceholderImage from "../assets/imgs/placeholder.jpg";
-import {useAlert} from "../provider/AlertProvider";
+import { useAlert } from "../provider/AlertProvider";
+import styles from '../styles/Homepage.module.css';
 
 const ProductsList = () => {
     const navigate = useNavigate();
@@ -14,7 +15,6 @@ const ProductsList = () => {
     const [categories, setCategories] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [sortOption, setSortOption] = useState("name_asc");
-    const [hoveredProductId, setHoveredProductId] = useState(null);
     const fileInputRefs = useRef({});
 
     const [filters, setFilters] = useState({
@@ -26,7 +26,7 @@ const ProductsList = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [totalItems, setTotalItems] = useState(0);
     const itemsPerPage = 10;
-    const {showAlert} = useAlert();
+    const { showAlert } = useAlert();
 
     useEffect(() => {
         fetchProducts();
@@ -82,8 +82,8 @@ const ProductsList = () => {
     };
 
     const handleFilterChange = (e) => {
-        const {name, value} = e.target;
-        setFilters({...filters, [name]: value});
+        const { name, value } = e.target;
+        setFilters({ ...filters, [name]: value });
     };
 
     const applyFilters = () => {
@@ -96,7 +96,7 @@ const ProductsList = () => {
         if (confirmRestore) {
             try {
                 await axios.delete(`http://localhost/api/products/${id}`, {
-                    data: {action: 'restore'},
+                    data: { action: 'restore' },
                 });
                 showAlert('Product restored successfully', "success");
                 fetchProducts();
@@ -131,9 +131,7 @@ const ProductsList = () => {
 
         try {
             const response = await axios.post(`http://localhost/api/products/${productId}/upload-image`, formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
+                headers: { 'Content-Type': 'multipart/form-data' },
             });
 
             if (response.status === 201 || response.status === 200) {
@@ -153,14 +151,12 @@ const ProductsList = () => {
 
     const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-    if (error) return <div>Error: {error}</div>;
-
     return (
-        <div className="container mt-5">
-            <h1 className="text-center mb-4">Product Management</h1>
+        <div className={`${styles.container} mt-5`}>
+            <h1 className={`${styles.textCenter} mb-4`}>Product Management</h1>
             <div className="row">
                 <div className="col-md-2">
-                    <div className="card shadow-sm p-3 mb-4 filter-card">
+                    <div className={`${styles.card} shadow-sm p-3 mb-4 ${styles.filterCard}`}>
                         <h5>Filters</h5>
                         <div className="mb-3">
                             <label className="form-label">Category</label>
@@ -185,7 +181,7 @@ const ProductsList = () => {
                                 name="minPrice"
                                 value={filters.minPrice}
                                 onChange={handleFilterChange}
-                                className="form-control"
+                                className={`form-control ${styles.smallPlaceholder}`}
                                 placeholder="Enter min price"
                                 min="0"
                             />
@@ -197,14 +193,19 @@ const ProductsList = () => {
                                 name="maxPrice"
                                 value={filters.maxPrice}
                                 onChange={handleFilterChange}
-                                className="form-control"
+                                className={`form-control ${styles.smallPlaceholder}`}
                                 placeholder="Enter max price"
                                 min="0"
                             />
                         </div>
-                        <button className="btn btn-primary w-100" onClick={applyFilters}>
+                        <button className={`btn btn-primary w-100 ${styles.gradientButton}`} onClick={applyFilters}>
                             Apply Filters
                         </button>
+
+                    </div>
+
+                    <div className="text-center mt-3">
+                        <Link to="/admin/products/new" className="btn btn-success w-75 ">Create new</Link>
                     </div>
                 </div>
 
@@ -226,7 +227,7 @@ const ProductsList = () => {
                             placeholder="Search products..."
                             onChange={handleSearch}
                             className="form-control me-2"
-                            style={{width: '550px'}}
+                            style={{ width: '550px' }}
                         />
                         <div className="d-flex align-items-center">
                             <label className="me-2">Sort By:</label>
@@ -234,7 +235,7 @@ const ProductsList = () => {
                                 value={sortOption}
                                 onChange={handleSortChange}
                                 className="form-select"
-                                style={{width: '200px'}}
+                                style={{ width: '200px' }}
                             >
                                 <option value="name_asc">Name (A-Z)</option>
                                 <option value="name_desc">Name (Z-A)</option>
@@ -244,54 +245,56 @@ const ProductsList = () => {
                         </div>
                     </div>
 
-                    {loading && <div className="text-center mb-4">Loading...</div>}
-
-                    {!loading && (
-                        <div className="product-grid">
-                            {products.length > 0 ? (
-                                products.map((product) => (
-                                    <div key={product.id} className="card mb-4 shadow-sm">
-                                        <div className="image-container">
-                                            <img
-                                                src={getImageUrl(product.image)}
-                                                alt={product.name}
-                                                className="product-image"
-                                            />
-                                            <div className="edit-overlay">
-                                                <label className="edit-button">
-                                                    Edit
-                                                    <input
-                                                        type="file"
-                                                        ref={(el) => (fileInputRefs.current[product.id] = el)}
-                                                        onChange={(e) => handleFileChange(product.id, e)}
-                                                        style={{display: 'none'}}
-                                                    />
-                                                </label>
-                                            </div>
-                                        </div>
-                                        <div className="card-body">
-                                            <h5 className="card-title">{product.name}</h5>
-                                            <p className="card-text">Price: ${Number(product.price).toFixed(2)}</p>
-                                            <div className="card-actions">
-                                                <Link to={`/admin/products/${product.id}`}
-                                                      className="btn btn-primary btn-sm">View Details</Link>
-                                                {status === 'active' && (
-                                                    <Link to={`/admin/products/edit/${product.id}`}
-                                                          className="btn btn-warning btn-sm">Edit</Link>
-                                                )}
-                                                {status === 'deleted' && (
-                                                    <button className="btn btn-success btn-sm"
-                                                            onClick={() => restoreProduct(product.id)}>Restore</button>
-                                                )}
-                                            </div>
+                    {loading ? (
+                        <div className={`${styles.message} ${styles.loadingMessage}`}>Loading...</div>
+                    ) : error ? (
+                        <div className={`${styles.message} ${styles.errorMessage}`}>Error: {error}</div>
+                    ) : products.length === 0 ? (
+                        <div className={`${styles.message} ${styles.noProductsMessage}`}>
+                            No products matched your search criteria.
+                        </div>
+                    ) : (
+                        <div className={styles.productGrid}>
+                            {products.map((product) => (
+                                <div key={product.id} className={`${styles.card} mb-4 shadow-sm`}>
+                                    <div className={styles.imageContainer}>
+                                        <img
+                                            src={getImageUrl(product.image)}
+                                            alt={product.name}
+                                            className={styles.productImage}
+                                        />
+                                        <div className={styles.editOverlay}>
+                                            <label className={styles.editButton}>
+                                                Edit
+                                                <input
+                                                    type="file"
+                                                    ref={(el) => (fileInputRefs.current[product.id] = el)}
+                                                    onChange={(e) => handleFileChange(product.id, e)}
+                                                    style={{ display: 'none' }}
+                                                />
+                                            </label>
                                         </div>
                                     </div>
-                                ))
-                            ) : (
-                                <div>No products found.</div>
-                            )}
+                                    <div className={styles.cardBody}>
+                                        <h5 className={styles.cardTitle}>{product.name}</h5>
+                                        <p className={styles.cardText}>Price: ${Number(product.price).toFixed(2)}</p>
+                                        <div className={styles.cardActions}>
+                                            <Link to={`/admin/products/${product.id}`} className="btn btn-primary btn-sm px-1">View Details</Link>
+                                            {status === 'active' && (
+                                                <Link to={`/admin/products/edit/${product.id}`} className="btn btn-warning btn-sm px-1">Edit</Link>
+                                            )}
+                                            {status === 'deleted' && (
+                                                <button className="btn btn-success btn-sm px-1" onClick={() => restoreProduct(product.id)}>
+                                                    Restore
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     )}
+
 
                     <nav className="mt-4">
                         <ul className="pagination justify-content-center">
@@ -306,12 +309,6 @@ const ProductsList = () => {
                             ))}
                         </ul>
                     </nav>
-
-                    {!loading && status === 'active' && (
-                        <div className="text-center mt-4">
-                            <Link to="/admin/products/new" className="btn btn-success">Create new</Link>
-                        </div>
-                    )}
                 </div>
             </div>
         </div>

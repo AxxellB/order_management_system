@@ -1,7 +1,8 @@
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import {Link} from 'react-router-dom';
-import {useAlert} from "../provider/AlertProvider";
+import { Link } from 'react-router-dom';
+import { useAlert } from "../provider/AlertProvider";
+import styles from '../styles/CategoriesList.module.css';
 
 const CategoriesList = () => {
     const [categories, setCategories] = useState([]);
@@ -9,9 +10,9 @@ const CategoriesList = () => {
     const [error, setError] = useState(null);
     const [message, setMessage] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(1);
-    const {showAlert} = useAlert();
-    const limit = 3;
+    const [totalItems, setTotalItems] = useState(0);
+    const limit = 5;
+    const { showAlert } = useAlert();
 
     useEffect(() => {
         fetchCategories();
@@ -22,7 +23,6 @@ const CategoriesList = () => {
             const timer = setTimeout(() => {
                 setMessage(null);
             }, 2000);
-
             return () => clearTimeout(timer);
         }
     }, [message]);
@@ -31,10 +31,10 @@ const CategoriesList = () => {
         try {
             setLoading(true);
             const response = await axios.get(`http://localhost/api/categories/list?page=${currentPage}&limit=${limit}`);
-            const {data, totalPages: total, currentPage: page} = response.data;
+            const { data, totalPages, currentPage: page } = response.data;
 
             setCategories(data);
-            setTotalPages(total);
+            setTotalItems(totalPages * limit);
             setCurrentPage(page);
             setLoading(false);
         } catch (err) {
@@ -45,36 +45,28 @@ const CategoriesList = () => {
 
     const handleDelete = async (id) => {
         const confirmDelete = window.confirm('Are you sure you want to delete this category?');
-
         if (confirmDelete) {
             try {
-                const response = await axios.delete(`http://localhost/api/categories/${id}`);
+                await axios.delete(`http://localhost/api/categories/${id}`);
                 showAlert("Category deleted successfully", "success");
                 fetchCategories();
             } catch (error) {
-                if (error.response && error.response.data.error) {
-                    showAlert(error.response.data.error, "success");
-                } else {
-                    showAlert("Error deleting category", "error");
-                }
+                const errorMsg = error.response?.data?.error || "Error deleting category";
+                showAlert(errorMsg, "error");
             }
         }
     };
 
-    const handlePageChange = (newPage) => {
-        if (newPage > 0 && newPage <= totalPages) {
-            setCurrentPage(newPage);
-        }
-    };
+    const totalPages = Math.ceil(totalItems / limit);
 
     if (error) return <div>Error: {error}</div>;
 
     return (
-        <div className="container mt-5">
-            <h1 className="text-center mb-4">Category Management</h1>
+        <div className={styles.container}>
+            <h1 className={styles.title}>Category Management</h1>
 
             {message && (
-                <div className={`alert ${message.type === 'success' ? 'alert-success' : 'alert-danger'}`}>
+                <div className={`${styles.alert} ${message.type === 'success' ? 'alert-success' : 'alert-danger'}`}>
                     {message.text}
                 </div>
             )}
@@ -83,7 +75,7 @@ const CategoriesList = () => {
 
             {!loading && (
                 <>
-                    <table className="table table-striped">
+                    <table className={`table table-striped ${styles.table}`}>
                         <thead>
                         <tr>
                             <th>Name</th>
@@ -96,12 +88,9 @@ const CategoriesList = () => {
                                 <tr key={category.id}>
                                     <td>{category.name}</td>
                                     <td className="text-end">
-                                        <div className="btn-group">
-                                            <Link to={`/admin/categories/edit/${category.id}`}
-                                                  className="btn btn-warning btn-sm me-2">Edit</Link>
-                                            <button className="btn btn-danger btn-sm me-2"
-                                                    onClick={() => handleDelete(category.id)}>Delete
-                                            </button>
+                                        <div className={styles.tableActions}>
+                                            <Link to={`/admin/categories/edit/${category.id}`} className="btn btn-warning btn-sm me-2">Edit</Link>
+                                            <button className="btn btn-danger btn-sm me-2" onClick={() => handleDelete(category.id)}>Delete</button>
                                         </div>
                                     </td>
                                 </tr>
@@ -114,31 +103,25 @@ const CategoriesList = () => {
                         </tbody>
                     </table>
 
-                    <div className="d-flex justify-content-between align-items-center">
-                        <button
-                            className="btn btn-secondary"
-                            onClick={() => handlePageChange(currentPage - 1)}
-                            disabled={currentPage === 1}
-                        >
-                            Previous
-                        </button>
-                        <span>Page {currentPage} of {totalPages}</span>
-                        <button
-                            className="btn btn-secondary"
-                            onClick={() => handlePageChange(currentPage + 1)}
-                            disabled={currentPage === totalPages}
-                        >
-                            Next
-                        </button>
-                    </div>
+                    <nav className="mt-4">
+                        <ul className="pagination justify-content-center">
+                            {[...Array(totalPages)].map((_, index) => (
+                                <li
+                                    key={index}
+                                    className={`page-item ${index + 1 === currentPage ? 'active' : ''}`}
+                                    onClick={() => setCurrentPage(index + 1)}
+                                >
+                                    <span className="page-link">{index + 1}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    </nav>
+
                     <div className="text-center mt-4">
-                        <Link to="/admin/categories/new" className="btn btn-success">Create new</Link>
+                        <Link to="/admin/categories/new" className={styles.createButton}>Create new</Link>
                     </div>
                 </>
-
             )}
-
-
         </div>
     );
 };

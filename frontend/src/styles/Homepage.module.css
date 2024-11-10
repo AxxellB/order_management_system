@@ -4,7 +4,7 @@
     padding: 1.25rem;
 }
 
-.text-center {
+.textCenter {
     font-family: 'Arial', sans-serif;
     font-size: 2rem;
     font-weight: bold;
@@ -12,7 +12,7 @@
     margin-bottom: 2.5rem;
 }
 
-.product-grid {
+.productGrid {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     gap: 1.25rem;
@@ -26,24 +26,22 @@
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.card:not(.filter-card):hover {
+.cardHover:hover:not(.filterCard) {
     transform: translateY(-0.3125rem);
     box-shadow: 0rem 0.75rem 1.5rem rgba(0, 0, 0, 0.2);
 }
 
-
-
-button:hover {
+.buttonHover:hover {
     background-color: #218838;
     cursor: pointer;
 }
 
-.small-placeholder::placeholder {
+.smallPlaceholder::placeholder {
     font-size: 0.85rem;
     color: #595959;
 }
 
-.card-title {
+.cardTitle {
     font-size: 1.1rem;
     color: #333;
     overflow: hidden;
@@ -53,14 +51,14 @@ button:hover {
     padding-bottom: 0.1rem;
 }
 
-.card-price {
+.cardPrice {
     font-size: 0.9rem;
     font-weight: bold;
     margin-top: 3rem;
     margin-bottom: 0.1rem;
 }
 
-.card-body {
+.cardBody {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -68,57 +66,20 @@ button:hover {
     padding: 0.8rem;
 }
 
-
-.card-text {
+.cardText {
     flex-grow: 1;
     color: #666;
     font-size: 0.9rem;
 }
 
-.card-actions {
+.cardActions {
     display: flex;
     justify-content: space-between;
     margin-top: auto;
 }
 
 
-.d-flex {
-    justify-content: flex-end;
-    align-items: center;
-}
-
-.quantity-input {
-    width: 3.125rem;
-    height: 1.875rem;
-    text-align: center;
-    margin-right: 0.625rem;
-}
-
-@media (max-width: 75rem) { /* 1200px */
-    .product-grid {
-        grid-template-columns: repeat(4, 1fr);
-    }
-}
-
-@media (max-width: 62rem) { /* 992px */
-    .product-grid {
-        grid-template-columns: repeat(3, 1fr);
-    }
-}
-
-@media (max-width: 48rem) { /* 768px */
-    .product-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@media (max-width: 30rem) { /* 480px */
-    .product-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-.image-container {
+.imageContainer {
     position: relative;
     width: 100%;
     padding-top: 100%;
@@ -129,12 +90,12 @@ button:hover {
     transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-.image-container:hover {
+.imageHover:hover {
     background-color: #e0e0e0;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
 }
 
-.product-image {
+.productImage {
     position: absolute;
     top: 0;
     left: 0;
@@ -143,7 +104,7 @@ button:hover {
     object-fit: cover;
 }
 
-.edit-overlay {
+.editOverlay {
     position: absolute;
     top: 0;
     left: 0;
@@ -157,11 +118,11 @@ button:hover {
     transition: opacity 0.3s ease;
 }
 
-.image-container:hover .edit-overlay {
+.imageHover:hover .editOverlay {
     opacity: 1;
 }
 
-.edit-button {
+.editButton {
     background-color: rgba(255, 255, 255, 0.8);
     color: #333;
     padding: 8px 12px;
@@ -172,23 +133,68 @@ button:hover {
     position: relative;
 }
 
-input[type="file"] {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    opacity: 0;
-    cursor: pointer;
-}
-
-.homepage-title-link {
+.homepageTitleLink {
     text-decoration: none;
     color: inherit;
     font-weight: bold;
 }
 
-.homepage-title-link:hover {
-    text-decoration: underline;
+.homepageTitleLink:hover {
+    text-decoration: inherit;
 }
 
+.message {
+    font-size: 1.4rem;
+    margin-top: 2.7rem;
+    padding: 1rem;
+    text-align: center;
+}
+
+.loadingMessage {
+    color: #555;
+    font-weight: bold;
+}
+
+.errorMessage {
+    color: #dc3545;
+    font-weight: bold;
+}
+
+.noProductsMessage {
+    color: #555;
+    font-weight: bold;
+}
+
+.gradientButton {
+    background: linear-gradient(47deg, rgba(23, 61, 173, 1) 33%, rgba(189, 17, 58, 1) 100%);
+    opacity: 0.95;
+}
+
+.gradientButton:hover {
+    opacity: 1.1;
+}
+
+
+@media (max-width: 75rem) { /* 1200px */
+    .productGrid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+@media (max-width: 62rem) { /* 992px */
+    .productGrid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 48rem) { /* 768px */
+    .productGrid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 30rem) { /* 480px */
+    .productGrid {
+        grid-template-columns: 1fr;
+    }
+}

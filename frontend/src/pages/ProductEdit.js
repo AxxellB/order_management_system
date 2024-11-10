@@ -1,10 +1,11 @@
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import {useParams, useNavigate} from 'react-router-dom';
-import {useAlert} from "../provider/AlertProvider";
+import { useParams, useNavigate } from 'react-router-dom';
+import { useAlert } from "../provider/AlertProvider";
+import styles from '../styles/EditProduct.module.css';
 
 const EditProduct = () => {
-    const {id} = useParams();
+    const { id } = useParams();
     const [formData, setFormData] = useState({
         name: '',
         price: '',
@@ -13,8 +14,9 @@ const EditProduct = () => {
     });
     const [availableCategories, setAvailableCategories] = useState([]);
     const [errors, setErrors] = useState({});
+    const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
-    const {showAlert} = useAlert();
+    const { showAlert } = useAlert();
 
     useEffect(() => {
         fetchProduct();
@@ -28,8 +30,10 @@ const EditProduct = () => {
                 ...response.data,
                 categories: response.data.categories.map(category => category.id)
             });
+            setLoading(false);
         } catch (err) {
             showAlert("Error fetching product data", "error");
+            setLoading(false);
         }
     };
 
@@ -64,95 +68,98 @@ const EditProduct = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
-        const {categories, name, price, description} = formData;
-        const preparedData = {
-            categories,
-            name,
-            price,
-            description
-        };
+        const { categories, name, price, description } = formData;
+        const preparedData = { categories, name, price, description };
 
         try {
-            const response = await axios.put(`http://localhost/api/products/${id}`, preparedData);
+            await axios.put(`http://localhost/api/products/${id}`, preparedData);
             showAlert('Product updated successfully', "success");
             navigate('/admin/products');
         } catch (error) {
             if (error.response && error.response.data) {
-                showAlert(`Server validation errors:", ${error.response.data.errors}`, "error");
+                showAlert(`Server validation errors: ${error.response.data.errors}`, "error");
                 setErrors(error.response.data.errors || {});
             } else {
-                showAlert(`Unexpected error:, ${error}`, "error");
+                showAlert(`Unexpected error: ${error}`, "error");
             }
         }
     };
 
+    if (loading) {
+        return (
+            <div className={styles.spinnerContainer}>
+                <div className="spinner-border text-primary" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        );
+    }
+
     return (
-        <div className="container mt-5">
-            <h1>Edit Product: {formData.name}</h1>
+        <div className={styles.container}>
+            <h1 className={styles.title}>Edit Product: {formData.name}</h1>
+            <button onClick={() => navigate(-1)} className={styles.backButton}>Back</button>
             <form onSubmit={handleSubmit}>
-                <div className="mb-3">
-                    <label className="form-label">Product Name</label>
+                <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>Product Name</label>
                     <input
                         type="text"
                         name="name"
                         value={formData.name}
                         onChange={handleChange}
-                        className="form-control"
+                        className={styles.formInput}
                     />
-                    {errors.name && <div className="text-danger">{errors.name}</div>}
+                    {errors.name && <div className={styles.errorMessage}>{errors.name}</div>}
                 </div>
 
-                <div className="mb-3">
-                    <label className="form-label">Price</label>
+                <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>Price</label>
                     <input
                         type="number"
                         name="price"
                         value={formData.price}
                         onChange={handleChange}
-                        className="form-control"
+                        className={styles.formInput}
+                        step="0.01"
                     />
-                    {errors.price && <div className="text-danger">{errors.price}</div>}
+                    {errors.price && <div className={styles.errorMessage}>{errors.price}</div>}
                 </div>
 
-                <div className="mb-3">
-                    <label className="form-label">Description</label>
+                <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>Description</label>
                     <textarea
                         name="description"
                         value={formData.description}
                         onChange={handleChange}
-                        className="form-control"
+                        className={styles.formTextarea}
                     ></textarea>
-                    {errors.description && <div className="text-danger">{errors.description}</div>}
+                    {errors.description && <div className={styles.errorMessage}>{errors.description}</div>}
                 </div>
 
-                <div className="mb-3">
-                    <label className="form-label">Categories</label>
-                    <div>
+                <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>Categories</label>
+                    <div className={styles.categoriesContainer}>
                         {availableCategories.length > 0 ? (
                             availableCategories.map((category) => (
-                                <div key={category.id} className="form-check">
+                                <div key={category.id} className={styles.categoryCheckbox}>
                                     <input
                                         type="checkbox"
                                         id={`category-${category.id}`}
                                         value={category.id}
                                         checked={formData.categories.includes(category.id)}
                                         onChange={handleCategoryChange}
-                                        className="form-check-input"
                                     />
-                                    <label htmlFor={`category-${category.id}`} className="form-check-label">
-                                        {category.name}
-                                    </label>
+                                    <label htmlFor={`category-${category.id}`}>{category.name}</label>
                                 </div>
                             ))
                         ) : (
                             <p>No categories available</p>
                         )}
                     </div>
-                    {errors.categories && <div className="text-danger">{errors.categories}</div>}
+                    {errors.categories && <div className={styles.errorMessage}>{errors.categories}</div>}
                 </div>
 
-                <button type="submit" className="btn btn-primary">Save Changes</button>
+                <button type="submit" className={styles.submitButton}>Save Changes</button>
             </form>
         </div>
     );
