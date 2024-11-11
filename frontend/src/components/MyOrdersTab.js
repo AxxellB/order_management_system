@@ -3,6 +3,7 @@ import {Link} from 'react-router-dom';
 import axios from 'axios';
 import {Table, Pagination, Spinner} from "react-bootstrap";
 import '../styles/MyOrdersTab.css';
+import {useAlert} from "../provider/AlertProvider";
 
 const MyOrdersTab = () => {
     const [orders, setOrders] = useState([]);
@@ -10,9 +11,11 @@ const MyOrdersTab = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [totalItems, setTotalItems] = useState(0);
     const itemsPerPage = 10;
+    const {showAlert} = useAlert();
 
     useEffect(() => {
-        fetchOrders(currentPage);
+        const delayFetch = setTimeout(fetchOrders, 50);
+        return () => clearTimeout(delayFetch);
     }, [currentPage]);
 
     const fetchOrders = async (page = 1) => {
@@ -21,9 +24,13 @@ const MyOrdersTab = () => {
             const response = await axios.get(`/api/user-orders?page=${page}&itemsPerPage=${itemsPerPage}`);
             setOrders(response.data.orders);
             setTotalItems(response.data.totalItems);
-            setLoading(false);
         } catch (error) {
-            console.error('Error fetching orders:', error);
+            if (error.status === 404) {
+                showAlert("You don't have any orders yet", "info");
+            } else {
+                showAlert("Failed to fetch orders. Please try again.", "error");
+            }
+        } finally {
             setLoading(false);
         }
     };
@@ -93,7 +100,7 @@ const MyOrdersTab = () => {
                     </Pagination>
                 </>
             ) : (
-                <p>No orders found.</p>
+                <p>You don't have any orders yet!</p>
             )}
         </div>
     );

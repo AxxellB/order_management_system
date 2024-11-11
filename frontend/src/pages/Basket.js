@@ -35,7 +35,7 @@ const Basket = () => {
             }
         };
 
-        const delayFetch = setTimeout(fetchBasket, 100);
+        const delayFetch = setTimeout(fetchBasket, 50);
         return () => clearTimeout(delayFetch);
     }, []);
 

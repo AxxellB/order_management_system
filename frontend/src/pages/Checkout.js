@@ -78,7 +78,7 @@ const Checkout = () => {
             }
         };
 
-        const delayFetch = setTimeout(fetchAddresses, 100);
+        const delayFetch = setTimeout(fetchAddresses, 50);
         return () => clearTimeout(delayFetch);
     }, []);
 
