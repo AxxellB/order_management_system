@@ -15,6 +15,8 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\Count;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\Regex;
+use Symfony\Component\Validator\Constraints\Length;
+
 
 class ProductType extends AbstractType
 {
@@ -23,9 +25,11 @@ class ProductType extends AbstractType
         $builder
             ->add('name', TextType::class, [
                 'constraints' => [
-                    new NotBlank([
-                        'message' => 'Please enter a name.'
-                    ])
+                    new NotBlank(['message' => 'Please enter a name.']),
+                    new Length([
+                        'min' => 2,
+                        'maxMessage' => 'The name cannot be less than 2 characters.',
+                    ]),
                 ]
             ])
             ->add('price', MoneyType::class, [
@@ -46,7 +50,15 @@ class ProductType extends AbstractType
                     'max' => '99999999.99',
                 ]
             ])
-            ->add('description')
+            ->add('description', TextType::class, [
+                'constraints' => [
+                    new Length([
+                        'max' => 1000,
+                        'maxMessage' => 'The description cannot exceed {{ limit }} characters.',
+                    ]),
+                ]
+            ])
+
 
             ->add('categories', EntityType::class, [
                 'class' => Category::class,
