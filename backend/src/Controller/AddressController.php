@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Controller;
+
 use App\Entity\Address;
 use App\Repository\AddressRepository;
 use App\Service\AddressService;
@@ -60,9 +61,25 @@ class AddressController extends AbstractController
             return new JsonResponse(['message' => 'Address not found'], Response::HTTP_NOT_FOUND);
         }
 
+        if ($address->getUser() !== $user && !$this->isGranted('ROLE_ADMIN')) {
+            return new JsonResponse(['message' => 'You cannot view this address.'], Response::HTTP_FORBIDDEN);
+        }
+
         $addressData = $this->formatAddress($address);
 
         return new JsonResponse(['address' => $addressData]);
+    }
+
+    public function formatAddress(Address $address): array
+    {
+        return [
+            'id' => $address->getId(),
+            'line' => $address->getLine(),
+            'line2' => $address->getLine2() ?? '',
+            'city' => $address->getCity(),
+            'country' => $address->getCountry(),
+            'postcode' => $address->getPostCode(),
+        ];
     }
 
     #[Route('/addresses', name: 'api_create_address', methods: ['POST'])]
@@ -90,7 +107,6 @@ class AddressController extends AbstractController
         ], Response::HTTP_CREATED);
     }
 
-
     #[Route('/address/{id}', name: 'api_edit_address', methods: ['PUT'])]
     public function apiEditAddress(int $id, Request $request): JsonResponse
     {
@@ -104,6 +120,10 @@ class AddressController extends AbstractController
 
         if (!$address) {
             return new JsonResponse(['message' => 'Address not found'], Response::HTTP_NOT_FOUND);
+        }
+
+        if ($address->getUser() !== $user && !$this->isGranted('ROLE_ADMIN')) {
+            return new JsonResponse(['message' => 'You cannot edit this address.'], Response::HTTP_FORBIDDEN);
         }
 
         $data = json_decode($request->getContent(), true);
@@ -137,20 +157,12 @@ class AddressController extends AbstractController
             return new JsonResponse(['message' => 'Address not found'], Response::HTTP_NOT_FOUND);
         }
 
+        if ($address->getUser() !== $user && !$this->isGranted('ROLE_ADMIN')) {
+            return new JsonResponse(['message' => 'You cannot delete this address.'], Response::HTTP_FORBIDDEN);
+        }
+
         $this->addressService->deleteAddress($address);
 
         return new JsonResponse(['message' => 'Address deleted successfully!'], Response::HTTP_NO_CONTENT);
-    }
-
-    public function formatAddress(Address $address): array
-    {
-        return [
-            'id' => $address->getId(),
-            'line' => $address->getLine(),
-            'line2' => $address->getLine2() ?? '',
-            'city' => $address->getCity(),
-            'country' => $address->getCountry(),
-            'postcode' => $address->getPostCode(),
-        ];
     }
 }
