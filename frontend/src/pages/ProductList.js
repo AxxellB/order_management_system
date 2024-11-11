@@ -16,6 +16,8 @@ const ProductsList = () => {
     const [searchTerm, setSearchTerm] = useState("");
     const [sortOption, setSortOption] = useState("name_asc");
     const fileInputRefs = useRef({});
+    const [statusChanging, setStatusChanging] = useState(false);
+
 
     const [filters, setFilters] = useState({
         category: '',
@@ -41,7 +43,7 @@ const ProductsList = () => {
             clearTimeout(delayFetchCategories);
             clearTimeout(delayFetchProducts);
         };
-    }, [currentPage, searchTerm, sortOption]);
+    }, [currentPage, searchTerm, sortOption, status]);
 
     const fetchProducts = async () => {
         try {
@@ -66,9 +68,13 @@ const ProductsList = () => {
             setLoading(false);
         } catch (err) {
             setError(err.message);
+        } finally {
             setLoading(false);
+            setStatusChanging(false);
+
         }
-    };
+
+};
 
     const fetchCategories = async () => {
         try {
@@ -117,7 +123,12 @@ const ProductsList = () => {
     };
 
     const handleStatusChange = (newStatus) => {
-        if (status !== newStatus) setStatus(newStatus);
+        if (status !== newStatus) {
+            setStatus(newStatus);
+            setProducts([]);
+            setCurrentPage(1);
+            setStatusChanging(true);
+        }
     };
 
     const handleSortChange = (e) => {
@@ -255,7 +266,8 @@ const ProductsList = () => {
                         </div>
                     </div>
 
-                    {loading ? (
+
+                    {loading || statusChanging ? (
                         <div className={`${styles.message} ${styles.loadingMessage}`}>Loading...</div>
                     ) : error ? (
                         <div className={`${styles.message} ${styles.errorMessage}`}>Error: {error}</div>
@@ -304,6 +316,8 @@ const ProductsList = () => {
                             ))}
                         </div>
                     )}
+
+
 
 
                     <nav className="mt-4">
