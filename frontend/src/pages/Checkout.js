@@ -71,7 +71,9 @@ const Checkout = () => {
                     setAddresses(Object.values(response.data.addresses));
                 }
             } catch (error) {
-                showAlert("Could not fetch addresses! Please try again!", "error");
+                if (error && !error.statusCode == 404) {
+                    showAlert("Could not fetch addresses! Please try again!", "error");
+                }
                 setAddresses([]);
             } finally {
                 setAddressLoading(false);
