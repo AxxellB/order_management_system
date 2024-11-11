@@ -22,7 +22,7 @@ const CategoriesList = () => {
         if (message) {
             const timer = setTimeout(() => {
                 setMessage(null);
-            }, 2000);
+            }, 100);
             return () => clearTimeout(timer);
         }
     }, [message]);

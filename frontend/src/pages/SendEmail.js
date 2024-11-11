@@ -11,7 +11,6 @@ const SendEmail = () => {
                 alert("Failed to send email");
             }
         } catch (error) {
-            console.error("Error sending email:", error);
             alert("An error occurred while sending email");
         }
     };

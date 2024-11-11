@@ -40,7 +40,8 @@ const ProductPage = () => {
                 const response = await axios.get('http://localhost/api/products/randomised?limit=5');
                 setRecommendations(response.data.products);
             } catch (error) {
-                console.error('Error fetching recommendations:', error);
+                showAlert("Error fetching recommendations. Please try again.", "error");
+
             }
         };
 

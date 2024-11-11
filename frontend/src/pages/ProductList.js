@@ -75,7 +75,7 @@ const ProductsList = () => {
             const response = await axios.get('http://localhost/api/categories/list?filter=true');
             setCategories(response.data.categories);
         } catch (error) {
-            console.error('Error fetching categories:', error);
+            showAlert('Error fetching categories.', "error");
         }
     };
 
