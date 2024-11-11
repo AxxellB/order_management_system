@@ -70,3 +70,31 @@
     background-color: #6c757d;
     color: #fff;
 }
+
+
+.categoryList {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+.categoryListItem {
+    flex: 1 1 calc(50% - 0.5rem);
+    max-width: calc(50% - 0.5rem);
+    background-color: #daedea;
+    color: #333;
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 0.5rem;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    border: 1px solid #ddd;
+    text-align: center;
+}
+
+.categoryListItem:last-child {
+    margin-bottom: 0;
+}

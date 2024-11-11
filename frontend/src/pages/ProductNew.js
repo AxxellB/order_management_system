@@ -1,7 +1,8 @@
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import {useNavigate} from 'react-router-dom';
-import {useAlert} from "../provider/AlertProvider";
+import { useNavigate } from 'react-router-dom';
+import { useAlert } from "../provider/AlertProvider";
+import styles from '../styles/EditProduct.module.css';
 
 const NewProduct = () => {
     const [formData, setFormData] = useState({
@@ -12,10 +13,16 @@ const NewProduct = () => {
     });
     const [availableCategories, setAvailableCategories] = useState([]);
     const [errors, setErrors] = useState({});
+    const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
-    const {showAlert} = useAlert();
+    const { showAlert } = useAlert();
+
     useEffect(() => {
-        fetchCategories();
+        const delayFetchCategories = setTimeout(() => {
+            fetchCategories();
+        }, 100);
+
+        return () => clearTimeout(delayFetchCategories);
     }, []);
 
     const fetchCategories = async () => {
@@ -24,6 +31,8 @@ const NewProduct = () => {
             setAvailableCategories(response.data.categories || []);
         } catch (err) {
             showAlert(`Error fetching categories: ${err}`, "error");
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -49,22 +58,16 @@ const NewProduct = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
-        const {categories, name, price, description} = formData;
-        const preparedData = {
-            categories,
-            name,
-            price,
-            description
-        };
+        const { categories, name, price, description } = formData;
+        const preparedData = { categories, name, price, description };
 
         try {
-            const response = await axios.post('http://localhost/api/products/new', preparedData);
+            await axios.post('http://localhost/api/products/new', preparedData);
             showAlert('Product created successfully', "success");
             navigate('/admin/products');
         } catch (error) {
             if (error.response && error.response.data) {
-                showAlert("Product could not be created! Please try again", "error")
+                showAlert("Product could not be created! Please try again", "error");
                 setErrors(error.response.data.errors || {});
             } else {
                 showAlert("Unexpected error:", "error");
@@ -72,74 +75,82 @@ const NewProduct = () => {
         }
     };
 
+    if (loading) {
+        return (
+            <div className={styles.spinnerContainer}>
+                <div className="spinner-border text-primary" role="status">
+                    <span className="visually-hidden">Loading categories...</span>
+                </div>
+            </div>
+        );
+    }
+
     return (
-        <div className="container mt-5">
-            <h1>Create New Product</h1>
+        <div className={styles.container}>
+            <h1 className={styles.title}>Create New Product</h1>
+            <button onClick={() => navigate(-1)} className={styles.backButton}>Back</button>
             <form onSubmit={handleSubmit}>
-                <div className="mb-3">
-                    <label className="form-label">Product Name</label>
+                <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>Product Name</label>
                     <input
                         type="text"
                         name="name"
                         value={formData.name}
                         onChange={handleChange}
-                        className="form-control"
+                        className={styles.formInput}
                     />
-                    {errors.name && <div className="text-danger">{errors.name}</div>}
+                    {errors.name && <div className={styles.errorMessage}>{errors.name}</div>}
                 </div>
 
-                <div className="mb-3">
-                    <label className="form-label">Price</label>
+                <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>Price</label>
                     <input
                         type="number"
                         name="price"
                         value={formData.price}
                         onChange={handleChange}
-                        className="form-control"
+                        className={styles.formInput}
                         step="0.01"
                         min="0.00"
                         max="99999999.99"
                     />
-                    {errors.price && <div className="text-danger">{errors.price}</div>}
+                    {errors.price && <div className={styles.errorMessage}>{errors.price}</div>}
                 </div>
 
-                <div className="mb-3">
-                    <label className="form-label">Description</label>
+                <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>Description</label>
                     <textarea
                         name="description"
                         value={formData.description}
                         onChange={handleChange}
-                        className="form-control"
+                        className={styles.formTextarea}
                     ></textarea>
-                    {errors.description && <div className="text-danger">{errors.description}</div>}
+                    {errors.description && <div className={styles.errorMessage}>{errors.description}</div>}
                 </div>
 
-                <div className="mb-3">
-                    <label className="form-label">Categories</label>
-                    <div>
+                <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>Categories</label>
+                    <div className={styles.categoriesContainer}>
                         {availableCategories.length > 0 ? (
                             availableCategories.map((category) => (
-                                <div key={category.id} className="form-check form-check-inline">
+                                <div key={category.id} className={styles.categoryCheckbox}>
                                     <input
                                         type="checkbox"
                                         id={`category-${category.id}`}
                                         value={category.id}
                                         onChange={handleCategoryChange}
-                                        className="form-check-input"
                                     />
-                                    <label htmlFor={`category-${category.id}`} className="form-check-label">
-                                        {category.name}
-                                    </label>
+                                    <label htmlFor={`category-${category.id}`}>{category.name}</label>
                                 </div>
                             ))
                         ) : (
                             <p>No categories available</p>
                         )}
                     </div>
-                    {errors.categories && <div className="text-danger">{errors.categories}</div>}
+                    {errors.categories && <div className={styles.errorMessage}>{errors.categories}</div>}
                 </div>
 
-                <button type="submit" className="btn btn-primary">Create Product</button>
+                <button type="submit" className={styles.submitButton}>Create Product</button>
             </form>
         </div>
     );

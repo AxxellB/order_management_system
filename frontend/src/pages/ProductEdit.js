@@ -19,8 +19,20 @@ const EditProduct = () => {
     const { showAlert } = useAlert();
 
     useEffect(() => {
-        fetchProduct();
-        fetchCategories();
+        const delayFetchProduct = setTimeout(() => {
+            fetchProduct()
+        }, 50);
+
+        const delayFetchCategories = setTimeout(() => {
+            fetchCategories()
+        }, 100);
+
+        return () => {
+            clearTimeout(delayFetchProduct);
+
+            clearTimeout(delayFetchCategories);
+        };
+
     }, []);
 
     const fetchProduct = async () => {
