@@ -1,6 +1,6 @@
-import { RouterProvider, createBrowserRouter } from "react-router-dom";
-import { useAuth } from "../provider/AuthProvider";
-import { ProtectedRoute } from "./ProtectedRoute";
+import {RouterProvider, createBrowserRouter} from "react-router-dom";
+import {useAuth} from "../provider/AuthProvider";
+import {ProtectedRoute} from "./ProtectedRoute";
 import Login from "../pages/Login";
 import Logout from "../pages/Logout";
 import Homepage from "../pages/Homepage";
@@ -38,21 +38,21 @@ import AddAddress from "../components/AddAddress";
 import EditAddress from "../components/EditAddress";
 
 const Routes = () => {
-    const { token } = useAuth();
-    const { isAdmin } = useAuth();
+    const {token} = useAuth();
+    const {isAdmin} = useAuth();
 
     const routesForPublic = [
         {
             path: "/",
-            element: <Layout />,
+            element: <Layout/>,
             children: [
                 {
                     path: "/",
-                    element: <Homepage />
+                    element: <Homepage/>
                 },
                 {
                     path: "*",
-                    element: < NotFound />,
+                    element: < NotFound/>,
                 },
             ]
         }
@@ -61,94 +61,94 @@ const Routes = () => {
     const routesForAdminOnly = [
         {
             path: "/",
-            element: <AdminRoute />,
+            element: <AdminRoute/>,
             children: [
                 {
-                path: "/",
-                element: <Layout />,
-                children: [
-                    {
-                        path: "/admin/dashboard",
-                        element: <AdminDashboard />,
-                    },
-                    {
-                        path: "/admin/categories",
-                        element: <CategoriesList />,
-                    },
-                    {
-                        path: "/admin/products",
-                        element: <ProductsList />,
-                    },
-                    {
-                        path: "/admin/products/new",
-                        element: <ProductNew />,
-                    },
-                    {
-                        path: "/admin/products/:id",
-                        element: <ProductDetails />,
-                    },
-                    {
-                        path: "/admin/products/edit/:id",
-                        element: <ProductEdit />,
-                    },
-                    {
-                        path: "/admin/bulk-restock",
-                        element: <BulkProductRestock />,
-                    },
-                    {
-                        path: "/admin/categories/new",
-                        element: <CategoryNew />,
-                    },
-                    {
-                        path: "/admin/categories/:id",
-                        element: <CategoryNew />,
-                    },
-                    {
-                        path: "/admin/categories/edit/:id",
-                        element: <CategoryEdit />,
-                    },
-                    {
-                        path:  "/admin/inventory",
-                        element: <InventoryManagement />
-                    },
-                    {
-                        path:  "/admin/product/:id/stock-history",
-                        element: <ProductStockHistory />
-                    },
-                    {
-                        path: "/admin/orders",
-                        element: <OrderManagementPage />
-                    },
-                    {
-                        path: "/admin/order/:id",
-                        element: <EditOrderForm />
-                    },
-                    {
-                        path: "/admin/order-history-logs",
-                        element: <OrderAuditLogs />,
-                    },
-                    {
-                        path: "/admin/order-history-logs/:id",
-                        element: <ViewOrderLog />
-                    },
-                    {
-                        path:  "/send-email",
-                        element: <SendEmail />
-                    },
-                ]
+                    path: "/",
+                    element: <Layout/>,
+                    children: [
+                        {
+                            path: "/admin/dashboard",
+                            element: <AdminDashboard/>,
+                        },
+                        {
+                            path: "/admin/categories",
+                            element: <CategoriesList/>,
+                        },
+                        {
+                            path: "/admin/products",
+                            element: <ProductsList/>,
+                        },
+                        {
+                            path: "/admin/products/new",
+                            element: <ProductNew/>,
+                        },
+                        {
+                            path: "/admin/products/:id",
+                            element: <ProductDetails/>,
+                        },
+                        {
+                            path: "/admin/products/edit/:id",
+                            element: <ProductEdit/>,
+                        },
+                        {
+                            path: "/admin/bulk-restock",
+                            element: <BulkProductRestock/>,
+                        },
+                        {
+                            path: "/admin/categories/new",
+                            element: <CategoryNew/>,
+                        },
+                        {
+                            path: "/admin/categories/:id",
+                            element: <CategoryNew/>,
+                        },
+                        {
+                            path: "/admin/categories/edit/:id",
+                            element: <CategoryEdit/>,
+                        },
+                        {
+                            path: "/admin/inventory",
+                            element: <InventoryManagement/>
+                        },
+                        {
+                            path: "/admin/product/:id/stock-history",
+                            element: <ProductStockHistory/>
+                        },
+                        {
+                            path: "/admin/orders",
+                            element: <OrderManagementPage/>
+                        },
+                        {
+                            path: "/admin/order/:id",
+                            element: <EditOrderForm/>
+                        },
+                        {
+                            path: "/admin/order-history-logs",
+                            element: <OrderAuditLogs/>,
+                        },
+                        {
+                            path: "/admin/order-history-logs/:id",
+                            element: <ViewOrderLog/>
+                        },
+                        {
+                            path: "/send-email",
+                            element: <SendEmail/>
+                        },
+                    ]
                 }
-                ]
+            ]
         }
     ]
 
     const routesForAuthenticatedOnly = [
         {
             path: "/",
-            element: <ProtectedRoute />,
+            element: <ProtectedRoute/>,
             children: [
                 {
                     path: "/",
-                    element: <Layout />,
+                    element: <Layout/>,
                     children: [
                         {
                             path: "/product/:id",
@@ -156,139 +156,83 @@ const Routes = () => {
                         },
                         {
                             path: "/profile",
-                            element: <UserProfile />
+                            element: <UserProfile/>
                         },
                         {
                             path: "/profile/security-centre",
-                            element: <SecurityCentre />
+                            element: <SecurityCentre/>
                         },
                         {
                             path: "/profile/addresses",
-                            element: <AddressTab />
+                            element: <AddressTab/>
                         },
                         {
                             path: "/profile/addresses/new",
-                            element: <AddAddress />
+                            element: <AddAddress/>
                         },
                         {
                             path: "/profile/addresses/edit/:id",
-                            element: <EditAddress />
+                            element: <EditAddress/>
                         },
                         {
                             path: "/profile/orders",
-                            element: <MyOrdersTab />
+                            element: <MyOrdersTab/>
                         },
                         {
                             path: `/profile/orders/:id`,
-                            element: <MyOrdersDetailsTab />
-                        },
-                        {
-                            path: "/admin/products",
-                            element: <ProductsList />,
-                        },
-                        {
-                            path: "/admin/products/new",
-                            element: <ProductNew />,
-                        },
-                        {
-                            path: "/admin/products/:id",
-                            element: <ProductDetails />,
-                        },
-                        {
-                            path: "/admin/products/edit/:id",
-                            element: <ProductEdit />,
-                        },
-                        {
-                            path: "/admin/bulk-restock",
-                            element: <BulkProductRestock />,
-                        },
-                        {
-                            path: "/admin/categories",
-                            element: <CategoriesList />,
-                        },
-                        {
-                            path: "/admin/categories/new",
-                            element: <CategoryNew />,
-                        },
-                        {
-                            path: "/admin/categories/:id",
-                            element: <CategoryNew />,
-                        },
-                        {
-                            path: "/admin/categories/edit/:id",
-                            element: <CategoryEdit />,
-                        },
-                        {
-                            path:  "admin/inventory",
-                            element: <InventoryManagement />
-                        },
-                        {
-                            path: "/admin/orders",
-                            element: <OrderManagementPage />
-                        },
-                        {
-                            path: "/admin/order/:id",
-                            element: <EditOrderForm />
-                        },
-                        {
-                            path: "/admin/order-history-logs",
-                            element: <OrderAuditLogs />,
-                        },
-                        {
-                            path: "/admin/order-history-logs/:id",
-                            element: <ViewOrderLog />
+                            element: <MyOrdersDetailsTab/>
                         },
                         {
                             path: "/profile",
-                            element: <UserProfile />
+                            element: <UserProfile/>
                         },
                         {
                             path: "/profile/security-centre",
-                            element: <SecurityCentre />
+                            element: <SecurityCentre/>
                         },
                         {
                             path: "/profile/addresses",
-                            element: <AddressTab />
+                            element: <AddressTab/>
                         },
                         {
                             path: "/profile/orders",
-                            element: <MyOrdersTab />
+                            element: <MyOrdersTab/>
                         },
                         {
                             path: `/profile/orders/:id`,
-                            element: <MyOrdersDetailsTab />
+                            element: <MyOrdersDetailsTab/>
                         },
                         {
                             path: "/profile/security-centre",
-                            element: <SecurityCentre />
+                            element: <SecurityCentre/>
                         },
                         {
                             path: "/profile/addresses",
-                            element: <AddressTab />
+                            element: <AddressTab/>
                         },
                         {
                             path: "/profile/orders",
-                            element: <MyOrdersTab />
+                            element: <MyOrdersTab/>
                         },
                         {
                             path: `/profile/orders/:id`,
-                            element: <MyOrdersDetailsTab />
+                            element: <MyOrdersDetailsTab/>
                         },
                         {
                             path: "/basket",
-                            element: <Basket />
+                            element: <Basket/>
                         },
                         {
                             path: "/checkout",
-                            element: <Checkout />
+                            element: <Checkout/>
                         },
                         {
                             path: "/order-confirmation",
-                            element: <OrderSuccessPage />
+                            element: <OrderSuccessPage/>
                         },
                         {
                             path: "/logout",
-                            element: <Logout />
+                            element: <Logout/>
                         },
                     ],
                 },
@@ -299,15 +243,15 @@ const Routes = () => {
     const routesForNotAuthenticatedOnly = [
         {
             path: "/",
-            element: <Layout />,
+            element: <Layout/>,
             children: [
                 {
                     path: "/login",
-                    element: <Login />,
+                    element: <Login/>,
                 },
                 {
                     path: "/register",
-                    element: <Register />,
+                    element: <Register/>,
                 },
             ]
         }
