@@ -46,20 +46,20 @@ class UserController extends AbstractController
         if ($loginResult['success']) {
             /** @var UserInterface $user */
             $user = $loginResult['user'];
-            $token = $jwtManager->create($user);
             $isAdmin = $user->isAdmin();
 
             if ($isAdmin) {
                 $this->twoFactorAuthenticatorService->generateAndSend2FACode($user->getId(), $user->getEmail());
 
                 return new JsonResponse([
-                    'message' => 'Login successful! 2FA code sent.',
+                    'message' => 'Please confirm your 2FA code we sent to your email.',
                     'userId' => $user->getId(),
-                    'token' => $token,
                     'isAdmin' => $isAdmin,
                     'requires2FA' => true
                 ], Response::HTTP_OK);
             }
+
+            $token = $jwtManager->create($user);
 
             return new JsonResponse([
                 'message' => 'Login successful!',
