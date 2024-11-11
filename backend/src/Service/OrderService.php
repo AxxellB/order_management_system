@@ -83,6 +83,9 @@ class OrderService
             $orderProduct->setPricePerUnit($productPrice);
             $orderProduct->setSubtotal($basketProduct->getQuantity() * $productPrice);
             $this->entityManager->persist($orderProduct);
+
+            $order->addOrderProduct($orderProduct);
+
         }
 
         if ($discountCode !== null) {
@@ -95,6 +98,8 @@ class OrderService
         $this->basketService->clearBasket($basket);
         $this->entityManager->persist($basket);
         $this->entityManager->flush();
+
+        sleep(1);
 
         $eventDispatcher->dispatch(new OrderPlacedEvent($order), OrderPlacedEvent::NAME);
         return $order;

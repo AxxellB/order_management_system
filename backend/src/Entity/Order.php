@@ -48,7 +48,7 @@ class Order
     /**
      * @var Collection<int, OrderProduct>
      */
-    #[ORM\OneToMany(targetEntity: OrderProduct::class, mappedBy: 'orderEntity')]
+    #[ORM\OneToMany(targetEntity: OrderProduct::class, mappedBy: 'orderEntity', cascade: ['persist', 'remove'])]
     #[Groups(['order:read'])]
     private Collection $orderProducts;
 

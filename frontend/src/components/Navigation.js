@@ -30,12 +30,6 @@ const Navigation = () => {
 
                 <div className="collapse navbar-collapse" id="navbarNav">
                     <ul className="navbar-nav me-auto d-flex align-items-center">
-                        <li className="nav-item">
-                            <Link className={`nav-link ${styles.navLink}`} to="/">Home</Link>
-                        </li>
-                        <li className="nav-item">
-                            <Link className={`nav-link ${styles.navLink}`} to="/categories">Categories</Link>
-                        </li>
                     </ul>
 
                     <ul className="navbar-nav ms-auto d-flex align-items-center">
