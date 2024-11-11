@@ -1,0 +1,48 @@
+.container {
+    max-width: 700px;
+    margin: 0 auto;
+    margin-top: 1.5rem;
+    padding: 2rem;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.title {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: black;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.table {
+    margin-top: 1rem;
+    background-color: #fff;
+    border: 1px solid #ddd;
+}
+
+.table th {
+    width: 35%;
+    background: #007bff;
+    font-weight: bold;
+    color: #ffffff;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+}
+
+.table td {
+    color: #333;
+    padding: 0.75rem;
+}
+
+.backButton {
+    font-weight: bold;
+    background-color: #6c757d;
+    color: #fff;
+}
+
+.backButton:hover {
+    background-color: #5a6268;
+    color: #fff
+}
