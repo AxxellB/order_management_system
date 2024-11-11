@@ -174,10 +174,10 @@ class OrderController extends AbstractController
     public function apiCreateOrder(Request $request, EventDispatcherInterface $eventDispatcher): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
-        if (!isset($data["address"])) {
-            return new JsonResponse(["message" => "Address is required"], Response::HTTP_BAD_REQUEST);
+        if (empty($data["addressId"])) {
+            return new JsonResponse(["message" => "Address is required for checkout."], Response::HTTP_BAD_REQUEST);
         }
-        
+
         $addressId = $data["addressId"];
         $user = $this->getUser();
 

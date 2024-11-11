@@ -8,7 +8,6 @@ const AddressTab = () => {
     const [addresses, setAddresses] = useState([]);
     const [loading, setLoading] = useState(false);
     const {showAlert} = useAlert();
-    const {token} = useAuth();
 
     useEffect(() => {
         setLoading(true);
@@ -23,10 +22,9 @@ const AddressTab = () => {
             }
         };
 
-        if (token) {
-            fetchAddresses();
-        }
-    }, [token]);
+        const delayFetch = setTimeout(fetchAddresses, 100);
+        return () => clearTimeout(delayFetch);
+    }, []);
 
     const handleDeleteAddress = async (id) => {
         setLoading(true);
@@ -46,48 +44,53 @@ const AddressTab = () => {
 
             <h2 className="mb-4">My Addresses</h2>
 
-            {loading && (
+            {loading ? (
                 <div className="d-flex justify-content-center">
                     <div className="spinner-border text-primary" role="status">
                         <span className="visually-hidden">Loading...</span>
                     </div>
                 </div>
+            ) : (
+                <>
+                    <div className="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-4">
+                        {addresses.length > 0 ? (
+                            addresses.map(address => (
+                                <div key={address.id} className="col">
+                                    <div className="card h-100">
+                                        <div className="card-body">
+                                            <p>{address.line}</p>
+                                            {address.line2 && <p>{address.line2}</p>}
+                                            <p>{address.city}, {address.country} - {address.postcode}</p>
+                                        </div>
+                                        <div className="card-footer">
+                                            <Link to={`/profile/addresses/edit/${address.id}`}
+                                                  className="btn btn-primary ">
+                                                Edit
+                                            </Link>
+                                            <button
+                                                className="btn btn-danger"
+                                                onClick={() => handleDeleteAddress(address.id)}
+                                            >
+                                                Delete
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <p>You don't have any addresses.</p>
+                        )}
+                    </div>
+
+                    <div className="mt-4">
+                        <Link to="/profile/addresses/new" className="btn btn-primary">
+                            Add New Address
+                        </Link>
+                    </div>
+                </>
             )}
 
-            <div className="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-4">
-                {addresses.length > 0 ? (
-                    addresses.map(address => (
-                        <div key={address.id} className="col">
-                            <div className="card h-100">
-                                <div className="card-body">
-                                    <p>{address.line}</p>
-                                    {address.line2 && <p>{address.line2}</p>}
-                                    <p>{address.city}, {address.country} - {address.postcode}</p>
-                                </div>
-                                <div className="card-footer">
-                                    <Link to={`/profile/addresses/edit/${address.id}`} className="btn btn-primary ">
-                                        Edit
-                                    </Link>
-                                    <button
-                                        className="btn btn-danger"
-                                        onClick={() => handleDeleteAddress(address.id)}
-                                    >
-                                        Delete
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    ))
-                ) : (
-                    <p>You don't have any addresses.</p>
-                )}
-            </div>
 
-            <div className="mt-4">
-                <Link to="/profile/addresses/new" className="btn btn-primary">
-                    Add New Address
-                </Link>
-            </div>
         </div>
     );
 };

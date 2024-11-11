@@ -48,7 +48,7 @@ class OrderService
         if (!$basketProducts) {
             throw new BadRequestHttpException('Basket is empty.');
         }
-        
+
         foreach ($basketProducts as $basketProduct) {
             $productPrice = $basketProduct->getProduct()->getPrice();
             $totalAmount += $basketProduct->getQuantity() * $productPrice;
@@ -101,8 +101,6 @@ class OrderService
         $this->basketService->clearBasket($basket);
         $this->entityManager->persist($basket);
         $this->entityManager->flush();
-
-        sleep(1);
 
         $eventDispatcher->dispatch(new OrderPlacedEvent($order), OrderPlacedEvent::NAME);
         return $order;
