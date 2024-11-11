@@ -1,9 +1,11 @@
 import React, {useEffect, useState} from 'react';
 import axios from 'axios';
-import {useNavigate} from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
 import '../styles/Checkout.css';
 import {hasAvailableQuantity} from "../services/productService";
 import {useAlert} from "../provider/AlertProvider";
+import {Spinner} from "react-bootstrap";
+import {useAuth} from "../provider/AuthProvider";
 
 const Checkout = () => {
     const [basket, setBasket] = useState([]);
@@ -26,6 +28,7 @@ const Checkout = () => {
     const {showAlert} = useAlert();
 
     useEffect(() => {
+
         const fetchBasketItems = async () => {
             try {
                 setBasketLoading(true);
@@ -34,13 +37,14 @@ const Checkout = () => {
                     setBasket(response.data.basket);
                 }
             } catch (error) {
-                console.error('Error fetching basket items', error);
-                showAlert("An error occurred! Please try again!", "error");
+                showAlert("Error fetching basket items! Please try again!", "error");
             } finally {
                 setBasketLoading(false);
             }
         };
-        fetchBasketItems();
+        
+        const delayFetch = setTimeout(fetchBasketItems, 100);
+        return () => clearTimeout(delayFetch);
     }, []);
 
     useEffect(() => {
@@ -68,15 +72,15 @@ const Checkout = () => {
                     setAddresses(Object.values(response.data.addresses));
                 }
             } catch (error) {
-                console.error('Error fetching addresses', error);
-                showAlert("An error occurred! Please try again!", "error");
+                showAlert("Could not fetch addresses! Please try again!", "error");
                 setAddresses([]);
             } finally {
                 setAddressLoading(false);
             }
         };
 
-        fetchAddresses();
+        const delayFetch = setTimeout(fetchAddresses, 100);
+        return () => clearTimeout(delayFetch);
     }, []);
 
     const validateCode = async () => {
@@ -106,6 +110,7 @@ const Checkout = () => {
     };
 
     const handleCheckout = async () => {
+        setPreventCheckout(true)
         setBasketErrors([]);
         let errors = [];
 
@@ -145,16 +150,34 @@ const Checkout = () => {
             }
 
             await axios.post('/api/orders', checkoutData);
-            showAlert('Order placed successfully!', "success");
             navigate('/order-confirmation');
         } catch (error) {
-            console.error('Error during checkout', error);
-            showAlert('An error occurred! Please try again', "error");
+            if (error.response && error.response.data.message) {
+                let errorMsg = 'An error occurred! Please try again!';
+
+                if (error.response) {
+                    if (error.response.data && error.response.data.message) {
+                        errorMsg = error.response.data.message;
+                    } else if (error.response.statusText) {
+                        errorMsg = error.response.statusText;
+                    }
+                } else if (error.message) {
+                    errorMsg = error.message;
+                }
+
+                showAlert(errorMsg, "error");
+            }
+        } finally {
+            setPreventCheckout(false)
         }
     };
 
     if (basketLoading) {
-        return <div className="loading">Loading checkout page...</div>;
+        return (
+            <div className="text-center mt-5">
+                <Spinner animation="border" variant="primary"/>
+            </div>
+        )
     }
 
     if (basket.length === 0) {
@@ -209,24 +232,27 @@ const Checkout = () => {
             </div>
 
             <div className="address-selection">
-                <h3>Select Address</h3>
+                <h3>Select Delivery Address</h3>
                 {addressLoading ? (
                     <div className="loading">Loading addresses...</div>
                 ) : (
-                    <select
-                        value={selectedAddress}
-                        onChange={(e) => setSelectedAddress(e.target.value)}
-                        className="address-dropdown"
-                    >
-                        <option value="">Choose an address</option>
-                        {addresses.map(address => (
-                            <option key={address.id} value={address.id}>
-                                {address.line2
-                                    ? `${address.line}, ${address.line2}, ${address.city}, ${address.country}, ${address.postcode}`
-                                    : `${address.line}, ${address.city}, ${address.country}, ${address.postcode}`}
-                            </option>
-                        ))}
-                    </select>
+                    <>
+                        <select
+                            value={selectedAddress}
+                            onChange={(e) => setSelectedAddress(e.target.value)}
+                            className="address-dropdown"
+                        >
+                            <option value="">Choose an address</option>
+                            {addresses.map(address => (
+                                <option key={address.id} value={address.id}>
+                                    {address.line2
+                                        ? `${address.line}, ${address.line2}, ${address.city}, ${address.country}, ${address.postcode}`
+                                        : `${address.line}, ${address.city}, ${address.country}, ${address.postcode}`}
+                                </option>
+                            ))}
+                        </select>
+                        <Link className={'btn btn-success mt-2'} to={'/profile/addresses'}>Add address</Link>
+                    </>
                 )}
             </div>
 

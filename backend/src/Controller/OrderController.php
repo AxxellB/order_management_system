@@ -60,6 +60,43 @@ class OrderController extends AbstractController
         ], Response::HTTP_OK);
     }
 
+    private function formatOrder(Order $order): array
+    {
+        $formattedProducts = [];
+        foreach ($order->getOrderProducts() as $orderProduct) {
+            $formattedProducts[] = [
+                'id' => $orderProduct->getProductEntity()->getId(),
+                'name' => $orderProduct->getProductEntity()->getName(),
+                'quantity' => $orderProduct->getQuantity(),
+                'pricePerUnit' => $orderProduct->getPricePerUnit(),
+                'subtotal' => $orderProduct->getSubtotal()
+            ];
+        }
+
+        $formattedAddress = [
+            'id' => $order->getAddress()->getId(),
+            'line' => $order->getAddress()->getLine(),
+            'line2' => $order->getAddress()->getLine2(),
+            'city' => $order->getAddress()->getCity(),
+            'country' => $order->getAddress()->getCountry(),
+            'postcode' => $order->getAddress()->getPostcode(),
+        ];
+
+        return [
+            'id' => $order->getId(),
+            'userId' => $order->getUserId()->getEmail(),
+            'orderDate' => $order->getOrderDate()->format('Y-m-d\TH:i:sP'),
+            'totalAmount' => $order->getTotalAmount(),
+            'paymentMethod' => $order->getPaymentMethod(),
+            'status' => $order->getStatus(),
+            'deletedAt' => $order->getDeletedAt() ? $order->getDeletedAt()->format('Y-m-d\TH:i:sP') : null,
+            'orderProducts' => $formattedProducts,
+            'address' => $formattedAddress,
+        ];
+    }
+
+    // User's "My Orders" tab
+
     #[Route('/order/{id}', name: 'api_order', methods: ['GET'])]
     public function apiViewOrder(int $id): JsonResponse
     {
@@ -74,7 +111,6 @@ class OrderController extends AbstractController
         return new JsonResponse($formattedOrder, Response::HTTP_OK);
     }
 
-    // User's "My Orders" tab
     #[Route(path: '/user-orders', name: 'api_user_orders', methods: ['GET'])]
     public function apiUserOrders(Request $request): JsonResponse
     {
@@ -113,12 +149,16 @@ class OrderController extends AbstractController
     public function apiCreateOrder(Request $request, EventDispatcherInterface $eventDispatcher): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
+        if (!isset($data["address"])) {
+            return new JsonResponse(["message" => "Address is required"], Response::HTTP_BAD_REQUEST);
+        }
+        
         $addressId = $data["addressId"];
         $user = $this->getUser();
 
-        if(isset($data['discountCode'], $data['percentOff']) && $data['discountCode'] != "" && $data['percentOff'] != ""){
+        if (isset($data['discountCode'], $data['percentOff']) && $data['discountCode'] != "" && $data['percentOff'] != "") {
             $order = $this->orderService->createOrder($user, $addressId, $eventDispatcher, $data['discountCode'], $data['percentOff']);
-        }else{
+        } else {
             $order = $this->orderService->createOrder($user, $addressId, $eventDispatcher);
         }
         $data = $this->serializer->serialize($order, 'json', ['groups' => 'order:read']);
@@ -234,40 +274,5 @@ class OrderController extends AbstractController
         $response->headers->set('Content-Disposition', $disposition);
 
         return $response;
-    }
-
-    private function formatOrder(Order $order): array
-    {
-        $formattedProducts = [];
-        foreach ($order->getOrderProducts() as $orderProduct) {
-            $formattedProducts[] = [
-                'id' => $orderProduct->getProductEntity()->getId(),
-                'name' => $orderProduct->getProductEntity()->getName(),
-                'quantity' => $orderProduct->getQuantity(),
-                'pricePerUnit' => $orderProduct->getPricePerUnit(),
-                'subtotal' => $orderProduct->getSubtotal()
-            ];
-        }
-
-        $formattedAddress = [
-            'id' => $order->getAddress()->getId(),
-            'line' => $order->getAddress()->getLine(),
-            'line2' => $order->getAddress()->getLine2(),
-            'city' => $order->getAddress()->getCity(),
-            'country' => $order->getAddress()->getCountry(),
-            'postcode' => $order->getAddress()->getPostcode(),
-        ];
-
-        return [
-            'id' => $order->getId(),
-            'userId' => $order->getUserId()->getEmail(),
-            'orderDate' => $order->getOrderDate()->format('Y-m-d\TH:i:sP'),
-            'totalAmount' => $order->getTotalAmount(),
-            'paymentMethod' => $order->getPaymentMethod(),
-            'status' => $order->getStatus(),
-            'deletedAt' => $order->getDeletedAt() ? $order->getDeletedAt()->format('Y-m-d\TH:i:sP') : null,
-            'orderProducts' => $formattedProducts,
-            'address' => $formattedAddress,
-        ];
     }
 }
