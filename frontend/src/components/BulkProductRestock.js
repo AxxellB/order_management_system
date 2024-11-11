@@ -2,6 +2,7 @@ import React, {useState} from "react";
 import {Button, Table, Form, Alert, Image, Row, Col} from "react-bootstrap";
 import axios from "axios";
 import {ExampleCsvFormat} from "../assets/assets";
+import { useAlert } from "../provider/AlertProvider";
 
 const BulkProductRestock = () => {
     const [step, setStep] = useState(1);
@@ -9,6 +10,7 @@ const BulkProductRestock = () => {
     const [confirmedChanges, setConfirmedChanges] = useState([]);
     const [error, setError] = useState("");
     const [confirmAll, setConfirmAll] = useState(false);
+    const { showAlert } = useAlert();
 
     const handleCsvUpload = (e) => {
         const file = e.target.files[0];
@@ -30,7 +32,7 @@ const BulkProductRestock = () => {
                     setCsvData(response.data.validatedProducts);
                     setStep(2);
                 } catch (error) {
-                    setError("Failed to validate products. Please check the CSV format.");
+                    showAlert("Failed to validate products. Please check the CSV format.", "error");
                     setTimeout(() => setError(""), 5000);
                 }
             };
@@ -60,7 +62,7 @@ const BulkProductRestock = () => {
             setConfirmedChanges(confirmedItems);
             setStep(3);
         } catch (error) {
-            setError("Failed to apply stock changes. Please try again. Make sure you have confirmed the stock changes");
+            showAlert("Failed to apply stock changes. Make sure you have confirmed the stock changes", "error");
             setTimeout(() => setError(""), 5000);
         }
     };
