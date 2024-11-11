@@ -46,17 +46,6 @@ const TotalProductsSold = ({startDate, endDate}) => {
         Sold: data.salesAmount,
     }));
 
-    const salesValues = transformedData.map(item => item.Sold);
-    const minSold = salesValues.length ? Math.min(...salesValues) : 0;
-    const maxSold = salesValues.length ? Math.max(...salesValues) : 1;
-
-    const yAxisDomain = [
-        minSold * 0.8,
-        maxSold > minSold * 10
-            ? maxSold * 1.1
-            : Math.ceil(maxSold * 1.2)
-    ];
-
     return (
         <div>
             <h2>Total Products Sold</h2>
@@ -80,17 +69,9 @@ const TotalProductsSold = ({startDate, endDate}) => {
                             }}
                         >
                             <CartesianGrid strokeDasharray="3 3"/>
-                            <XAxis
-                                dataKey="date"
-                                tickFormatter={(tick) => new Date(tick).toLocaleDateString()}
-                            />
-                            <YAxis
-                                domain={yAxisDomain}
-                                tickFormatter={(value) => value.toLocaleString()}
-                                scale={maxSold > minSold * 10 ? "log" : "auto"}
-                                allowDataOverflow
-                            />
-                            <Tooltip formatter={(value) => `${value.toLocaleString()} items`}/>
+                            <XAxis dataKey="date"/>
+                            <YAxis/>
+                            <Tooltip/>
                             <Line type="monotone" dataKey="Sold" stroke="#8884d8"/>
                         </LineChart>
                     </ResponsiveContainer>

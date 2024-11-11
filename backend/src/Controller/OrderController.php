@@ -17,6 +17,7 @@ use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Twig\Environment;
 use Knp\Snappy\Pdf;
+use Symfony\Component\Security\Core\Security;
 
 
 #[Route(path: '/api')]
@@ -107,6 +108,30 @@ class OrderController extends AbstractController
             'orders' => $formattedOrders,
             'totalItems' => $totalOrders
         ], Response::HTTP_OK);
+    }
+
+    // Making sure the user can only access their own orders
+    #[Route('/user-order/{id}', name: 'api_user_order_by_id', methods: ['GET'])]
+    public function apiViewOrderByUser(int $id, Security $security): JsonResponse
+    {
+        $user = $security->getUser();
+
+        if (!$user) {
+            return new JsonResponse(['error' => 'Unauthorized'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $order = $this->orderRepository->find($id);
+
+        if (!$order) {
+            return new JsonResponse([], Response::HTTP_NOT_FOUND);
+        }
+
+        if ($order->getUserId()->getId() !== $user->getId()) {
+            return new JsonResponse(['error' => 'Not found'], Response::HTTP_NOT_FOUND);
+        }
+
+        $formattedOrder = $this->formatOrder($order);
+        return new JsonResponse($formattedOrder, Response::HTTP_OK);
     }
 
     #[Route('/orders', name: 'api_create_order', methods: ['POST'])]

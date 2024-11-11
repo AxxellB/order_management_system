@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
-import '../styles/MyOrdersTab.css'
+import '../styles/MyOrdersTab.css';
 
 const MyOrdersDetailsTab = () => {
     const { id } = useParams();
@@ -11,7 +11,7 @@ const MyOrdersDetailsTab = () => {
     useEffect(() => {
         const fetchOrderDetail = async () => {
             try {
-                const response = await axios.get(`/api/order/${id}`);
+                const response = await axios.get(`/api/user-order/${id}`);
                 setOrder(response.data);
             } catch (error) {
                 setError('Failed to load order details');

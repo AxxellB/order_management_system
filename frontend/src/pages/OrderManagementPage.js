@@ -151,9 +151,10 @@ const OrderList = () => {
                                     <td>
                                         {status === 'active' ? (
                                             <>
-                                                {order.status === 'cancelled' ? (
+                                                {['cancelled', 'completed'].includes(order.status) ? (
                                                     <OverlayTrigger
-                                                        overlay={<Tooltip>Edit disabled for cancelled orders</Tooltip>}
+                                                        overlay={<Tooltip>Edit disabled for cancelled or completed
+                                                            orders</Tooltip>}
                                                     >
                                                         <button className="btn btn-secondary me-2" disabled>
                                                             Edit

@@ -44,7 +44,7 @@ const EditAddress = () => {
     };
 
     return (
-        <div className="mt-4">
+        <div className="mt-4 w-25 p-3 mx-auto">
             <h3>Edit Address</h3>
             <form onSubmit={handleEditAddress}>
                 <div className="mb-3">
