@@ -5,8 +5,8 @@ import styles from '../styles/ProductPage.module.css';
 import PlaceholderImage from '../assets/imgs/placeholder.jpg';
 import { addToBasket } from '../services/basketService';
 import { canAddToBasket } from '../services/productService';
-import {useAlert} from "../provider/AlertProvider";
-import {useAuth} from "../provider/AuthProvider";
+import { useAlert } from "../provider/AlertProvider";
+import { useAuth } from "../provider/AuthProvider";
 
 const ProductPage = () => {
     const { id } = useParams();
@@ -29,7 +29,9 @@ const ProductPage = () => {
                 setLoading(false);
             }
         };
-        fetchProduct();
+
+        const delayFetchProduct = setTimeout(  ()=> {fetchProduct() }, 50);
+        return () => { clearTimeout(delayFetchProduct); }
     }, [id]);
 
     useEffect(() => {
@@ -41,12 +43,19 @@ const ProductPage = () => {
                 console.error('Error fetching recommendations:', error);
             }
         };
-        fetchRecommendations();
+
+        const delayFetchRecomendation = setTimeout(  ()=> {fetchRecommendations() }, 100);
+        return () => { clearTimeout(delayFetchRecomendation); }
     }, [id]);
 
     const handleAddToBasket = async (productId, productName, quantity) => {
         if (!token) {
             showAlert("You must be logged in to add products to the basket.", "error");
+            return;
+        }
+
+        if (!Number.isInteger(quantity) || quantity <= 0) {
+            showAlert("Please enter a valid quantity greater than zero.", "error");
             return;
         }
 
@@ -58,15 +67,22 @@ const ProductPage = () => {
             }
             await addToBasket(productId, productName, quantity, showAlert);
         } catch (error) {
-            console.error('Error adding to basket:', error);
             showAlert("An error occurred while adding the product to the basket. Please try again.", "error");
         }
     };
 
     const getImageUrl = (imageName) => imageName ? `http://localhost/api/file/${imageName}` : PlaceholderImage;
 
-    if (loading) return <div className="text-center mt-5">Loading...</div>;
+    if (loading) return (
+        <div className="text-center mt-5">
+            <div className="spinner-border text-primary" role="status">
+                <span className="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    );
+
     if (error) return <div className="text-center text-danger mt-5">{error}</div>;
+
 
     return (
         <div className={styles.productPage}>
@@ -84,6 +100,19 @@ const ProductPage = () => {
                 <div className={styles.middleSection}>
                     <h3 className={styles.descriptionTitle}>Description</h3>
                     <p className={styles.descriptionText}>{product.description}</p>
+
+                    {product.categories && product.categories.length > 0 && (
+                        <div className={styles.categoriesSection}>
+                            <h4 className={styles.categoriesTitle}>Categories</h4>
+                            <ul className={styles.categoryList}>
+                                {product.categories.map((category) => (
+                                    <li key={category.id} className={styles.categoryItem}>
+                                        {category.name}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
                 </div>
 
                 <div className={styles.rightSection}>
@@ -120,7 +149,7 @@ const ProductPage = () => {
                 <h2 className={styles.recommendationsTitle}>You may also like</h2>
                 <div className={styles.recommendationsGrid}>
                     {recommendations.map(recProduct => (
-                        <div key={recProduct.id} className="card mb-4 shadow-sm">
+                        <div key={recProduct.id} className={`${styles.card} mb-4 shadow-sm`}>
                             <div className={styles.imageContainer}>
                                 <Link to={`/product/${recProduct.id}`} >
                                     <img
@@ -130,11 +159,11 @@ const ProductPage = () => {
                                     />
                                 </Link>
                             </div>
-                            <div className="card-body">
+                            <div className={styles.cardBody}>
                                 <Link to={`/product/${recProduct.id}`} className={styles.productTitleLink}>
-                                    <h5 className="card-title">{recProduct.name}</h5>
+                                    <h5 className={styles.cardTitle}>{recProduct.name}</h5>
                                 </Link>
-                                <p className="card-price">Price: ${Number(recProduct.price).toFixed(2)}</p>
+                                <p className={styles.cardPrice}>Price: ${Number(recProduct.price).toFixed(2)}</p>
 
                                 <div className="d-flex justify-content-end align-items-center">
                                     {product.stockQuantity > 0 ? (

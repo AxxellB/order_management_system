@@ -27,8 +27,18 @@ const Homepage = () => {
     const { token } = useAuth();
 
     useEffect(() => {
-        fetchCategories();
-        fetchProducts();
+        const delayFetchCategories = setTimeout(() => {
+            fetchCategories();
+        }, 50);
+
+        const delayFetchProducts = setTimeout(() => {
+            fetchProducts();
+        }, 100);
+
+        return () => {
+            clearTimeout(delayFetchCategories);
+            clearTimeout(delayFetchProducts);
+        };
     }, [currentPage, searchTerm, sortOption]);
 
     const fetchProducts = async () => {

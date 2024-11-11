@@ -14,7 +14,11 @@ const ProductDetails = () => {
     const { showAlert } = useAlert();
 
     useEffect(() => {
-        fetchProduct();
+        const delayFetchProduct = setTimeout(() => {
+            fetchProduct();
+        }, 50);
+
+        return () => clearTimeout(delayFetchProduct);
     }, []);
 
     const fetchProduct = async () => {
@@ -89,6 +93,22 @@ const ProductDetails = () => {
                 <tr>
                     <th>Description</th>
                     <td>{product.description}</td>
+                </tr>
+                <tr>
+                    <th>Categories</th>
+                    <td>
+                        {product.categories && product.categories.length > 0 ? (
+                            <ul className={styles.categoryList}>
+                                {product.categories.map(category => (
+                                    <li key={category.id} className={styles.categoryListItem}>
+                                        {category.name}
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <p>No categories assigned</p>
+                        )}
+                    </td>
                 </tr>
                 </tbody>
             </table>
