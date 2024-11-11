@@ -5,7 +5,6 @@ import '../styles/Checkout.css';
 import {hasAvailableQuantity} from "../services/productService";
 import {useAlert} from "../provider/AlertProvider";
 import {Spinner} from "react-bootstrap";
-import {useAuth} from "../provider/AuthProvider";
 
 const Checkout = () => {
     const [basket, setBasket] = useState([]);
@@ -42,7 +41,7 @@ const Checkout = () => {
                 setBasketLoading(false);
             }
         };
-        
+
         const delayFetch = setTimeout(fetchBasketItems, 100);
         return () => clearTimeout(delayFetch);
     }, []);
@@ -134,19 +133,20 @@ const Checkout = () => {
         }
 
         try {
-            let checkoutData = {}
+            let checkoutData = {
+                addressId: selectedAddress,
+                cardDetails
+            };
+
             if (discountCode && discountCode.percentOff && discountCode.discountCode) {
-                checkoutData = {
-                    addressId: selectedAddress,
-                    cardDetails,
-                    discountCode: discountCode.discountCode,
-                    percentOff: discountCode.percentOff
-                };
-            } else {
-                checkoutData = {
-                    addressId: selectedAddress,
-                    cardDetails
-                }
+                checkoutData.discountCode = discountCode.discountCode;
+                checkoutData.percentOff = discountCode.percentOff;
+            }
+
+            if (!checkoutData.addressId) {
+                showAlert('Please select an address.', 'error');
+                setPreventCheckout(false);
+                return;
             }
 
             await axios.post('/api/orders', checkoutData);
