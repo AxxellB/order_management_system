@@ -18,12 +18,12 @@ use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 class OrderService
 {
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
-        private readonly UserRepository         $userRepository,
-        private readonly OrderRepository        $orderRepository,
-        private readonly BasketRepository       $basketRepository,
-        private readonly BasketService          $basketService,
-        private readonly ProductRepository      $productRepository,
+        private readonly EntityManagerInterface   $entityManager,
+        private readonly UserRepository           $userRepository,
+        private readonly OrderRepository          $orderRepository,
+        private readonly BasketRepository         $basketRepository,
+        private readonly BasketService            $basketService,
+        private readonly ProductRepository        $productRepository,
         private readonly EventDispatcherInterface $eventDispatcher
     )
     {
@@ -45,7 +45,10 @@ class OrderService
 
         $basket = $user->getBasket();
         $basketProducts = $basket->getBasketProducts();
-
+        if (!$basketProducts) {
+            throw new BadRequestHttpException('Basket is empty.');
+        }
+        
         foreach ($basketProducts as $basketProduct) {
             $productPrice = $basketProduct->getProduct()->getPrice();
             $totalAmount += $basketProduct->getQuantity() * $productPrice;

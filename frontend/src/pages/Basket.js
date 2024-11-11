@@ -5,6 +5,7 @@ import {clearBasket, removeProduct, updateQuantity} from "../services/basketServ
 import {hasAvailableQuantity} from '../services/productService';
 import '../styles/Basket.css';
 import {useAlert} from "../provider/AlertProvider";
+import {Spinner} from "react-bootstrap";
 
 const Basket = () => {
     const [basket, setBasket] = useState([]);
@@ -28,13 +29,14 @@ const Basket = () => {
                 }));
                 setBasket(basketItems);
             } catch (error) {
-                console.error('Error fetching basket:', error);
+                showAlert('Error fetching basket! Please try again', "error");
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchBasket();
+        const delayFetch = setTimeout(fetchBasket, 100);
+        return () => clearTimeout(delayFetch);
     }, []);
 
     useEffect(() => {
@@ -55,28 +57,31 @@ const Basket = () => {
 
         const product = basket.find(item => item.product.id === productId).product;
         const stockQuantity = await hasAvailableQuantity(product.id, newQuantity);
-
-        if (stockQuantity !== null) {
-            await updateQuantity(productId, stockQuantity);
-            setBasket((prevBasket) => {
-                return prevBasket.map((item) => {
-                    if (item.product.id === productId) {
-                        return {...item, quantity: stockQuantity, stockWarning: true};
-                    }
-                    return item;
+        try {
+            if (stockQuantity !== null) {
+                await updateQuantity(productId, stockQuantity);
+                setBasket((prevBasket) => {
+                    return prevBasket.map((item) => {
+                        if (item.product.id === productId) {
+                            return {...item, quantity: stockQuantity, stockWarning: true};
+                        }
+                        return item;
+                    });
                 });
-            });
-            showAlert("New quantity exceeds stock quantity", "error");
-        } else {
-            await updateQuantity(productId, newQuantity);
-            setBasket((prevBasket) => {
-                return prevBasket.map((item) => {
-                    if (item.product.id === productId) {
-                        return {...item, quantity: newQuantity, stockWarning: false};
-                    }
-                    return item;
+                showAlert("New quantity exceeds stock quantity", "error");
+            } else {
+                await updateQuantity(productId, newQuantity);
+                setBasket((prevBasket) => {
+                    return prevBasket.map((item) => {
+                        if (item.product.id === productId) {
+                            return {...item, quantity: newQuantity, stockWarning: false};
+                        }
+                        return item;
+                    });
                 });
-            });
+            }
+        } catch (error) {
+            showAlert('Error updating quantity! Please try again', "error");
         }
     };
 
@@ -95,8 +100,7 @@ const Basket = () => {
             });
             showAlert("Product removed successfully!", "success");
         } catch (error) {
-            console.error(error);
-            showAlert("An error occurred while removing a product! Please try again", error);
+            showAlert("An error occurred while removing a product! Please try again", "error");
         }
 
     };
@@ -108,8 +112,7 @@ const Basket = () => {
             setTotalPrice(0);
             showAlert("Basket cleared successfully!", "success");
         } catch (error) {
-            console.error(error);
-            showAlert("An error occurred while clearing basket! Please try again", error);
+            showAlert("An error occurred while clearing basket! Please try again", "error");
         }
     };
 
@@ -120,9 +123,10 @@ const Basket = () => {
     return (
         <div className="basket-container mt-4 mb-4">
             <h1 className="basket-title">Your Basket</h1>
-
             {loading ? (
-                <div className="loading">Loading...</div>
+                <div className="text-center mt-5">
+                    <Spinner animation="border" variant="primary"/>
+                </div>
             ) : (
                 basket && basket.length > 0 ? (
                     <>

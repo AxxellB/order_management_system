@@ -5,7 +5,6 @@ import 'bootstrap/dist/js/bootstrap.bundle.min';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import AuthProvider from "./provider/AuthProvider";
 import Routes from "./routes";
-import {AlertProvider} from "./provider/AlertProvider";
 import Alert from "./components/Alert";
 
 
