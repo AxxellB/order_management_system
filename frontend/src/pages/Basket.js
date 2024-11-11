@@ -1,19 +1,21 @@
-import React, {useState, useEffect} from 'react';
-import {useNavigate} from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from "axios";
-import {clearBasket, removeProduct, updateQuantity} from "../services/basketService";
-import {hasAvailableQuantity} from '../services/productService';
+import { clearBasket, removeProduct, updateQuantity } from "../services/basketService";
+import { hasAvailableQuantity } from '../services/productService';
 import '../styles/Basket.css';
-import {useAlert} from "../provider/AlertProvider";
-import {Spinner} from "react-bootstrap";
+import { useAlert } from "../provider/AlertProvider";
+import { Spinner } from "react-bootstrap";
 
 const Basket = () => {
     const [basket, setBasket] = useState([]);
+    const [bufferedQuantities, setBufferedQuantities] = useState({});
     const [totalPrice, setTotalPrice] = useState(0);
     const [loading, setLoading] = useState(true);
-    const {showAlert} = useAlert();
-
+    const { showAlert } = useAlert();
     const navigate = useNavigate();
+
+    const bufferTimeoutRef = useRef({}); // Stores timeout for each product
 
     useEffect(() => {
         const fetchBasket = async () => {
@@ -23,9 +25,9 @@ const Basket = () => {
                     const stockQuantity = await hasAvailableQuantity(item.product.id, item.quantity);
                     if (stockQuantity !== null) {
                         await updateQuantity(item.product.id, stockQuantity);
-                        return {...item, quantity: stockQuantity, stockWarning: true};
+                        return { ...item, quantity: stockQuantity, stockWarning: true };
                     }
-                    return {...item, stockWarning: false};
+                    return { ...item, stockWarning: false };
                 }));
                 setBasket(basketItems);
             } catch (error) {
@@ -47,38 +49,53 @@ const Basket = () => {
         setTotalPrice(parseFloat(total.toFixed(2)));
     }, [basket]);
 
-    const handleQuantityChange = async (e, productId) => {
+    const handleQuantityChange = (e, productId) => {
         const inputQuantity = e.target.value;
         const newQuantity = parseInt(inputQuantity, 10);
 
-        if (isNaN(newQuantity) || newQuantity < 1) {
-            return;
+        if (isNaN(newQuantity) || newQuantity < 1) return;
+
+        setBufferedQuantities((prev) => ({ ...prev, [productId]: newQuantity }));
+
+        if (bufferTimeoutRef.current[productId]) {
+            clearTimeout(bufferTimeoutRef.current[productId]);
         }
 
+        bufferTimeoutRef.current[productId] = setTimeout(() => {
+            commitQuantityChange(productId, newQuantity);
+        }, 300);
+    };
+
+    const commitQuantityChange = async (productId, quantity) => {
         const product = basket.find(item => item.product.id === productId).product;
-        const stockQuantity = await hasAvailableQuantity(product.id, newQuantity);
+        const stockQuantity = await hasAvailableQuantity(product.id, quantity);
+
         try {
             if (stockQuantity !== null) {
                 await updateQuantity(productId, stockQuantity);
-                setBasket((prevBasket) => {
-                    return prevBasket.map((item) => {
-                        if (item.product.id === productId) {
-                            return {...item, quantity: stockQuantity, stockWarning: true};
-                        }
-                        return item;
-                    });
-                });
+                setBasket((prevBasket) =>
+                    prevBasket.map((item) =>
+                        item.product.id === productId
+                            ? { ...item, quantity: stockQuantity, stockWarning: true }
+                            : item
+                    )
+                );
+
+                setBufferedQuantities((prev) => ({
+                    ...prev,
+                    [productId]: stockQuantity
+                }));
+
                 showAlert("New quantity exceeds stock quantity", "error");
             } else {
-                await updateQuantity(productId, newQuantity);
-                setBasket((prevBasket) => {
-                    return prevBasket.map((item) => {
-                        if (item.product.id === productId) {
-                            return {...item, quantity: newQuantity, stockWarning: false};
-                        }
-                        return item;
-                    });
-                });
+                await updateQuantity(productId, quantity);
+                setBasket((prevBasket) =>
+                    prevBasket.map((item) =>
+                        item.product.id === productId
+                            ? { ...item, quantity: quantity, stockWarning: false }
+                            : item
+                    )
+                );
             }
         } catch (error) {
             showAlert('Error updating quantity! Please try again', "error");
@@ -102,7 +119,6 @@ const Basket = () => {
         } catch (error) {
             showAlert("An error occurred while removing a product! Please try again", "error");
         }
-
     };
 
     const handleClearBasket = async () => {
@@ -143,7 +159,7 @@ const Basket = () => {
                                     <input
                                         type="number"
                                         name="quantity"
-                                        value={item.quantity}
+                                        value={bufferedQuantities[item.product.id] ?? item.quantity}
                                         min="1"
                                         onChange={(e) => handleQuantityChange(e, item.product.id)}
                                         className="quantity-input"

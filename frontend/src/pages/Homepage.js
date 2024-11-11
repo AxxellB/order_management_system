@@ -72,7 +72,8 @@ const Homepage = () => {
             const response = await axios.get('http://localhost/api/categories/list?filter=true');
             setCategories(response.data.categories);
         } catch (error) {
-            console.error('Error fetching categories:', error);
+            showAlert("Error fetching categories. Please try again.", "error");
+
         }
     };
 
@@ -112,7 +113,6 @@ const Homepage = () => {
             }
             await addToBasket(productId, productName, quantity, showAlert);
         } catch (error) {
-            console.error('Error adding to basket:', error);
             showAlert("An error occurred while adding the product to the basket. Please try again.", "error");
         }
     };
