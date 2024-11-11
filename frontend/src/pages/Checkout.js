@@ -116,13 +116,21 @@ const Checkout = () => {
         let errors = [];
 
         for (const item of basket) {
+            if (item.quantity === 0) {
+                errors.push({
+                    productId: item.product.id,
+                    productName: item.product.name,
+                    message: 'Quantity cannot be 0.'
+                });
+                continue;
+            }
+
             const availableQuantity = await hasAvailableQuantity(item.product.id, item.quantity);
             if (availableQuantity !== null) {
                 errors.push({
                     productId: item.product.id,
                     productName: item.product.name,
-                    availableQuantity,
-                    userQuantity: item.quantity
+                    message: `Only ${availableQuantity} units available. You've requested ${item.quantity}.`
                 });
             }
         }
@@ -201,10 +209,9 @@ const Checkout = () => {
                             <p className="product-details">
                                 Quantity: {item.quantity} | Price: ${item.product.price}
                             </p>
-                            {error && (
+                            {error && error.message && (
                                 <p className="stock-error" style={{color: 'red'}}>
-                                    Only {error.availableQuantity} units available. You've
-                                    requested {error.userQuantity}.
+                                    {error.message}
                                 </p>
                             )}
                         </div>

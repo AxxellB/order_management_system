@@ -16,7 +16,9 @@ const AddressTab = () => {
                 const fetchedAddresses = await getAddresses();
                 setAddresses(fetchedAddresses);
             } catch (error) {
-                showAlert('Failed to load addresses', "error");
+                if (!error.status == 404) {
+                    showAlert('Failed to load addresses', "error");
+                }
             } finally {
                 setLoading(false);
             }
