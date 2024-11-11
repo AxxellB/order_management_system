@@ -50,6 +50,7 @@ const RegisterForm = () => {
                 .then(function (response) {
                     if (response.status === 201) {
                         navigate('/login');
+                        showAlert("Registration successful", "success");
                     }
                 })
                 .catch(function (error) {
