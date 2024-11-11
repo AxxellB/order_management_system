@@ -118,7 +118,7 @@
     transition: opacity 0.3s ease;
 }
 
-.imageHover:hover .editOverlay {
+.imageContainer:hover .editOverlay {
     opacity: 1;
 }
 
