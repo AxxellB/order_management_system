@@ -23,7 +23,6 @@ const TotalRevenue = ({startDate, endDate}) => {
                     setTotalRevenueChart(trendData.revenueTrend || []);
                 } catch (err) {
                     setError('Failed to load total revenue or trend data.');
-                    console.error(err);
                 } finally {
                     setLoading(false);
                 }
