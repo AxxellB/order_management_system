@@ -38,17 +38,6 @@ const TotalRevenue = ({startDate, endDate}) => {
         value: data.revenue,
     }));
 
-    const revenueValues = transformedData.map(item => item.value);
-    const minRevenue = revenueValues.length ? Math.min(...revenueValues) : 0;
-    const maxRevenue = revenueValues.length ? Math.max(...revenueValues) : 1;
-
-    const yAxisDomain = [
-        minRevenue * 0.8,
-        maxRevenue > minRevenue * 10
-            ? maxRevenue * 1.1
-            : Math.ceil(maxRevenue * 1.2)
-    ];
-
     return (
         <div>
             <h2>Total Revenue</h2>
@@ -78,12 +67,7 @@ const TotalRevenue = ({startDate, endDate}) => {
                                     dataKey="name"
                                     tickFormatter={(tick) => new Date(tick).toLocaleDateString()}
                                 />
-                                <YAxis
-                                    domain={yAxisDomain}
-                                    tickFormatter={(value) => `$${value.toLocaleString()}`}
-                                    scale="log"
-                                    allowDataOverflow
-                                />
+                                <YAxis tickFormatter={(value) => `$${value.toFixed(2)}`}/>
                                 <Tooltip formatter={(value) => `$${value.toFixed(2)}`}/>
                                 <Area type="monotone" dataKey="value" stroke="#8884d8" fill="#8884d8"/>
                             </AreaChart>

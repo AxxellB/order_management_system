@@ -160,7 +160,7 @@ const EditOrderForm = ({
 
         } catch (error) {
             showAlert('Error updating order:', "error");
-            setError('You cannot modify this order because the status is completed');
+            setError('There was an error updating the order.');
         }
     };
 
