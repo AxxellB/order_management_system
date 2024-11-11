@@ -1,14 +1,17 @@
 .alert {
     position: fixed;
-    top: 70px;
-    right: -6%;
-    transform: translateX(-50%);
+    top: 90px;
+    right: 40px;
     padding: 1em;
     color: white;
+    background-color: #333;
     border-radius: 5px;
     z-index: 1000;
-    max-width: 80%;
+    max-width: 300px;
+    width: auto;
     text-align: center;
+    box-sizing: border-box;
+    word-wrap: break-word;
 }
 
 .alert-info {
