@@ -16,6 +16,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Serializer\SerializerInterface;
 use App\Service\FileStorageService;
 
+
 #[Route('/api/products')]
 class ProductController extends AbstractController
 {

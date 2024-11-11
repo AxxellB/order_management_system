@@ -6,6 +6,7 @@ import styles from '../styles/EditProduct.module.css';
 
 const EditProduct = () => {
     const { id } = useParams();
+    const [productName, setProductName] = useState('');
     const [formData, setFormData] = useState({
         name: '',
         price: '',
@@ -20,19 +21,17 @@ const EditProduct = () => {
 
     useEffect(() => {
         const delayFetchProduct = setTimeout(() => {
-            fetchProduct()
+            fetchProduct();
         }, 50);
 
         const delayFetchCategories = setTimeout(() => {
-            fetchCategories()
+            fetchCategories();
         }, 100);
 
         return () => {
             clearTimeout(delayFetchProduct);
-
             clearTimeout(delayFetchCategories);
         };
-
     }, []);
 
     const fetchProduct = async () => {
@@ -42,6 +41,7 @@ const EditProduct = () => {
                 ...response.data,
                 categories: response.data.categories.map(category => category.id)
             });
+            setProductName(response.data.name);
             setLoading(false);
         } catch (err) {
             showAlert("Error fetching product data", "error");
@@ -80,19 +80,40 @@ const EditProduct = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const { categories, name, price, description } = formData;
-        const preparedData = { categories, name, price, description };
+
+        const validationErrors = {};
+        if (!formData.name.trim()) validationErrors.name = 'Name is required.';
+        if (!formData.price || isNaN(formData.price) || parseFloat(formData.price) <= 0) {
+            validationErrors.price = 'Please enter a valid price.';
+        }
+        if (formData.categories.length === 0) {
+            validationErrors.categories = 'Please select at least one category.';
+        }
+
+        if (Object.keys(validationErrors).length > 0) {
+            setErrors(validationErrors);
+            showAlert('Please check your inputs again.', "error");
+            return;
+        }
+
+        const preparedData = {
+            categories: formData.categories,
+            name: formData.name,
+            price: formData.price,
+            description: formData.description || ''
+        };
 
         try {
             await axios.put(`http://localhost/api/products/${id}`, preparedData);
             showAlert('Product updated successfully', "success");
             navigate('/admin/products');
         } catch (error) {
-            if (error.response && error.response.data) {
-                showAlert(`Server validation errors: ${error.response.data.errors}`, "error");
-                setErrors(error.response.data.errors || {});
+            if (error.response && error.response.status === 400) {
+                const serverErrors = error.response.data.errors || {};
+                setErrors(serverErrors);
+                showAlert('Please check your inputs again.', "error");
             } else {
-                showAlert(`Unexpected error: ${error}`, "error");
+                showAlert(`Oops, we encountered an unexpected error!`, "error");
             }
         }
     };
@@ -109,7 +130,7 @@ const EditProduct = () => {
 
     return (
         <div className={styles.container}>
-            <h1 className={styles.title}>Edit Product: {formData.name}</h1>
+            <h1 className={styles.title}>Edit Product: {productName}</h1>
             <button onClick={() => navigate(-1)} className={styles.backButton}>Back</button>
             <form onSubmit={handleSubmit}>
                 <div className={styles.formGroup}>

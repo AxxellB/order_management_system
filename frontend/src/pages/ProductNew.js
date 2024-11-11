@@ -58,8 +58,28 @@ const NewProduct = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const { categories, name, price, description } = formData;
-        const preparedData = { categories, name, price, description };
+
+        const validationErrors = {};
+        if (!formData.name.trim()) validationErrors.name = 'Name is required.';
+        if (!formData.price || isNaN(formData.price) || parseFloat(formData.price) <= 0) {
+            validationErrors.price = 'Please enter a valid price.';
+        }
+        if (formData.categories.length === 0) {
+            validationErrors.categories = 'Please select at least one category.';
+        }
+
+        if (Object.keys(validationErrors).length > 0) {
+            setErrors(validationErrors);
+            showAlert('Please check your inputs again.', "error");
+            return;
+        }
+
+        const preparedData = {
+            categories: formData.categories,
+            name: formData.name,
+            price: formData.price,
+            description: formData.description || ''
+        };
 
         try {
             await axios.post('http://localhost/api/products/new', preparedData);
@@ -67,10 +87,10 @@ const NewProduct = () => {
             navigate('/admin/products');
         } catch (error) {
             if (error.response && error.response.data) {
-                showAlert("Product could not be created! Please try again", "error");
+                showAlert("Product could not be created! Please try again.", "error");
                 setErrors(error.response.data.errors || {});
             } else {
-                showAlert("Unexpected error:", "error");
+                showAlert("Oops, we encountered an unexpected error!", "error");
             }
         }
     };
@@ -112,7 +132,6 @@ const NewProduct = () => {
                         className={styles.formInput}
                         step="0.01"
                         min="0.00"
-                        max="99999999.99"
                     />
                     {errors.price && <div className={styles.errorMessage}>{errors.price}</div>}
                 </div>
