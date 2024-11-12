@@ -32,4 +32,10 @@
 /config/jwt/*.pem
 ###< lexik/jwt-authentication-bundle ###
 
+### order invoices ###
 /public/invoices
+### order invoices ###
+
+### phpunit/code-coverage ###
+/coverage-report
+### phpunit/code-coverage ###
