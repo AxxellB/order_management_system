@@ -83,8 +83,8 @@ class OrderService
             $orderProduct->setOrderEntity($order);
             $orderProduct->setProductEntity($currentProduct);
             $orderProduct->setQuantity($basketProduct->getQuantity());
-            $orderProduct->setPricePerUnit($productPrice);
-            $orderProduct->setSubtotal($basketProduct->getQuantity() * $productPrice);
+            $orderProduct->setPricePerUnit($basketProduct->getProduct()->getPrice());
+            $orderProduct->setSubtotal($basketProduct->getQuantity() * $basketProduct->getProduct()->getPrice());
             $this->entityManager->persist($orderProduct);
 
             $order->addOrderProduct($orderProduct);
