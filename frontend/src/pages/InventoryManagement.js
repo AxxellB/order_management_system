@@ -19,7 +19,7 @@ const InventoryManagement = () => {
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalItems, setTotalItems] = useState(0);
-    const itemsPerPage = 3;
+    const itemsPerPage = 5;
     const [searchTerm, setSearchTerm] = useState("");
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");

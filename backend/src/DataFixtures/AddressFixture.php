@@ -13,10 +13,10 @@ class AddressFixture extends Fixture implements DependentFixtureInterface
     {
 
         $address = new Address();
-        $address->setLine('Meden Dol 2');
-        $address->setCity('Karlovo');
+        $address->setLine('bul. Iztochen 6');
+        $address->setCity('Plovdiv');
         $address->setCountry('Bulgaria');
-        $address->setPostcode('4300');
+        $address->setPostcode('4000');
         $address->setUser($this->getReference('user'));
         $manager->persist($address);
         $this->addReference('address1', $address);

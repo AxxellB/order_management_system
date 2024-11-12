@@ -21,7 +21,7 @@ class UserFixture extends Fixture
         $manager->persist($user);
 
         $user2 = new User();
-        $user2->setFirstName('Angel');
+        $user2->setFirstName('Admin');
         $user2->setLastName('Angelov');
         $user2->setEmail('admin@gmail.com');
         $user2->setRoles(['ROLE_ADMIN']);
