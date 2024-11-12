@@ -4,9 +4,12 @@ namespace App\Tests\Entity;
 
 use App\Entity\Order;
 use App\Entity\OrderProduct;
+use App\Entity\OrderHistoryLogs;
 use App\Entity\User;
+use App\Entity\Address;
 use App\Enum\OrderStatus;
 use PHPUnit\Framework\TestCase;
+use Doctrine\Common\Collections\Collection;
 
 class OrderTest extends TestCase
 {
@@ -34,16 +37,6 @@ class OrderTest extends TestCase
         $order->setTotalAmount($totalAmount);
 
         $this->assertSame($totalAmount, $order->getTotalAmount());
-    }
-
-    public function testSetAndGetDeliveryAddress(): void
-    {
-        $order = new Order();
-        $address = '123 Kamenitza Plovdiv';
-
-        $order->setDeliveryAddress($address);
-
-        $this->assertSame($address, $order->getDeliveryAddress());
     }
 
     public function testSetAndGetPaymentMethod(): void
@@ -96,6 +89,66 @@ class OrderTest extends TestCase
         $this->assertSame($orderProduct, $order->getOrderProducts()->first());
 
         $order->removeOrderProduct($orderProduct);
+        $this->assertCount(0, $order->getOrderProducts());
+    }
+
+    public function testSetAndGetAddress(): void
+    {
+        $order = new Order();
+        $address = new Address();
+
+        $order->setAddress($address);
+
+        $this->assertSame($address, $order->getAddress());
+
+        $order->setAddress(null);
+        $this->assertNull($order->getAddress());
+    }
+
+    public function testAddAndRemoveOrderHistoryLog(): void
+    {
+        $order = new Order();
+        $orderHistoryLog = $this->createMock(OrderHistoryLogs::class);
+
+        $order->addOrderHistoryLog($orderHistoryLog);
+        $this->assertCount(1, $order->getOrderHistoryLogs());
+        $this->assertSame($orderHistoryLog, $order->getOrderHistoryLogs()->first());
+
+        $order->removeOrderHistoryLog($orderHistoryLog);
+        $this->assertCount(0, $order->getOrderHistoryLogs());
+    }
+
+    public function testSetAndGetDiscountCode(): void
+    {
+        $order = new Order();
+        $discountCode = 'SAVE20';
+
+        $order->setDiscountCode($discountCode);
+
+        $this->assertSame($discountCode, $order->getDiscountCode());
+    }
+
+    public function testSetAndGetDiscountPercentOff(): void
+    {
+        $order = new Order();
+        $discountPercentOff = 15.5;
+
+        $order->setDiscountPercentOff($discountPercentOff);
+
+        $this->assertSame($discountPercentOff, $order->getDiscountPercentOff());
+    }
+
+    public function testOrderHistoryLogsInitialization(): void
+    {
+        $order = new Order();
+        $this->assertInstanceOf(Collection::class, $order->getOrderHistoryLogs());
+        $this->assertCount(0, $order->getOrderHistoryLogs());
+    }
+
+    public function testOrderProductsInitialization(): void
+    {
+        $order = new Order();
+        $this->assertInstanceOf(Collection::class, $order->getOrderProducts());
         $this->assertCount(0, $order->getOrderProducts());
     }
 }
